@@ -24,9 +24,12 @@ of consumer product vs developer showcase is noted and does not foreclose either
 
 ## Layer 1 — Domain baseline (no CaseHub foundation)
 
-**Status:** Pending
+**Status:** Complete
 **Issue:** casehubio/life#2
-**Navigation:** `git log --grep="#2" --oneline` (fill in at layer close)
+**Navigation:** `git log --grep="#2" --oneline`
+→ c43e2cf feat(#2): Layer 1 domain baseline — entities, REST, tests, migrations
+→ 9fa2146 docs(#2): Layer 1 domain baseline spec
+→ 38f3efb docs(#2): update LAYER-LOG.md — domain baseline terminology, accountability gaps table, navigation lines
 
 ### What it shows
 
@@ -51,22 +54,38 @@ These gaps are what the subsequent layers close, one foundation module at a time
 | No formal obligation | "Pick up kids at 3:30" has no required RESPONSE, no Watchdog | Layer 3 (casehub-qhorus) |
 | No escalation path | Missed task sits silently — no automatic notification or escalation | Layer 2 (casehub-work) |
 
-### Key files (planned)
+### Key files
 
+**api/ — pure Java, zero framework:**
 - `api/src/main/java/io/casehub/life/api/LifeDomain.java` — enum: HOUSEHOLD, HEALTH, FINANCE, FAMILY_SCHEDULING, TRAVEL, LEGAL, CONTRACTOR_COORDINATION, ELDER_CARE
-- `api/src/main/java/io/casehub/life/api/LifeCapabilities.java` — capability tag constants
-- `api/src/main/java/io/casehub/life/api/LifeTrustDimensions.java` — trust dimension constants
-- `api/src/main/java/io/casehub/life/api/ActorType.java` — AI_AGENT, HOUSEHOLD_PRINCIPAL, EXTERNAL_HUMAN
-- `api/src/main/java/io/casehub/life/api/model/` — enums: HouseholdTaskStatus, LifeGoalStatus, ExternalActorType
-- `app/src/main/java/io/casehub/life/entity/HouseholdTask.java` — task: domain, title, description, deadline, slaHours, status, assignedTo
-- `app/src/main/java/io/casehub/life/entity/LifeGoal.java` — goal: domain, title, targetDate, status
-- `app/src/main/java/io/casehub/life/entity/LifeEvent.java` — event: domain, title, occurredAt, description
-- `app/src/main/java/io/casehub/life/entity/ExternalActor.java` — contractor/doctor: name, contactMethod, contactValue, type
-- `app/src/main/java/io/casehub/life/service/HouseholdTaskService.java` — createTask, listTasks, completeTask
-- `app/src/main/java/io/casehub/life/service/ExternalActorService.java` — register, list
-- `app/src/main/java/io/casehub/life/resource/HouseholdTaskResource.java` — POST/GET /tasks
-- `app/src/main/java/io/casehub/life/resource/LifeGoalResource.java` — POST/GET /goals
-- `app/src/test/java/io/casehub/life/ShowcaseScenarioTest.java` — household week @QuarkusTest narrative
+- `api/src/main/java/io/casehub/life/api/LifeCapabilities.java` — String capability tag constants (household-management, health-coordination, etc.)
+- `api/src/main/java/io/casehub/life/api/LifeTrustDimensions.java` — String trust dimension constants (deadline-reliability, cost-accuracy, etc.)
+- `api/src/main/java/io/casehub/life/api/LifeActorType.java` — enum: AI_AGENT, HOUSEHOLD_PRINCIPAL, EXTERNAL_HUMAN (named `LifeActorType` to avoid collision with `io.casehub.platform.api.identity.ActorType`)
+- `api/src/main/java/io/casehub/life/api/model/HouseholdTaskStatus.java` — PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+- `api/src/main/java/io/casehub/life/api/model/LifeGoalStatus.java` — ACTIVE, PAUSED, COMPLETED, ABANDONED
+
+**app/ — Quarkus Panache Active Record:**
+- `app/src/main/java/io/casehub/life/app/entity/ExternalActor.java` — id (UUID), name, actorType, contactMethod, contactValue, createdAt
+- `app/src/main/java/io/casehub/life/app/entity/HouseholdTask.java` — id, domain, title, description, deadline, slaHours (Integer nullable), status, assignedTo (String, opaque), externalActorId (UUID nullable, no @ManyToOne), recurrence, createdAt, updatedAt
+- `app/src/main/java/io/casehub/life/app/entity/LifeGoal.java` — id, domain, title, description, targetDate, status, createdAt, updatedAt
+- `app/src/main/java/io/casehub/life/app/entity/LifeEvent.java` — id, domain, title, description, occurredAt, createdAt (no updatedAt — events are immutable)
+- `app/src/main/java/io/casehub/life/app/service/HouseholdTaskService.java` — create, findById, list (4 filters), update, delete (throws NotFoundException)
+- `app/src/main/java/io/casehub/life/app/service/ExternalActorService.java` — create, findById, list, update, delete (throws 409 if tasks reference actor), listTasks
+- `app/src/main/java/io/casehub/life/app/service/LifeGoalService.java`, `LifeEventService.java` — standard CRUD
+- `app/src/main/java/io/casehub/life/app/resource/ExternalActorResource.java` — @Blocking @ApplicationScoped, CRUD + /tasks sub-resource (GET /external-actors/{id}/tasks)
+- `app/src/main/java/io/casehub/life/app/resource/HouseholdTaskResource.java` — @Blocking @ApplicationScoped, CRUD + list filters
+- `app/src/main/java/io/casehub/life/app/resource/LifeGoalResource.java`, `LifeEventResource.java` — @Blocking @ApplicationScoped (LifeEvent has no PUT)
+
+**Migrations (V100–V103):**
+- `app/src/main/resources/db/migration/V100__create_external_actor.sql`
+- `app/src/main/resources/db/migration/V101__create_household_task.sql`
+- `app/src/main/resources/db/migration/V102__create_life_goal.sql`
+- `app/src/main/resources/db/migration/V103__create_life_event.sql`
+
+**Tests (51 total):**
+- `app/src/test/java/io/casehub/life/app/ShowcaseScenarioTest.java` — household week @QuarkusTest narrative (6 ordered methods, state carries between methods)
+- `app/src/test/java/io/casehub/life/app/*ResourceTest.java` — REST CRUD + filter + 404/409 coverage
+- `api/src/test/java/io/casehub/life/api/*Test.java` — pure-Java enum/constant validation
 
 ### Architectural decisions
 
@@ -74,15 +93,21 @@ These gaps are what the subsequent layers close, one foundation module at a time
 - **`slaHours` in Layer 1** — declared on `HouseholdTask` even though nothing enforces it until Layer 2. Correct domain modelling: a household task has an expected SLA whether or not the platform enforces it.
 - **`ExternalActor` is life-specific** — not in casehub-qhorus-api. The actor model spec left this open; Layer 1 resolves it as a life-domain entity. Layers 2-3 add Qhorus commitment tracking against it.
 - **`api/` is domain vocabulary only** — enums, constants, value records. No service interfaces. The api/app split follows the hexagonal pattern from AML and clinical.
+- **`LifeActorType` not `ActorType`** — `io.casehub.platform.api.identity.ActorType` (HUMAN/AGENT/SYSTEM) is on the classpath once foundation modules activate. Naming conflict resolved at Layer 1 to avoid import collisions in later layers.
+- **`externalActorId` as raw UUID, no `@ManyToOne`** — consistent with clinical (`AdverseEvent.enrollmentId`). Avoids cascade decisions and ORM entanglement before the Store SPI pattern is introduced in Layer 2. A future FK constraint can be added as a Flyway migration without touching entity code.
+- **No DB FK constraint on `household_task.external_actor_id`** — the 409 guard lives in `ExternalActorService.delete()` within a single `@Transactional` boundary, preventing orphan UUIDs without needing a DB-level FK.
+- **H2 drop-and-create in tests, not Flyway** — `casehub-engine-persistence-hibernate` puts `V1.0.0__Create_Quartz_Tables.sql` at `classpath:db/migration`, which Flyway interprets as the same version as casehub-work's `V1__initial_schema.sql`. Running Flyway in tests causes "found more than one migration with version 1" failure. Solution: `database.generation=drop-and-create` for both PUs in test config, matching clinical's validated pattern.
 
 ### Pattern to replicate
 
 1. Create `api/` — pure Java, zero framework, zero JPA. Domain enums and constants only.
-2. Define `LifeDomain` enum — each domain scopes a permission boundary and routing context.
-3. Create `app/` — Quarkus Panache Active Record entities for each core entity type.
-4. Flyway migrations V100–V199 (casehub-work owns V1–V21+; ledger owns V1000–V1007).
-5. Write a `@QuarkusTest ShowcaseScenarioTest` that narrates a full household week: task created, contractor engaged, appointment booked — showing the accountability gaps in sequence.
-6. Unit-test stateless domain logic (status transitions, validation) in pure Java without Quarkus.
+2. Define a `LifeDomain`-equivalent enum — each domain scopes a permission boundary and routing context.
+3. Create `app/` — Quarkus Panache Active Record entities for each core entity type. Cross-entity references as raw UUID columns (no `@ManyToOne`).
+4. Flyway migrations in `app/src/main/resources/db/migration/` at V100+ (casehub-work owns V1–V21+; ledger owns V1000–V1007). Migrations run in production; tests use `database.generation=drop-and-create`.
+5. REST resources must be `@Blocking @ApplicationScoped` — quarkus-rest (RESTEasy Reactive) runs on the I/O thread; JDBC Panache blocks without `@Blocking`. `@Transactional` belongs on service methods only, not on resource methods.
+6. Test `application.properties`: two H2 datasources (default + qhorus), both with `drop-and-create`. Suppress reactive with `quarkus.datasource.reactive=false` for both. Exclude CDI conflicts (JpaWorkloadProvider, connector beans). Index engine jars explicitly.
+7. Write a `@QuarkusTest @TestMethodOrder` ShowcaseScenarioTest that narrates a full domain week showing the accountability gaps in sequence. Gap commentary goes in LAYER-LOG.md, not in test code.
+8. Unit-test stateless domain logic (enum values, constant uniqueness) in pure Java without Quarkus.
 
 ---
 
