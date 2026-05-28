@@ -8,7 +8,9 @@ import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,13 +56,17 @@ public class ExternalActorService {
     public void delete(final UUID id) {
         final ExternalActor actor = ExternalActor.<ExternalActor>findByIdOptional(id)
                 .orElseThrow(NotFoundException::new);
-        // LifeTaskContext referential integrity check enabled in Task 5 once entity is mapped.
+        final long referencingTasks = LifeTaskContext.count("externalActorId", id);
+        if (referencingTasks > 0) {
+            throw new ClientErrorException(
+                    "ExternalActor is referenced by " + referencingTasks + " task(s)",
+                    Response.Status.CONFLICT);
+        }
         actor.delete();
     }
 
     public List<LifeTaskContext> listTasks(final UUID actorId) {
-        // LifeTaskContext query enabled in Task 5 once entity is mapped.
-        return List.of();
+        return LifeTaskContext.list("externalActorId", actorId);
     }
 
     private ExternalActorResponse toResponse(final ExternalActor actor) {
