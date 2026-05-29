@@ -121,6 +121,8 @@ These gaps are what the subsequent layers close, one foundation module at a time
 
 **Status:** Complete  
 **Completed:** 2026-05-27
+**Issue:** casehubio/life#3
+**Navigation:** `git log --grep="#3" --oneline`
 
 ### Summary
 
@@ -173,12 +175,6 @@ casehub-work WorkItems are created alongside `LifeTaskContext` supplements when 
 3. Implement `SlaBreachPolicy` using stateless tier detection via `candidateGroups` (GE-20260522-f7db12). Do NOT allow callers to set `candidateGroups` — the policy's tier detection depends on template groups being the only initial groups.
 4. In tests: re-enable `ExpiryLifecycleService` in CDI, inject it, call `checkExpired()` directly with past-deadline WorkItems to verify breach fires without scheduler dependency.
 
-### Navigation
-
-```bash
-git log --grep="#3" --oneline
-```
-
 ---
 
 ## Layer 3 — + casehub-qhorus (commitment lifecycle)
@@ -186,6 +182,7 @@ git log --grep="#3" --oneline
 **Status:** Complete
 **Completed:** 2026-05-29
 **Issue:** casehubio/life#4
+**Navigation:** `git log --grep="#4" --oneline`
 
 ### Summary
 
@@ -242,18 +239,6 @@ casehub-qhorus is adopted for formal COMMAND/RESPONSE commitment tracking across
 - `LifeCommitmentService#applyCommitment()` — XOR validation + strategy dispatch
 - `OversightGateStrategy#execute()` — deferred WorkItem creation pattern
 - `LifeOversightResponseObserver#onMessage()` — RESPONSE-to-WorkItem bridge
-
-### Navigation
-
-```bash
-git log --grep="#4" --oneline
-```
-
-### Open follow-up
-
-- life#17 — `LifeWatchdogAlertObserver` escalation path needs integration test + Watchdog state isolation between @QuarkusTest classes
-- life#18 — REST resource consistency (@Produces/@Consumes on all resources, 201 for commitment creation)
-- life#16 — `docs/specs/life-automation.md` layer table is stale (wrong layer ordering)
 
 ---
 
