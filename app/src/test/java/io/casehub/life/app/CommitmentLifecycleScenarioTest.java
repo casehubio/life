@@ -111,7 +111,7 @@ class CommitmentLifecycleScenarioTest {
                         """.formatted(bobActorId, deadline))
                 .when().post("/life-tasks/{id}/commit", boilerTaskId)
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("mode", equalTo("CONTRACTOR"))
                 .body("status", equalTo("PENDING_RESPONSE"))
                 .extract().path("correlationId");
@@ -148,7 +148,7 @@ class CommitmentLifecycleScenarioTest {
                         {"delegateTo":"charlie","deadline":"%s"}
                         """.formatted(pastDeadline))
                 .when().post("/life-tasks/{id}/commit", pickupTaskId)
-                .then().statusCode(200);
+                .then().statusCode(201);
 
         // Commitment is in PENDING_RESPONSE with a past deadline — this is the condition that
         // triggers the Watchdog alert. evaluateAll() fires the WatchdogAlertEvent asynchronously.
@@ -182,7 +182,7 @@ class CommitmentLifecycleScenarioTest {
                         """.formatted(Instant.now().plus(48, ChronoUnit.HOURS)))
                 .when().post("/life-oversight-gates")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("mode", equalTo("OVERSIGHT"))
                 .body("status", equalTo("PENDING_RESPONSE"));
     }
@@ -206,7 +206,7 @@ class CommitmentLifecycleScenarioTest {
                         """.formatted(Instant.now().plus(4, ChronoUnit.HOURS)))
                 .when().post("/life-tasks/{id}/commit", groceryTaskId)
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("mode", equalTo("DELEGATION"))
                 .body("status", equalTo("PENDING_RESPONSE"));
     }

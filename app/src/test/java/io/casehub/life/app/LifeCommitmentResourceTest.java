@@ -51,7 +51,7 @@ class LifeCommitmentResourceTest {
     // --- POST /life-tasks/{id}/commit ---
 
     @Test
-    void commit_delegation_returns200WithDelegationMode() {
+    void commit_delegation_returns201WithDelegationMode() {
         final String taskId = createTask("household-task", "Pick up kids");
         final Instant deadline = Instant.now().plus(3, ChronoUnit.HOURS);
 
@@ -62,7 +62,7 @@ class LifeCommitmentResourceTest {
                         """.formatted(deadline))
                 .when().post("/life-tasks/{id}/commit", taskId)
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("mode", equalTo("DELEGATION"))
                 .body("status", equalTo("PENDING_RESPONSE"))
                 .body("recordId", notNullValue())
@@ -70,7 +70,7 @@ class LifeCommitmentResourceTest {
     }
 
     @Test
-    void commit_contractor_returns200WithContractorMode() {
+    void commit_contractor_returns201WithContractorMode() {
         final String actorId = createActor("Bob's Plumbing");
         final String taskId = createTask("contractor-coordination", "Fix boiler", actorId);
         final Instant deadline = Instant.now().plus(48, ChronoUnit.HOURS);
@@ -82,7 +82,7 @@ class LifeCommitmentResourceTest {
                         """.formatted(actorId, deadline))
                 .when().post("/life-tasks/{id}/commit", taskId)
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("mode", equalTo("CONTRACTOR"))
                 .body("status", equalTo("PENDING_RESPONSE"));
     }
@@ -165,7 +165,7 @@ class LifeCommitmentResourceTest {
 
         given().contentType("application/json").body(body)
                 .when().post("/life-tasks/{id}/commit", taskId)
-                .then().statusCode(200);
+                .then().statusCode(201);
 
         // Second commit on same task → 409
         given().contentType("application/json").body(body)
@@ -183,7 +183,7 @@ class LifeCommitmentResourceTest {
                         {"delegateTo":"bob","deadline":"%s"}
                         """.formatted(Instant.now().plus(3, ChronoUnit.HOURS)))
                 .when().post("/life-tasks/{id}/commit", taskId)
-                .then().statusCode(200);
+                .then().statusCode(201);
 
         given()
                 .when().get("/life-tasks/{id}", taskId)
@@ -196,7 +196,7 @@ class LifeCommitmentResourceTest {
     // --- POST /life-oversight-gates ---
 
     @Test
-    void oversightGate_returns200WithOversightMode() {
+    void oversightGate_returns201WithOversightMode() {
         given()
                 .contentType("application/json")
                 .body("""
@@ -207,7 +207,7 @@ class LifeCommitmentResourceTest {
                         """.formatted(Instant.now().plus(24, ChronoUnit.HOURS)))
                 .when().post("/life-oversight-gates")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("mode", equalTo("OVERSIGHT"))
                 .body("status", equalTo("PENDING_RESPONSE"))
                 .body("recordId", notNullValue());
@@ -224,7 +224,7 @@ class LifeCommitmentResourceTest {
 
         given().contentType("application/json").body(body)
                 .when().post("/life-oversight-gates")
-                .then().statusCode(200);
+                .then().statusCode(201);
 
         given().contentType("application/json").body(body)
                 .when().post("/life-oversight-gates")

@@ -35,7 +35,7 @@ public class LifeCommitmentResource {
             @Valid final CommitmentRequest request) {
         try {
             final CommitmentOutcome outcome = commitmentService.applyCommitment(workItemId, request);
-            return Response.ok(outcome).build();
+            return Response.status(Response.Status.CREATED).entity(outcome).build();
         } catch (CommitmentConflictException e) {
             throw new WebApplicationException(e.getMessage(), 409);
         }
