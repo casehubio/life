@@ -51,6 +51,9 @@ Cross-references:
 ## Layer 1 — Domain baseline (no CaseHub foundation)
 
 **Participates in:** S1, S2, S3, S4, S5, S6 *(foundation — all slices build on it)*
+**Architectural pattern:** Hexagonal (api/app split), Active Record (Panache)
+**Key protocols:** `flyway-migration-rules.md`, `module-tier-structure.md`, PP-20260526-d0b921 (REST @Blocking @ApplicationScoped)
+**Design refs:** `docs/specs/2026-05-26-layer1-domain-baseline.md`
 
 > **Redesign note (2026-05-27):** The Layer 1 entities `HouseholdTask`, `LifeGoal`, and
 > `LifeEvent` were removed in Layer 2 — they duplicated foundation primitives (see
@@ -145,6 +148,9 @@ These gaps are what the subsequent layers close, one foundation module at a time
 ## Layer 2 — + casehub-work (SLA enforcement)
 
 **Participates in:** S1, S2, S3, S4, S5, S6 *(foundation — all slices build on it)*
+**Architectural pattern:** Hexagonal, Strategy (SlaBreachPolicy), Domain Supplement (LifeTaskContext)
+**Key protocols:** PP-20260527-da1f66 (domain supplement pattern), PP-20260526-75d9c9 (@Transactional on service only), PP-20260525-607b33 (Flyway repo-scoped path)
+**Design refs:** `docs/specs/2026-05-27-layer2-casehub-work-sla.md`
 **Status:** Complete  
 **Completed:** 2026-05-27
 **Issue:** casehubio/life#3
@@ -206,6 +212,9 @@ casehub-work WorkItems are created alongside `LifeTaskContext` supplements when 
 ## Layer 3 — + casehub-qhorus (commitment lifecycle)
 
 **Participates in:** S2, S3, S4, S5, S6
+**Architectural pattern:** Observer (CDI @Observes/@ObservesAsync), Strategy (LifeCommitmentStrategy sealed hierarchy)
+**Key protocols:** `dual-trail-audit-pattern.md`, `message-dispatch-builder-validation.md`, `alternative-extension-patterns.md`
+**Design refs:** `docs/specs/2026-05-29-layer3-qhorus-commitment.md`
 **Status:** Complete
 **Completed:** 2026-05-29
 **Issue:** casehubio/life#4
@@ -272,9 +281,13 @@ casehub-qhorus is adopted for formal COMMAND/RESPONSE commitment tracking across
 ## Layer 4 — + casehub-ledger (tamper-evident audit)
 
 **Participates in:** S3, S4, S5, S6
-**Status:** Pending
+**Architectural pattern:** JOINED Inheritance (LedgerEntry subclasses), Observer (CDI @Observes for SLA_BREACH/COMPLETED), Unified Writer (LifeLedgerWriter)
+**Key protocols:** `dual-trail-audit-pattern.md`, PP-20260524-10efef (Flyway ledger locations), `auth-retrofit-readiness.md`
+**Design refs:** `docs/specs/2026-05-30-layer4-casehub-ledger-design.md`
+**Status:** Complete
+**Completed:** 2026-05-30
 **Issue:** casehubio/life#5
-**Navigation:** `git log --grep="#5" --oneline` (fill in at layer close)
+**Navigation:** `git log --grep="#5" --oneline`
 
 ### What it adds
 
@@ -282,11 +295,72 @@ Tamper-evident Merkle audit for health decisions, financial decisions, and legal
 `casehub-ledger`. GDPR Art.17 erasure for contractor personal data. Every major life decision
 has a cryptographically verifiable record independent of the operational database.
 
+### Accountability gaps closed
+
+| Gap | What breaks without it | Closed by |
+|-----|----------------------|-----------|
+| Health decision has no independently verifiable record | GP appointment could be silently modified or deleted | HealthDecisionLedgerEntry — Merkle chain per workItemId |
+| Financial approval has no tamper-evident audit | Household-admin approval can be disputed after the fact | FinancialDecisionLedgerEntry — oversightRef chains the full lifecycle |
+| Legal action has no compliance record | Tax filing deadline met but no proof | LegalActionLedgerEntry — filingDeadline + actionTaken recorded at COMPLETED |
+| Contractor personal data cannot be erased | GDPR Art.17 right to erasure not implemented | DELETE /external-actors/{id}/personal-data + ExternalActorErasureLedgerEntry |
+
+### Key files
+
+- `app/src/main/java/io/casehub/life/app/ledger/HealthDecisionLedgerEntry.java` — JOINED subclass for health domain audit
+- `app/src/main/java/io/casehub/life/app/ledger/FinancialDecisionLedgerEntry.java` — JOINED subclass for financial domain audit
+- `app/src/main/java/io/casehub/life/app/ledger/LegalActionLedgerEntry.java` — JOINED subclass for legal domain audit
+- `app/src/main/java/io/casehub/life/app/ledger/ExternalActorErasureLedgerEntry.java` — JOINED subclass for GDPR erasure proof
+- `app/src/main/java/io/casehub/life/app/service/ledger/LifeLedgerWriter.java` — unified writer for all 4 domain entry types
+- `app/src/main/java/io/casehub/life/app/observer/LifeDecisionLedgerObserver.java` — CDI observer for SLA_BREACH and COMPLETED
+
+### Key wiring
+
+- Qhorus PU packages must use `io.casehub.ledger.runtime` (broad) to include `LedgerSupplement` sub-package. Using `io.casehub.ledger.runtime.model` misses supplements and causes Hibernate `AnnotationException`.
+- Life ledger entities in `io.casehub.life.app.ledger` — NOT in `io.casehub.life.app.entity.ledger`. Quarkus uses prefix matching for PU assignment; sub-packages of a default-PU package get assigned to the default PU.
+- `LedgerEntry.@PrePersist` auto-assigns `id` and `occurredAt` — writers must NOT set these fields.
+- CREATE trigger is a direct call from `LifeTaskService`/`OversightGateStrategy` (not CDI observer) because `WorkItemLifecycleEvent` fires before `LifeTaskContext.persist()`.
+- Finance SLA_BREACH pre-RESPONSE goes through `LifeWatchdogAlertObserver` (WatchdogAlertEvent), not `LifeDecisionLedgerObserver` (SlaBreachEvent) — no WorkItem exists before RESPONSE.
+
+### Architectural decisions
+
+- **Per-domain LedgerEntry subclasses (not single table):** Each domain has distinct required fields. Nullable columns for required domain fields are a production anti-pattern. The composition concern doesn't apply — casehub-life is a terminal application tier; these entities have no downstream consumers.
+- **No ActorIdentityProvider SPI:** PII lives exclusively in the ExternalActor JPA entity. Ledger entries store only UUIDs. Direct field nullification is correct and minimal.
+- **Separate GDPR endpoint:** `DELETE /external-actors/{id}/personal-data` is distinct from hard delete `DELETE /external-actors/{id}`. Different semantics: erasure retains the row for FK integrity.
+- **Unified LifeLedgerWriter (not per-domain writers):** sequenceNumber computation and base field assembly are shared logic. One class, one injection point, one place to fix.
+
+### Pattern introduced
+
+**CDI observer + direct-call hybrid trigger model:** SLA_BREACH and COMPLETED events flow through CDI observers; CREATE events use direct service calls due to event-ordering constraints. The observer delegates to the same `LifeLedgerWriter` the services call directly.
+
+### Pattern anchor
+
+- `LifeLedgerWriter#writeHealthEntry()` — unified writer pattern
+- `LifeDecisionLedgerObserver#onSlaBreachEvent()` — CDI observer domain dispatch
+- `ExternalActorService#erase()` — GDPR erasure with active-task guard
+
+### Gotchas
+
+- **Quarkus multi-PU prefix matching** — `io.casehub.life.app.entity.ledger` (sub-package of default-PU's `io.casehub.life.app.entity`) gets assigned to the default PU. Symptom: `AnnotationException: Association 'LedgerEntry.supplements' targets LedgerSupplement which does not belong to the same persistence unit`. Fix: use `io.casehub.life.app.ledger` (sibling, not child, of `io.casehub.life.app.entity`).
+- **WorkItemLifecycleEvent fires before LifeTaskContext.persist()** — CDI observer for CREATE would find no LifeTaskContext. Symptom: silent miss (no ledger entry written). Fix: direct service call for CREATE, CDI observer only for SLA_BREACH/COMPLETED.
+- **WorkItem.outcome already set post-mutation** — observer loading WorkItem in REQUIRES_NEW transaction gets the correct outcome; do NOT reassign `workItem.outcome = event.outcome()` — this marks the entity dirty and causes a spurious UPDATE.
+
+### Pattern to replicate
+
+1. Create JOINED-inheritance `LedgerEntry` subclasses in a package that is NOT a sub-package of your default PU entity package. Add the package to the qhorus PU `packages` config.
+2. Add `classpath:db/<app>/ledger/migration` to the qhorus Flyway locations. Use V2100+ to avoid conflicts with ledger base (V1000-V1007) and qhorus (V2000).
+3. Create a unified writer service that injects `LedgerEntryRepository`, owns `sequenceNumber` computation via `findLatestBySubjectId`, and assembles base fields. Do NOT set `id` or `occurredAt` — `@PrePersist` handles them.
+4. For CREATE events: call the writer directly from the service layer after persisting domain context.
+5. For SLA_BREACH and COMPLETED: write a CDI `@Observes` observer on `SlaBreachEvent` and `WorkItemLifecycleEvent`. Use `@Transactional(REQUIRES_NEW)` so ledger writes commit independently.
+6. For GDPR Art.17: null PII fields on the domain entity, write an erasure ledger entry as proof. Guard with 404 (not found), 409 (already erased), 409 (active tasks exist via `workItem.status.isActive()`).
+
 ---
 
 ## Layer 5 — + casehub-engine (multi-step workflows)
 
 **Participates in:** S4, S5, S6
+**Architectural pattern:** 🔲 at Layer 5 close
+**Key protocols:** 🔲 at Layer 5 close
+**Design refs:** 🔲 at Layer 5 close
 **Status:** Pending
 **Issue:** casehubio/life#6
 **Navigation:** `git log --grep="#6" --oneline` (fill in at layer close)
@@ -303,6 +377,9 @@ that doesn't fire for routine purchases.
 ## Layer 6 — Trust routing
 
 **Participates in:** S5, S6
+**Architectural pattern:** 🔲 at Layer 6 close
+**Key protocols:** 🔲 at Layer 6 close
+**Design refs:** 🔲 at Layer 6 close
 **Status:** Pending
 **Issue:** casehubio/life#7
 **Navigation:** `git log --grep="#7" --oneline` (fill in at layer close)
@@ -319,6 +396,9 @@ for finance, factual-accuracy for health.
 ## Layer 7 — + casehub-openclaw (OpenClaw integration)
 
 **Participates in:** S6
+**Architectural pattern:** 🔲 at Layer 7 close
+**Key protocols:** 🔲 at Layer 7 close
+**Design refs:** 🔲 at Layer 7 close
 **Status:** Pending
 **Issue:** casehubio/life#8
 **Navigation:** `git log --grep="#8" --oneline` (fill in at layer close)
