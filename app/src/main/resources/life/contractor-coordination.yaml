@@ -1,0 +1,103 @@
+dsl: "0.1"
+version: "1.0.0"
+name: contractor-coordination
+namespace: casehub-life
+title: Contractor coordination — quote, watchdog, respond, approve, monitor, pay, record
+
+spec:
+
+  ## --- Capabilities --------------------------------------------------------
+  capabilities:
+    - name: request-quote
+      description: "Issue a qhorus COMMAND on case-{caseId}/contractor-quote requesting a quote"
+      inputSchema: "{ contractorRequest: .contractorRequest }"
+      outputSchema: "{ quoteRequest: . }"
+
+    - name: watchdog-escalation
+      description: "Send escalation reminder when quote deadline has passed"
+      inputSchema: "{ quoteRequest: .quoteRequest }"
+      outputSchema: "{ escalationSent: . }"
+
+    - name: quote-received
+      description: "Process the received quote from contractor RESPONSE via QhorusMessageSignalBridge"
+      inputSchema: "{ channelMessage: .channelMessage }"
+      outputSchema: "{ quoteResponse: . }"
+
+    - name: job-monitoring
+      description: "Monitor job progress after quote approved"
+      inputSchema: "{ quoteApproval: .quoteApproval }"
+      outputSchema: "{ jobStatus: . }"
+
+    - name: record-payment
+      description: "Record payment to tamper-evident ledger and signal active financial-review case"
+      inputSchema: "{ paymentConfirmation: .paymentConfirmation, quoteResponse: .quoteResponse }"
+      outputSchema: "{ paymentRecorded: . }"
+
+  ## --- Goals ---------------------------------------------------------------
+  goals:
+    - name: contractor-paid
+      kind: success
+      condition: ".paymentRecorded != null"
+
+  ## --- Completion ----------------------------------------------------------
+  completion:
+    success:
+      allOf:
+        - contractor-paid
+
+  ## --- Bindings ------------------------------------------------------------
+  bindings:
+
+    ## 1. Request quote — fires when contractor request arrives
+    - name: request-quote
+      on: { contextChange: {} }
+      when: ".contractorRequest != null and .quoteRequest == null"
+      capability: request-quote
+
+    ## 2. Watchdog escalation — ADAPTIVE: fires only when quote deadline passed
+    - name: watchdog-escalation
+      on: { contextChange: {} }
+      when: ".quoteRequest != null and .quoteRequest.deadlinePassed == true and .escalationSent == null"
+      capability: watchdog-escalation
+
+    ## 3. Quote received — fires when QhorusMessageSignalBridge sets .channelMessage
+    - name: quote-received
+      on: { contextChange: {} }
+      when: ".channelMessage != null and .channelMessage.messageType == \"RESPONSE\" and .quoteResponse == null"
+      capability: quote-received
+
+    ## 4. Human task: household-admin approves price
+    - name: approve-quote
+      on: { contextChange: {} }
+      when: ".quoteResponse != null and .quoteApproval == null"
+      humanTask:
+        title: "Approve contractor quote"
+        expiresIn: PT72H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/household"
+        inputMapping: "{ quoteResponse: .quoteResponse, contractorRequest: .contractorRequest }"
+        outputMapping: "{ quoteApproval: . }"
+
+    ## 5. Job monitoring — fires after quote approved
+    - name: job-monitoring
+      on: { contextChange: {} }
+      when: ".quoteApproval != null and .jobStatus == null"
+      capability: job-monitoring
+
+    ## 6. Human task: household-admin confirms payment
+    - name: payment-gate
+      on: { contextChange: {} }
+      when: ".jobStatus != null and .paymentConfirmation == null"
+      humanTask:
+        title: "Confirm contractor payment"
+        expiresIn: PT168H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/finance"
+        inputMapping: "{ jobStatus: .jobStatus, quoteApproval: .quoteApproval, quoteResponse: .quoteResponse }"
+        outputMapping: "{ paymentConfirmation: . }"
+
+    ## 7. Record payment — writes to ledger and signals financial-review case
+    - name: record-payment
+      on: { contextChange: {} }
+      when: ".paymentConfirmation != null and .paymentRecorded == null"
+      capability: record-payment

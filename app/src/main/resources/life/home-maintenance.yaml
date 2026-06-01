@@ -1,0 +1,103 @@
+dsl: "0.1"
+version: "1.0.0"
+name: home-maintenance
+namespace: casehub-life
+title: Home maintenance cycle — inspect, quote, approve, commit, monitor, verify, record
+
+spec:
+
+  ## --- Capabilities --------------------------------------------------------
+  capabilities:
+    - name: schedule-inspection
+      description: "Schedule and perform a home inspection"
+      inputSchema: "{ request: .request }"
+      outputSchema: "{ inspection: . }"
+
+    - name: get-quotes
+      description: "Obtain contractor quotes based on inspection results"
+      inputSchema: "{ inspection: .inspection }"
+      outputSchema: "{ quotes: . }"
+
+    - name: issue-commitment
+      description: "Issue a qhorus COMMAND to the selected contractor on a case-specific channel"
+      inputSchema: "{ contractorApproval: .contractorApproval, inspection: .inspection }"
+      outputSchema: "{ commitmentIssued: . }"
+
+    - name: monitor-job
+      description: "Monitor job progress after contractor RESPONSE received via QhorusMessageSignalBridge"
+      inputSchema: "{ channelMessage: .channelMessage, commitmentIssued: .commitmentIssued }"
+      outputSchema: "{ jobStatus: . }"
+
+    - name: record-completion
+      description: "Record job completion to tamper-evident ledger"
+      inputSchema: "{ completionVerification: .completionVerification, inspection: .inspection, contractorApproval: .contractorApproval }"
+      outputSchema: "{ completionRecord: . }"
+
+  ## --- Goals ---------------------------------------------------------------
+  goals:
+    - name: job-complete
+      kind: success
+      condition: ".completionRecord != null"
+
+  ## --- Completion ----------------------------------------------------------
+  completion:
+    success:
+      allOf:
+        - job-complete
+
+  ## --- Bindings ------------------------------------------------------------
+  bindings:
+
+    ## 1. Schedule inspection when request arrives
+    - name: schedule-inspection
+      on: { contextChange: {} }
+      when: ".request != null and .inspection == null"
+      capability: schedule-inspection
+
+    ## 2. Get quotes after inspection
+    - name: get-quotes
+      on: { contextChange: {} }
+      when: ".inspection != null and .quotes == null"
+      capability: get-quotes
+
+    ## 3. Human task: household-admin selects a quote
+    - name: approve-contractor
+      on: { contextChange: {} }
+      when: ".quotes != null and .contractorApproval == null"
+      humanTask:
+        title: "Select a contractor quote"
+        expiresIn: PT72H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/household"
+        inputMapping: "{ quotes: .quotes, inspection: .inspection }"
+        outputMapping: "{ contractorApproval: . }"
+
+    ## 4. Issue qhorus COMMAND to contractor (stub — bridge not wired)
+    - name: issue-commitment
+      on: { contextChange: {} }
+      when: ".contractorApproval != null and .commitmentIssued == null"
+      capability: issue-commitment
+
+    ## 5. Monitor job — fires when QhorusMessageSignalBridge sets .channelMessage
+    - name: monitor-job
+      on: { contextChange: {} }
+      when: ".channelMessage != null and .channelMessage.messageType == \"RESPONSE\" and .jobStatus == null"
+      capability: monitor-job
+
+    ## 6. Human task: household-member confirms job done
+    - name: verify-completion
+      on: { contextChange: {} }
+      when: ".jobStatus != null and .completionVerification == null"
+      humanTask:
+        title: "Verify job completion"
+        expiresIn: PT24H
+        candidateGroups: [household-member]
+        scope: "casehubio/life/household"
+        inputMapping: "{ jobStatus: .jobStatus, contractorApproval: .contractorApproval }"
+        outputMapping: "{ completionVerification: . }"
+
+    ## 7. Record completion to ledger (stub — in production calls LifeLedgerWriter)
+    - name: record-completion
+      on: { contextChange: {} }
+      when: ".completionVerification != null and .completionRecord == null"
+      capability: record-completion

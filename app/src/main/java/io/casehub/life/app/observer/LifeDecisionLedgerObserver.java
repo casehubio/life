@@ -19,18 +19,42 @@ public class LifeDecisionLedgerObserver {
 
     @Inject LifeLedgerWriter lifeLedgerWriter;
 
+    static LifeDomain domainFromScope(String scope) {
+        if (scope == null || scope.isEmpty()) return null;
+        String[] segments = scope.split("/");
+        if (segments.length < 3) return null;
+        try {
+            return LifeDomain.valueOf(segments[2].toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private LifeDomain resolveDomain(java.util.UUID workItemId, WorkItem workItem) {
+        LifeDomain domain = domainFromScope(workItem.scope);
+        if (domain != null) return domain;
+        var ctx = LifeTaskContext.<LifeTaskContext>findByIdOptional(workItemId).orElse(null);
+        return ctx != null ? ctx.domain : null;
+    }
+
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onSlaBreachEvent(@Observes final SlaBreachEvent event) {
         final var taskId = event.context().task().taskId();
-        final var ctx = LifeTaskContext.<LifeTaskContext>findByIdOptional(taskId).orElse(null);
-        if (ctx == null) return;
-
         final var workItem = WorkItem.<WorkItem>findByIdOptional(taskId).orElse(null);
         if (workItem == null) return;
 
-        switch (ctx.domain) {
-            case HEALTH -> lifeLedgerWriter.writeHealthEntry(LifeDecisionEventType.SLA_BREACH, ctx, workItem);
-            case LEGAL -> lifeLedgerWriter.writeLegalEntry(LifeDecisionEventType.SLA_BREACH, ctx, workItem);
+        final LifeDomain domain = resolveDomain(taskId, workItem);
+        if (domain == null) return;
+
+        final var ctx = LifeTaskContext.<LifeTaskContext>findByIdOptional(taskId).orElse(null);
+
+        switch (domain) {
+            case HEALTH -> {
+                if (ctx != null) lifeLedgerWriter.writeHealthEntry(LifeDecisionEventType.SLA_BREACH, ctx, workItem);
+            }
+            case LEGAL -> {
+                if (ctx != null) lifeLedgerWriter.writeLegalEntry(LifeDecisionEventType.SLA_BREACH, ctx, workItem);
+            }
             case FINANCE -> LifeCommitmentRecord.findByWorkItemId(taskId).ifPresent(record ->
                     lifeLedgerWriter.writeFinancialEntry(LifeDecisionEventType.SLA_BREACH, record, taskId));
             default -> { }
@@ -42,15 +66,21 @@ public class LifeDecisionLedgerObserver {
         if (event.status() != WorkItemStatus.COMPLETED) return;
 
         final var taskId = event.workItemId();
-        final var ctx = LifeTaskContext.<LifeTaskContext>findByIdOptional(taskId).orElse(null);
-        if (ctx == null) return;
-
         final var workItem = WorkItem.<WorkItem>findByIdOptional(taskId).orElse(null);
         if (workItem == null) return;
 
-        switch (ctx.domain) {
-            case HEALTH -> lifeLedgerWriter.writeHealthEntry(LifeDecisionEventType.COMPLETED, ctx, workItem);
-            case LEGAL -> lifeLedgerWriter.writeLegalEntry(LifeDecisionEventType.COMPLETED, ctx, workItem);
+        final LifeDomain domain = resolveDomain(taskId, workItem);
+        if (domain == null) return;
+
+        final var ctx = LifeTaskContext.<LifeTaskContext>findByIdOptional(taskId).orElse(null);
+
+        switch (domain) {
+            case HEALTH -> {
+                if (ctx != null) lifeLedgerWriter.writeHealthEntry(LifeDecisionEventType.COMPLETED, ctx, workItem);
+            }
+            case LEGAL -> {
+                if (ctx != null) lifeLedgerWriter.writeLegalEntry(LifeDecisionEventType.COMPLETED, ctx, workItem);
+            }
             case FINANCE -> LifeCommitmentRecord.findByWorkItemId(taskId).ifPresent(record ->
                     lifeLedgerWriter.writeFinancialEntry(LifeDecisionEventType.COMPLETED, record, taskId));
             default -> { }

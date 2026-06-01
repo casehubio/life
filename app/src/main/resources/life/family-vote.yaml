@@ -1,0 +1,28 @@
+dsl: "0.1"
+version: "1.0.0"
+name: family-vote
+namespace: life
+title: Family vote — single humanTask child case for M-of-N quorum
+
+spec:
+  goals:
+    - name: vote-cast
+      kind: success
+      condition: ".vote != null"
+
+  completion:
+    success:
+      allOf:
+        - vote-cast
+
+  bindings:
+    - name: cast-vote
+      on: { contextChange: {} }
+      when: ".vote == null"
+      humanTask:
+        title: "Cast your vote — approve or reject"
+        expiresIn: PT48H
+        candidateGroups: [household-member]
+        scope: "casehubio/life/finance"
+        inputMapping: "{ proposal: .proposal, estimatedCost: .estimatedCost }"
+        outputMapping: "{ vote: . }"

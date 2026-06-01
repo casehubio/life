@@ -1,0 +1,58 @@
+dsl: "0.1"
+version: "1.0.0"
+name: care-episode
+namespace: casehub-life
+title: Care episode — assess patient, provide care, record notes
+
+spec:
+
+  ## --- Capabilities --------------------------------------------------------
+  capabilities:
+    - name: assess-patient
+      description: "Assess patient condition at start of care episode"
+      inputSchema: "{ careRequest: .careRequest }"
+      outputSchema: "{ patientAssessment: . }"
+
+    - name: provide-care
+      description: "Provide care based on patient assessment"
+      inputSchema: "{ patientAssessment: .patientAssessment, carePlan: .carePlan }"
+      outputSchema: "{ careProvided: . }"
+
+  ## --- Goals ---------------------------------------------------------------
+  goals:
+    - name: episode-complete
+      kind: success
+      condition: ".careNotes != null"
+
+  ## --- Completion ----------------------------------------------------------
+  completion:
+    success:
+      allOf:
+        - episode-complete
+
+  ## --- Bindings ------------------------------------------------------------
+  bindings:
+
+    ## 1. Assess patient — fires when care request is present
+    - name: assess-patient
+      on: { contextChange: {} }
+      when: ".careRequest != null and .patientAssessment == null"
+      capability: assess-patient
+
+    ## 2. Provide care — fires after patient assessment
+    - name: provide-care
+      on: { contextChange: {} }
+      when: ".patientAssessment != null and .careProvided == null"
+      capability: provide-care
+
+    ## 3. Record notes — humanTask: carer records visit notes
+    - name: record-notes
+      on: { contextChange: {} }
+      when: ".careProvided != null and .careNotes == null"
+      humanTask:
+        title: "Record care visit notes"
+        expiresIn: PT24H
+        candidateGroups: [household-member]
+        scope: "casehubio/life/elder-care"
+        inputMapping: "{ patientAssessment: .patientAssessment, careProvided: .careProvided }"
+        outputMapping: "{ careNotes: . }"

@@ -144,7 +144,7 @@ class ExternalActorGdprResourceTest {
                 .candidateGroups("household-member")
                 .createdBy("life-system")
                 .callerRef("life:task/household-task")
-                .scope("life")
+                .scope("casehubio/life/household")
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         var wi = workItemService.create(req);
@@ -167,7 +167,7 @@ class ExternalActorGdprResourceTest {
                 .candidateGroups("household-member")
                 .createdBy("life-system")
                 .callerRef("life:task/household-task")
-                .scope("life")
+                .scope("casehubio/life/household")
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         var wi = workItemService.create(req);

@@ -1,0 +1,116 @@
+dsl: "0.1"
+version: "1.0.0"
+name: travel-plan
+namespace: casehub-life
+title: Travel plan — research, search, assess, vote/approve, book, confirm
+
+spec:
+
+  ## --- Capabilities ---------------------------------------------------------------
+  capabilities:
+    - name: destination-research
+      description: "Research destination options based on travel request"
+      inputSchema: "{ request: .request }"
+      outputSchema: "{ destinations: . }"
+
+    - name: flight-search
+      description: "Search available flights for selected destination"
+      inputSchema: "{ selectedDestination: .selectedDestination }"
+      outputSchema: "{ flightResults: . }"
+
+    - name: hotel-search
+      description: "Search available hotels for selected destination"
+      inputSchema: "{ selectedDestination: .selectedDestination }"
+      outputSchema: "{ hotelResults: . }"
+
+    - name: budget-assessment
+      description: "Assess total cost and determine approval requirements"
+      inputSchema: "{ flightResults: .flightResults, hotelResults: .hotelResults }"
+      outputSchema: "{ budgetAssessment: . }"
+
+    - name: booking
+      description: "Book selected flights and hotels"
+      inputSchema: "{ selectedDestination: .selectedDestination, flightResults: .flightResults, hotelResults: .hotelResults }"
+      outputSchema: "{ booking: . }"
+
+    - name: rebooking
+      description: "Rebook with alternative dates after a booking DECLINE"
+      inputSchema: "{ selectedDestination: .selectedDestination, booking: .booking }"
+      outputSchema: "{ rebooking: . }"
+
+    - name: confirmation
+      description: "Confirm booking and send itinerary"
+      inputSchema: "{ booking: .booking, rebooking: .rebooking }"
+      outputSchema: "{ confirmation: . }"
+
+  ## --- Goals ----------------------------------------------------------------------
+  goals:
+    - name: trip-booked
+      kind: success
+      condition: ".confirmation != null"
+
+  ## --- Completion -----------------------------------------------------------------
+  completion:
+    success:
+      allOf:
+        - trip-booked
+
+  ## --- Bindings -------------------------------------------------------------------
+  ## Note: family-vote-a/b/c SubCase bindings with M-of-N quorum are added in
+  ## TravelPlanCaseHub.augment() — YAML SubCase schema does not support
+  ## groupId/totalInGroup/requiredCount fields.
+  bindings:
+
+    ## Step 1: research destinations when request arrives
+    - name: destination-research
+      on: { contextChange: {} }
+      when: ".request != null and .destinations == null"
+      capability: destination-research
+
+    ## Step 2a: search flights (parallel with hotel-search)
+    - name: flight-search
+      on: { contextChange: {} }
+      when: ".selectedDestination != null and .flightResults == null"
+      capability: flight-search
+
+    ## Step 2b: search hotels (parallel with flight-search)
+    - name: hotel-search
+      on: { contextChange: {} }
+      when: ".selectedDestination != null and .hotelResults == null"
+      capability: hotel-search
+
+    ## Step 3: assess budget when both searches complete
+    - name: budget-assessment
+      on: { contextChange: {} }
+      when: ".flightResults != null and .hotelResults != null and .budgetAssessment == null"
+      capability: budget-assessment
+
+    ## Step 5: approval gate — adaptive, fires only for mid-range budget
+    - name: approval-gate
+      on: { contextChange: {} }
+      when: ".budgetAssessment != null and .budgetAssessment.requiresApproval == true and .budgetAssessment.isHighValue == false and .approval == null"
+      humanTask:
+        title: "Approve travel booking"
+        expiresIn: PT24H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/finance"
+        inputMapping: "{ budgetAssessment: .budgetAssessment, selectedDestination: .selectedDestination }"
+        outputMapping: "{ approval: . }"
+
+    ## Step 6: booking — fires when budget clears
+    - name: booking
+      on: { contextChange: {} }
+      when: ".budgetAssessment != null and .booking == null and ((.budgetAssessment.requiresApproval != true) or (.approval != null) or (.familyVoteResult != null))"
+      capability: booking
+
+    ## Step 7: rebooking — DECLINE recovery
+    - name: rebooking
+      on: { contextChange: {} }
+      when: ".booking != null and .booking.declined == true and .rebooking == null"
+      capability: rebooking
+
+    ## Step 8: confirmation — fires when booking succeeded
+    - name: confirmation
+      on: { contextChange: {} }
+      when: "(.booking != null and .booking.declined != true and .confirmation == null) or (.rebooking != null and .confirmation == null)"
+      capability: confirmation

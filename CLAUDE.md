@@ -228,6 +228,9 @@ Read these **before designing**, not after. The concern column tells you when ea
 | Testing async CDI observers | Call the observer method directly through the injected CDI proxy — bypasses event dispatch and debounce. Method-level `@Transactional(REQUIRES_NEW)` is honoured via CDI proxy. Do NOT use `@TestTransaction` on the test method — it blocks the REQUIRES_NEW from seeing committed setup records. See GE-20260529-9f3557 and `LifeWatchdogAlertObserverTest`. |
 | Testing ledger writers (unit) | Mock `LedgerEntryRepository` with Mockito. Do NOT assert on `entry.id` or `entry.occurredAt` — these are set by `LedgerEntry.@PrePersist` which is bypassed in mocked tests. See `LifeLedgerWriterTest`. |
 | Multi-PU entity package placement | Ledger subclass entities must NOT be sub-packages of `io.casehub.life.app.entity` (default PU). Use `io.casehub.life.app.ledger` — Quarkus uses prefix matching for PU assignment; sub-packages of a default-PU package get assigned to the default PU, causing cross-PU association errors with `LedgerEntry.supplements`. |
+| Testing engine case definitions | Definition tests (verify YAML loads, binding count, goal count, capabilities) are pure unit tests — no Quarkus startup needed. Integration tests (start case → workers execute → goals met) require @QuarkusTest and are blocked on engine#410 (CaseDefinition not found after registration). |
+| Engine CDI wiring | `quarkus.arc.selected-alternatives` must include `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` from casehub-engine-persistence-memory (GE-20260531-1e51d4). |
+| SubCase M-of-N in YAML | M-of-N fields (groupId, totalInGroup, requiredCount) are DSL-only — not YAML-supported. Add via Java augmentation in YamlCaseHub.getDefinition() (GE-20260531-d896bf). |
 
 ---
 
@@ -254,6 +257,18 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - `LifeDecisionLedgerObserver` — CDI observer for `SlaBreachEvent` (HEALTH/LEGAL/FINANCE SLA_BREACH) and `WorkItemLifecycleEvent` (COMPLETED only). `@Transactional(REQUIRES_NEW)`.
 - GDPR Art.17 erasure: `DELETE /external-actors/{id}/personal-data` — nullifies PII, writes `ExternalActorErasureLedgerEntry`. Guards: 404/409 already-erased/409 active-tasks.
 - actorId convention: `"life-system"` for system events, `"household-admin"` for GDPR erasure (until auth wired).
+
+**Layer 5 additions:**
+- `LifeCaseTracker` — JPA entity tracking active engine cases by type for cross-case signal lookup: `{id, caseType, engineCaseId, status, createdAt, completedAt}`. Default datasource.
+- `LifeCaseType` enum in `api/`: TRAVEL_PLAN, HOME_MAINTENANCE, CARE_COORDINATION, APPOINTMENT_CYCLE, CONTRACTOR_COORDINATION, FINANCIAL_REVIEW. FAMILY_VOTE is not a LifeCaseType — spawned only as sub-case.
+- `LifeCaseStatus` enum in `api/`: ACTIVE, COMPLETED, FAILED.
+- `LifeCaseService` — three-phase case start (PP-20260529-3ffe28). Direct injection of each YamlCaseHub, switch on LifeCaseType.
+- `LifeCaseTrackerObserver` — `@ObservesAsync CaseLifecycleEvent` updates tracker status.
+- `LifeDecisionLedgerObserver` — refactored: domain resolution now uses `WorkItem.scope` Path (primary), LifeTaskContext (fallback).
+- 8 `YamlCaseHub` subclasses + 8 fluent DSL companions in `io.casehub.life.app.engine`. Workers use quarkus-flow FuncDSL per PP-20260531-worker-func-exec.
+- 8 YAML case definitions at `app/src/main/resources/life/`.
+- `POST /life-cases` endpoint — `LifeCaseResource`.
+- Scope retrofit: WorkItem scope changed from `"life"` to `"casehubio/life/{domain}"` (hierarchical Path format).
 
 **Capability tags:**
 - `household-management` — routine household coordination: grocery ordering, maintenance scheduling, contractor liaison
@@ -310,11 +325,14 @@ api/    — pure Java: LifeDomain enum, ExternalActor request/response records,
           capability tag constants, trust dimension constants.
           Zero framework imports. No JPA.
 
-app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmentRecord),
-          REST resources, Flyway migrations (db/life/migration/), service layer,
-          SPI implementations (LifeSlaBreachPolicy, LifeCommitmentStrategy + 3 impls),
+app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmentRecord,
+          LifeCaseTracker), REST resources, Flyway migrations (db/life/migration/, V100–V107),
+          service layer, SPI implementations (LifeSlaBreachPolicy, LifeCommitmentStrategy + 3 impls),
           infrastructure (LifeChannelInitializer), observers (LifeOversightResponseObserver,
-          LifeWatchdogAlertObserver, LifeDecisionLedgerObserver), CasePlanModel YAML definitions.
+          LifeWatchdogAlertObserver, LifeDecisionLedgerObserver, LifeCaseTrackerObserver),
+          engine (io.casehub.life.app.engine — 8 YamlCaseHub subclasses + 8 DSL companions +
+          LifeCaseService + LifeCaseTrackerObserver),
+          CasePlanModel YAML definitions (app/src/main/resources/life/).
           Ledger subclasses in io.casehub.life.app.ledger (qhorus PU);
           ledger join table migrations at db/life/ledger/migration/ (V2100+).
 ```
@@ -347,9 +365,12 @@ Layer 4: + casehub-ledger — tamper-evident Merkle audit for health decisions, 
          decisions, and legal actions. GDPR Art.17 erasure for contractor personal data.
          ✅ COMPLETE
 
-Layer 5: + casehub-engine — multi-step CasePlanModel workflows: travel-plan, care-coordination,
-         home-maintenance-cycle. Adaptive paths — major purchase above threshold triggers
-         approval gate binding.
+Layer 5: + casehub-engine — 8 CasePlanModel workflows (travel-plan, home-maintenance,
+         care-coordination, appointment-cycle, contractor-coordination, financial-review,
+         family-vote, care-episode). Parallel execution, adaptive gates, M-of-N SubCase
+         quorum, QhorusMessageSignalBridge, cross-case signals, milestones, FuncDSL workers.
+         Integration tests blocked on engine#410 (CaseDefinition not found after registration).
+         🔲 PENDING — integration tests blocked on engine#410
 
 Layer 6: Trust routing — trust-weighted agent routing by household domain, backed by Bayesian
          Beta updated from WorkItem outcomes and commitment attestations.
@@ -384,6 +405,9 @@ Layer 7: + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecosystem (
 - **dual-trail-audit-pattern.md** — operational trail (casehub-work/qhorus) vs compliance ledger (casehub-ledger)
 - **auth-retrofit-readiness.md** — auth not yet wired to internal services; design for retrofit
 - **alternative-extension-patterns.md** — `@Alternative` CDI patterns for SPI wiring
+- **PP-20260518-case-definition-layers** — YAML and fluent Java DSL are paired, equal authoring paths; every YAML must have a DSL companion
+- **PP-20260531-worker-func-exec** — worker functions must use FuncWorkflowBuilder, not raw lambdas; FuncDSL task types: function/agent/get
+- **PP-20260529-3ffe28** — three-phase case start: never join() inside @Transactional
 
 ---
 

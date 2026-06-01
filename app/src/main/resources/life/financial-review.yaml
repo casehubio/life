@@ -1,0 +1,79 @@
+dsl: "0.1"
+version: "1.0.0"
+name: financial-review
+namespace: casehub-life
+title: Financial review — gather data, analyse, escalate anomalies, oversight gate, report
+
+spec:
+
+  ## --- Capabilities --------------------------------------------------------
+  capabilities:
+    - name: gather-data
+      description: "Collect budget data for review period and process cross-case contractor payment signals"
+      inputSchema: "{ reviewPeriod: .reviewPeriod, contractorPayment: .contractorPayment }"
+      outputSchema: "{ budgetData: . }"
+
+    - name: analyse-anomalies
+      description: "Analyse budget data for anomalies and flag issues"
+      inputSchema: "{ budgetData: .budgetData }"
+      outputSchema: "{ analysis: . }"
+
+    - name: escalate-anomalies
+      description: "Send COMMAND to oversight channel for anomaly review"
+      inputSchema: "{ analysis: .analysis }"
+      outputSchema: "{ escalation: . }"
+
+    - name: oversight-response
+      description: "Process oversight RESPONSE decision via QhorusMessageSignalBridge"
+      inputSchema: "{ channelMessage: .channelMessage }"
+      outputSchema: "{ oversightDecision: . }"
+
+    - name: produce-report
+      description: "Generate financial review report and record to ledger"
+      inputSchema: "{ analysis: .analysis, oversightDecision: .oversightDecision }"
+      outputSchema: "{ report: . }"
+
+  ## --- Goals ---------------------------------------------------------------
+  goals:
+    - name: review-complete
+      kind: success
+      condition: ".report != null"
+
+  ## --- Completion ----------------------------------------------------------
+  completion:
+    success:
+      allOf:
+        - review-complete
+
+  ## --- Bindings ------------------------------------------------------------
+  bindings:
+
+    ## 1. Gather data — fires when review period set
+    - name: gather-data
+      on: { contextChange: {} }
+      when: ".reviewPeriod != null and .budgetData == null"
+      capability: gather-data
+
+    ## 2. Analyse anomalies — fires when data collected
+    - name: analyse-anomalies
+      on: { contextChange: {} }
+      when: ".budgetData != null and .analysis == null"
+      capability: analyse-anomalies
+
+    ## 3. Escalate anomalies — ADAPTIVE: fires only when anomalies detected
+    - name: escalate-anomalies
+      on: { contextChange: {} }
+      when: ".analysis != null and .analysis.hasAnomalies == true and .escalation == null"
+      capability: escalate-anomalies
+
+    ## 4. Oversight response — fires when QhorusMessageSignalBridge sets .channelMessage
+    - name: oversight-response
+      on: { contextChange: {} }
+      when: ".channelMessage != null and .channelMessage.messageType == \"RESPONSE\" and .oversightDecision == null"
+      capability: oversight-response
+
+    ## 5. Produce report — fires when analysis complete (no anomalies) OR oversight decision received
+    - name: produce-report
+      on: { contextChange: {} }
+      when: "(.analysis != null and .analysis.hasAnomalies != true and .report == null) or (.oversightDecision != null and .report == null)"
+      capability: produce-report

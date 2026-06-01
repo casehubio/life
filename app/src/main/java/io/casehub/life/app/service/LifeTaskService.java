@@ -78,7 +78,7 @@ public class LifeTaskService {
                 .candidateGroups(candidateGroups)
                 .createdBy("life-system")
                 .callerRef("life:task/" + req.templateRef())
-                .scope("life")
+                .scope("casehubio/life/" + domain.name().toLowerCase())
                 .expiresAt(expiresAt)
                 .build();
 

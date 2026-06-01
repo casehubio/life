@@ -132,7 +132,7 @@ class LifeDecisionLedgerObserverTest {
                 .candidateGroups("household-member")
                 .createdBy("life-system")
                 .callerRef("life:task/test")
-                .scope("life")
+                .scope("casehubio/life/" + domain.name().toLowerCase())
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         var workItem = workItemService.create(req);
@@ -154,7 +154,7 @@ class LifeDecisionLedgerObserverTest {
                 .candidateGroups("household-member")
                 .createdBy("life-system")
                 .callerRef("life:task/test")
-                .scope("life")
+                .scope("casehubio/life/household")
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         return workItemService.create(req).id;

@@ -1,0 +1,91 @@
+dsl: "0.1"
+version: "1.0.0"
+name: appointment-cycle
+namespace: casehub-life
+title: Appointment cycle — book, confirm, prep, attend, record
+
+spec:
+
+  ## ─── Capabilities ───────────────────────────────────────────────────────────
+  capabilities:
+    - name: book-appointment
+      description: "Book an appointment with the specified provider"
+      inputSchema: "{ appointmentType: .appointmentType, provider: .provider }"
+      outputSchema: "{ booking: . }"
+
+    - name: find-alternative
+      description: "Find an alternative provider after a booking decline"
+      inputSchema: "{ appointmentType: .appointmentType, declinedProvider: .provider }"
+      outputSchema: "{ booking: . }"
+
+    - name: confirm-appointment
+      description: "Send appointment confirmation and reminder"
+      inputSchema: "{ booking: .booking }"
+      outputSchema: "{ confirmation: . }"
+
+    - name: pre-visit-prep
+      description: "Send pre-visit checklist and preparation instructions"
+      inputSchema: "{ booking: .booking, confirmation: .confirmation }"
+      outputSchema: "{ prep: . }"
+
+    - name: record-health-decision
+      description: "Record health decision to tamper-evident ledger"
+      inputSchema: "{ visitNotes: .visitNotes, booking: .booking }"
+      outputSchema: "{ healthDecisionRecorded: . }"
+
+  ## ─── Goals ──────────────────────────────────────────────────────────────────
+  goals:
+    - name: appointment-complete
+      kind: success
+      condition: ".healthDecisionRecorded != null"
+
+  ## ─── Completion ─────────────────────────────────────────────────────────────
+  completion:
+    success:
+      allOf:
+        - appointment-complete
+
+  ## ─── Bindings ────────────────────────────────────────────────────────────────
+  bindings:
+
+    ## Fires first — book when we have an appointment type but no booking yet
+    - name: book-appointment
+      on: { contextChange: {} }
+      when: ".appointmentType != null and .booking == null"
+      capability: book-appointment
+
+    ## DECLINE recovery — fires when provider declined and no alternative found yet
+    - name: find-alternative
+      on: { contextChange: {} }
+      when: ".booking != null and .booking.declined == true and .booking.alternativeFound == null"
+      capability: find-alternative
+
+    ## Fires after successful booking (not declined)
+    - name: confirm-appointment
+      on: { contextChange: {} }
+      when: ".booking != null and .booking.declined != true and .confirmation == null"
+      capability: confirm-appointment
+
+    ## Fires after confirmation
+    - name: pre-visit-prep
+      on: { contextChange: {} }
+      when: ".confirmation != null and .prep == null"
+      capability: pre-visit-prep
+
+    ## Human task — household member records post-visit notes
+    - name: attend-and-record
+      on: { contextChange: {} }
+      when: ".prep != null and .visitNotes == null"
+      humanTask:
+        title: "Record post-visit notes"
+        expiresIn: PT48H
+        candidateGroups: [household-member]
+        scope: "casehubio/life/health"
+        inputMapping: "{ booking: .booking, prep: .prep }"
+        outputMapping: "{ visitNotes: . }"
+
+    ## Fires after visit notes are recorded — writes to ledger
+    - name: record-health-decision
+      on: { contextChange: {} }
+      when: ".visitNotes != null and .healthDecisionRecorded == null"
+      capability: record-health-decision

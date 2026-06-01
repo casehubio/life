@@ -1,0 +1,113 @@
+dsl: "0.1"
+version: "1.0.0"
+name: care-coordination
+namespace: casehub-life
+title: Care coordination — assess, plan, assign, episode, health check, escalate, review
+
+spec:
+
+  ## --- Capabilities --------------------------------------------------------
+  capabilities:
+    - name: needs-assessment
+      description: "Assess care needs based on the care request"
+      inputSchema: "{ careRequest: .careRequest }"
+      outputSchema: "{ assessment: . }"
+
+    - name: care-plan
+      description: "Produce a care schedule based on the assessment"
+      inputSchema: "{ assessment: .assessment }"
+      outputSchema: "{ carePlan: . }"
+
+    - name: health-check
+      description: "Analyse care notes from episode and flag health concerns"
+      inputSchema: "{ episodeResult: .episodeResult, carePlan: .carePlan }"
+      outputSchema: "{ healthCheck: . }"
+
+  ## --- Milestones ----------------------------------------------------------
+  milestones:
+    - name: assessment-complete
+      condition: ".assessment != null"
+
+    - name: carer-assigned
+      condition: ".carerAssignment != null"
+
+  ## --- Goals ---------------------------------------------------------------
+  goals:
+    - name: review-complete
+      kind: success
+      condition: ".careReview != null"
+
+  ## --- Completion ----------------------------------------------------------
+  completion:
+    success:
+      allOf:
+        - review-complete
+
+  ## --- Bindings ------------------------------------------------------------
+  bindings:
+
+    ## 1. Needs assessment — fires when care request arrives
+    - name: needs-assessment
+      on: { contextChange: {} }
+      when: ".careRequest != null and .assessment == null"
+      capability: needs-assessment
+
+    ## 2. Care plan — fires after assessment
+    - name: care-plan
+      on: { contextChange: {} }
+      when: ".assessment != null and .carePlan == null"
+      capability: care-plan
+
+    ## 3. Assign carer — humanTask: household-member accepts delegation
+    - name: assign-carer
+      on: { contextChange: {} }
+      when: ".carePlan != null and .carerAssignment == null"
+      humanTask:
+        title: "Accept care delegation"
+        expiresIn: PT24H
+        candidateGroups: [household-member]
+        scope: "casehubio/life/elder-care"
+        inputMapping: "{ careRequest: .careRequest, carePlan: .carePlan }"
+        outputMapping: "{ carerAssignment: . }"
+
+    ## 4. Care episode — subCase: spawns a care-episode child case
+    - name: care-episode
+      on: { contextChange: {} }
+      when: ".carerAssignment != null and .episodeResult == null"
+      subCase:
+        namespace: casehub-life
+        name: care-episode
+        version: "1.0.0"
+        waitForCompletion: true
+        inputMapping: "{ careRequest: .careRequest, carePlan: .carePlan }"
+        outputMapping: "{ episodeResult: . }"
+
+    ## 5. Health check — fires after episode completes
+    - name: health-check
+      on: { contextChange: {} }
+      when: ".episodeResult != null and .healthCheck == null"
+      capability: health-check
+
+    ## 6. Escalate concern — ADAPTIVE: fires only when health concern detected
+    - name: escalate-concern
+      on: { contextChange: {} }
+      when: ".healthCheck != null and .healthCheck.healthConcern == true and .escalation == null"
+      humanTask:
+        title: "Review health concern escalation"
+        expiresIn: PT12H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/elder-care"
+        inputMapping: "{ healthCheck: .healthCheck, episodeResult: .episodeResult, careRequest: .careRequest }"
+        outputMapping: "{ escalation: . }"
+
+    ## 7. Care review — fires after health check (no concern) or after escalation
+    - name: care-review
+      on: { contextChange: {} }
+      when: "(.healthCheck != null and .healthCheck.healthConcern != true and .careReview == null) or (.escalation != null and .careReview == null)"
+      humanTask:
+        title: "Review care quality"
+        expiresIn: PT48H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/elder-care"
+        inputMapping: "{ healthCheck: .healthCheck, episodeResult: .episodeResult, escalation: .escalation }"
+        outputMapping: "{ careReview: . }"
