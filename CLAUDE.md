@@ -130,7 +130,7 @@ type: java
 
 **Goal:** Production-grade personal life automation harness demonstrating that household coordination, health management, family obligations, and legal compliance are structurally better served by a formal accountability layer than by best-effort automation tools.
 
-**Architecture record:** `LAYER-LOG.md` tracks integration layer entries. A layer is not complete until its entry is written. Arc42Stories migration planned — layer entries will move to `ARC42STORIES.MD §9.4` when the document is bootstrapped. See `../parent/docs/arc42stories-spec.md` and `../parent/docs/arc42stories-casehub-profile.md`.
+**Architecture record:** `ARC42STORIES.MD` is the primary architecture document (Arc42Stories v0.1, CaseHub Profile). `LAYER-LOG.md` retained as source-of-truth draft. A layer is not complete until its §9.4 entry in `ARC42STORIES.MD` is written. See `../parent/docs/arc42stories-spec.md` and `../parent/docs/arc42stories-casehub-profile.md`.
 
 ---
 
@@ -194,7 +194,7 @@ Read these **before designing**, not after. The concern column tells you when ea
 | Concern | Read first |
 |---------|-----------|
 | Deciding which layer a feature belongs in | Foundation Layers section below — layer ownership boundaries |
-| Documenting a completed layer | LAYER-LOG.md — write the entry before closing the issue |
+| Documenting a completed layer | ARC42STORIES.MD §9.4 — write the layer entry before closing the issue (LAYER-LOG.md is the draft) |
 
 ### Foundation integration
 
@@ -341,7 +341,7 @@ app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmen
 
 ## Foundation Layers
 
-Each layer corresponds to a foundation module integration step. LAYER-LOG.md tracks completion — a layer is not done until its entry is written. Layers map to arc42stories §9.4 Layer Entries.
+Each layer corresponds to a foundation module integration step. `ARC42STORIES.MD §9.4` tracks completion — a layer is not done until its entry is written. `LAYER-LOG.md` is the source-of-truth draft.
 
 ```
 Layer 1: Domain baseline — ExternalActor entity, REST API, life domain vocabulary (LifeDomain,
@@ -532,6 +532,6 @@ After any code change, systematically check and update:
 2. **`casehub-life.md`** in the parent repo — reflects the current state of domain ownership, epics, dependencies
 3. **Cross-references** — any path or URL referenced in docs: verify it resolves, rename if the target moved
 4. **Drift and gaps** — code that exists without doc coverage; docs that describe code that was removed or renamed
-5. **LAYER-LOG.md** — update before closing any layer-related issue
+5. **ARC42STORIES.MD** — update §9.4 layer entry before closing any layer-related issue (LAYER-LOG.md is the draft)
 
 Run this check before every handover. If a doc update requires changes in the parent repo, create a GitHub issue on `casehubio/parent` — do not commit to that repo directly.

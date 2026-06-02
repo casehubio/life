@@ -4,8 +4,9 @@ Architecture record of what was built at each integration layer. Entries are ord
 reading comprehension (learning progression), not chronology. Each entry is complete when
 the layer closes.
 
-**Migration note:** This file will migrate to `ARC42STORIES.MD §9.4` Layer Entries when
-that document is bootstrapped. Format: `../parent/docs/arc42stories-spec.md` and
+**Migration note (2026-06-02):** Migrated to `ARC42STORIES.MD §9.4` Layer Entries.
+This file retained as source-of-truth draft — `ARC42STORIES.MD` is the primary
+architecture record. Format: `../parent/docs/arc42stories-spec.md` and
 `../parent/docs/arc42stories-casehub-profile.md`.
 
 Cross-references:
@@ -358,19 +359,127 @@ has a cryptographically verifiable record independent of the operational databas
 ## Layer 5 — + casehub-engine (multi-step workflows)
 
 **Participates in:** S4, S5, S6
-**Architectural pattern:** 🔲 at Layer 5 close
-**Key protocols:** 🔲 at Layer 5 close
-**Design refs:** 🔲 at Layer 5 close
-**Status:** Pending
+**Architectural pattern:** Event-Driven (CasePlanModel + CDI @ObservesAsync), Hexagonal (api/app split preserved), Strategy (per-case YamlCaseHub augmentation)
+**Key protocols:** PP-20260518-case-definition-layers (YAML + DSL pairing), PP-20260531-worker-func-exec (FuncDSL worker execution), PP-20260529-3ffe28 (three-phase case start)
+**Design refs:** `docs/specs/2026-05-31-layer5-casehub-engine-design.md`
+**Status:** Complete
+**Completed:** 2026-06-01 — `358c6eb`, fix: `338aa16`
 **Issue:** casehubio/life#6
-**Navigation:** `git log --grep="#6" --oneline` (fill in at layer close)
+**Navigation:** `git log --grep="#6" --oneline`
+→ 358c6eb feat(#6): Layer 5 — casehub-engine CasePlanModel workflows
+→ 338aa16 fix(#6): add missing engine memory @Alternative beans to selected-alternatives
+**Blog:** `blog/2026-06-01-mdp01-layer5-eight-workflows.md`
 
 ### What it adds
 
-Multi-step CasePlanModel workflows via `casehub-engine`. Travel planning (destination research
-→ budget gate → booking → reminders). Care coordination (assessment → care plan → SLA
-monitoring). Adaptive paths: major purchase above threshold triggers an approval gate binding
-that doesn't fire for routine purchases.
+**Before:** Layers 1–4 provide standalone operations — a single REST call creates a task, commitment, or ledger entry. No multi-step orchestration.
+**After:** `casehub-engine` CasePlanModel workflows coordinate sequences of workers, adaptive gates, and cross-step signals into formally tracked household cases.
+
+Eight case definitions cover the full breadth of engine capabilities:
+- **travel-plan** — parallel execution (flight + hotel search), adaptive budget gate, M-of-N SubCase family vote (2-of-3), DECLINE + rebooking recovery
+- **home-maintenance-cycle** — qhorus COMMAND via QhorusMessageSignalBridge (case enters WAITING), contractor RESPONSE resumes case, ledger write on completion
+- **care-coordination** — SubCase lifecycle (care-episode child case), milestones with SLA tracking, cross-case signal to appointment-cycle on health concern
+- **appointment-cycle** — DECLINE recovery (alternative provider), health decision ledger write
+- **contractor-coordination** — full qhorus lifecycle (COMMAND → Watchdog → RESPONSE/DECLINE), cross-case signal to financial-review on payment
+- **financial-review** — cross-case signal reception, spending aggregation, qhorus oversight gate for anomalies
+- **family-vote** — lightweight M-of-N child case (single humanTask per voter)
+- **care-episode** — child case spawned by care-coordination (assess → provide care → record notes)
+
+Not closed here: integration tests `@Disabled` (engine#410 — CaseDefinition forward lookup failure). Engine-level compliance ledger (`casehub-engine-ledger`) deferred to Layer 6.
+
+### Accountability gaps closed
+
+| Gap | What breaks without it | Closed by |
+|-----|----------------------|-----------|
+| Household coordination is a series of disconnected tasks | Travel booking requires manual sequencing of research → budget → vote → book → confirm | CasePlanModel workflow with binding conditions |
+| No adaptive routing based on context | Every purchase triggers the same approval path regardless of cost | Adaptive gate bindings: `isHighValue == true` fires M-of-N vote; `requiresApproval == true and isHighValue == false` fires single approval |
+| No formal quorum for shared household decisions | Major purchase approved by one person without family input | M-of-N SubCase: travel-plan spawns 3 family-vote child cases, requires 2 approvals |
+| No cross-case coordination | Contractor payment completes with no effect on monthly financial review | Cross-case signal via LifeCaseTracker: contractor-coordination signals active financial-review |
+
+### Key files
+
+**api/ — enums and request/response records:**
+- `api/src/main/java/io/casehub/life/api/LifeCaseType.java` — TRAVEL_PLAN, HOME_MAINTENANCE, CARE_COORDINATION, APPOINTMENT_CYCLE, CONTRACTOR_COORDINATION, FINANCIAL_REVIEW (FAMILY_VOTE is sub-case only, not a LifeCaseType)
+- `api/src/main/java/io/casehub/life/api/LifeCaseStatus.java` — ACTIVE, COMPLETED, FAILED
+
+**app/engine/ — 8 YamlCaseHub subclasses + 8 fluent DSL companions:**
+- `app/src/main/java/io/casehub/life/app/engine/TravelPlanCaseHub.java` — augments YAML with M-of-N SubCase bindings (DSL-only feature)
+- `app/src/main/java/io/casehub/life/app/engine/HomeMaintenanceCaseHub.java` — qhorus COMMAND worker via QhorusMessageSignalBridge
+- `app/src/main/java/io/casehub/life/app/engine/CareCoordinationCaseHub.java` — SubCase binding for care-episode, milestone definitions
+- `app/src/main/java/io/casehub/life/app/engine/AppointmentCycleCaseHub.java` — DECLINE recovery binding, health ledger write
+- `app/src/main/java/io/casehub/life/app/engine/ContractorCoordinationCaseHub.java` — full qhorus lifecycle, cross-case signal to financial-review
+- `app/src/main/java/io/casehub/life/app/engine/FinancialReviewCaseHub.java` — cross-case signal reception, oversight gate
+- `app/src/main/java/io/casehub/life/app/engine/FamilyVoteCaseHub.java` — single humanTask child case for M-of-N quorum
+- `app/src/main/java/io/casehub/life/app/engine/CareEpisodeCaseHub.java` — child case for care-coordination SubCase
+- DSL companions: `TravelPlanCaseDefinitions.java`, `HomeMaintenanceCaseDefinitions.java`, `CareCoordinationCaseDefinitions.java`, `AppointmentCycleCaseDefinitions.java`, `ContractorCoordinationCaseDefinitions.java`, `FinancialReviewCaseDefinitions.java`, `FamilyVoteCaseDefinitions.java`, `CareEpisodeCaseDefinitions.java`
+
+**app/engine/ — services and observers:**
+- `app/src/main/java/io/casehub/life/app/engine/LifeCaseService.java` — three-phase case start (PP-20260529-3ffe28): validate → join() outside TX → persist engineCaseId
+- `app/src/main/java/io/casehub/life/app/engine/LifeCaseTrackerObserver.java` — `@ObservesAsync CaseLifecycleEvent` updates tracker status on case completion
+
+**app/entity/ and app/resource/:**
+- `app/src/main/java/io/casehub/life/app/entity/LifeCaseTracker.java` — JPA entity tracking active engine cases by type for cross-case signal lookup
+- `app/src/main/java/io/casehub/life/app/resource/LifeCaseResource.java` — `POST /life-cases`, @Blocking @ApplicationScoped
+
+**YAML case definitions (8 files):**
+- `app/src/main/resources/life/travel-plan.yaml`, `home-maintenance.yaml`, `care-coordination.yaml`, `appointment-cycle.yaml`, `contractor-coordination.yaml`, `financial-review.yaml`, `family-vote.yaml`, `care-episode.yaml`
+
+**Migration:**
+- `app/src/main/resources/db/life/migration/V107__create_life_case_tracker.sql`
+
+### Key wiring
+
+- **Engine memory @Alternative beans** — `quarkus.arc.selected-alternatives` must include `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` from `casehub-engine-persistence-memory`. Without them the engine silently falls back to no-op implementations and cases start but never progress.
+- **Jandex index entries** — test `application.properties` must index `casehub-engine-common`, `casehub-engine-blackboard`, `casehub-engine-work-adapter`, `casehub-engine-scheduler-quartz`, `casehub-engine-persistence-memory`, `casehub-engine-testing`. Missing entries produce silent CDI resolution failures.
+- **Scope retrofit** — `LifeTaskService` changed WorkItem scope from `"life"` to `"casehubio/life/" + domain.name().toLowerCase()`. `LifeDecisionLedgerObserver` resolves domain from scope Path (primary), LifeTaskContext (fallback). Engine-created WorkItems produce correct ledger entries without supplements.
+- **M-of-N SubCase is DSL-only** — YAML schema does not support `groupId`, `totalInGroup`, `requiredCount`. Travel-plan's family-vote bindings added via Java augmentation in `TravelPlanCaseHub.getDefinition()`.
+- **Cross-case signals live in workers** — the completing worker queries `LifeCaseTracker` for active target cases and calls `CaseHubRuntime.signal()`. `LifeCaseTrackerObserver` is pure infrastructure (status update only).
+
+### Architectural decisions
+
+- **Why 8 case definitions in one layer rather than incremental:** casehub-life demonstrates the full breadth of engine capabilities. Splitting across layers produces seven more issues and branch ceremonies for work sharing the same infrastructure. Tradeoff: larger single commit, harder to review incrementally.
+- **Why `casehub-engine-persistence-memory` at compile scope rather than test:** in-memory persistence avoids Docker dependency for development. Production would use `casehub-engine-persistence-hibernate`. Tradeoff: no persistence durability across restarts.
+- **Why direct YamlCaseHub injection rather than string-based lookup:** type-safe, compile-time verified. `LifeCaseService` injects each YamlCaseHub bean directly and switches on `LifeCaseType`. Matches clinical pattern.
+- **Why cross-case signals in workers rather than lifecycle observers:** the completing worker already has the domain context (payment amount, health concern). The lifecycle observer is generic infrastructure — it would need to re-derive domain context. Clinical reference: `TrialSafetySignalService` called from AE escalation observer.
+
+### Pattern introduced
+
+**YAML + DSL paired case definition with FuncDSL workers:** each case has a YAML definition (structure) and a DSL companion (programmatic, used for tests and augmentation). Workers use `FuncWorkflowBuilder` per PP-20260531.
+
+### Pattern anchor
+
+- `TravelPlanCaseHub#getDefinition()` — YAML + DSL augmentation with M-of-N SubCase bindings
+- `LifeCaseService#startCase()` — three-phase case start pattern
+
+### Gotchas
+
+- **Engine memory @Alternative beans silently missing**
+  - **Symptom:** Cases start via `CaseHubRuntime.startCase()` but no bindings fire. Case status stays RUNNING indefinitely. No error in logs.
+  - **Cause:** `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` not listed in `quarkus.arc.selected-alternatives`. Engine falls back to no-op implementations.
+  - **Fix:** Add all three to `quarkus.arc.selected-alternatives` in both `application.properties` and test `application.properties`. Commit `338aa16`.
+
+- **Surefire retry masks real test failures (GE-20260601-8ff52b)**
+  - **Symptom:** Test passes on retry after initial failure. CI green. The underlying issue — a timing race in async case completion — remains.
+  - **Cause:** Maven Surefire `rerunFailingTestsCount` retries flaky tests silently. An `assumeTrue()` guard intended to skip tests when the engine bug (#410) is present interacts with Surefire retry: the assumption failure counts as a test failure, Surefire retries, the second run passes because the assumption guard succeeds.
+  - **Fix:** Use `@Disabled("engine#410")` instead of `assumeTrue()` for known engine bugs. Reserve `assumeTrue()` for environment-conditional tests (Docker availability, OS-specific).
+
+- **CaseDefinition forward lookup failure (engine#410)**
+  - **Symptom:** `SchedulerService.getCaseDefinition(caseKey)` returns null after the definition was successfully registered at startup. Integration tests fail with NPE in the scheduling path.
+  - **Cause:** Suspected Vert.x event bus serialization dropping fields from `CaseMetaModel` key during `CaseStartedEvent` handler chain. Reverse lookup on the same `ConcurrentHashMap` succeeds.
+  - **Fix:** Filed as engine#410. Integration tests `@Disabled` until fixed. Definition tests (YAML loads, binding counts, goal verification) are unaffected — they don't go through `SchedulerService`.
+
+### Pattern to replicate
+
+1. Add `casehub-engine`, `casehub-engine-scheduler-quartz`, `casehub-engine-work-adapter`, `casehub-engine-blackboard`, and `casehub-engine-persistence-memory` to `app/pom.xml`. Add `casehub-engine-testing` at test scope.
+2. Add `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` to `quarkus.arc.selected-alternatives` in both production and test `application.properties`.
+3. Add Jandex index entries for all engine modules in test `application.properties`.
+4. Create a `LifeCaseType`-equivalent enum in `api/` listing the case types exposed via REST. Sub-case-only types (e.g. family-vote, care-episode) are not LifeCaseTypes.
+5. Create a `LifeCaseTracker` JPA entity on the default datasource tracking `{caseType, engineCaseId, status, createdAt, completedAt}`. Migration at V107+.
+6. For each case definition: create a YAML file at `app/src/main/resources/{app}/` defining bindings, sentries, goals. Create a `@ApplicationScoped` YamlCaseHub subclass that loads the YAML and augments with domain workers via `getDefinition()` override. Create a companion fluent DSL class with a static `build()` method.
+7. Workers use `FuncWorkflowBuilder.workflow().tasks(FuncDSL.function(...)).build()` — not raw lambdas. Workers that call CDI services wrap the proxy call inside `FuncDSL.function()`.
+8. Create `LifeCaseService` following the three-phase pattern (PP-20260529-3ffe28): Phase 1 (`@Transactional`) validates and creates tracker; Phase 2 (no TX) calls `caseHub.startCase().join()`; Phase 3 (`@Transactional`) persists engineCaseId. Error recovery marks tracker FAILED.
+9. Create `LifeCaseTrackerObserver` — `@ObservesAsync CaseLifecycleEvent("CaseCompleted")` updates tracker status. Pure infrastructure, no domain logic.
+10. For cross-case signals: the completing worker queries `LifeCaseTracker` for active target cases by type and calls `CaseHubRuntime.signal(targetCaseId, key, value)`. No signal stored for later delivery — acceptable when the target is a periodic process.
 
 ---
 
