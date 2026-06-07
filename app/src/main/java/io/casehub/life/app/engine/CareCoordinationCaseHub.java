@@ -19,6 +19,7 @@ import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.Capability;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.Worker;
+import io.casehub.api.model.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -82,11 +83,11 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("needs-assessment-agent")
                 .capabilities(List.of(cap("needs-assessment")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "careLevel", "moderate",
                         "recommendedFrequency", "3x weekly",
                         "specialRequirements", List.of("mobility assistance", "medication management")
-                ))
+                )))
                 .build();
     }
 
@@ -97,11 +98,11 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("care-plan-agent")
                 .capabilities(List.of(cap("care-plan")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "schedule", List.of("Mon 09:00", "Wed 09:00", "Fri 09:00"),
                         "duration", "2 hours per visit",
                         "tasks", List.of("medication check", "mobility exercises", "meal preparation")
-                ))
+                )))
                 .build();
     }
 
@@ -115,11 +116,11 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
                 .capabilities(List.of(cap("health-check")))
                 .function((Map<String, Object> input) -> {
                     // Stub: no concern by default — test can override via context
-                    return Map.of(
+                    return WorkerResult.of(Map.of(
                             "reviewed", true,
                             "healthConcern", false,
                             "notes", "Patient stable, no concerns identified"
-                    );
+                    ));
                 })
                 .build();
     }

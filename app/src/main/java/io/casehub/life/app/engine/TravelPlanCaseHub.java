@@ -23,6 +23,7 @@ import io.casehub.api.model.ContextChangeTrigger;
 import io.casehub.api.model.OnThresholdReached;
 import io.casehub.api.model.SubCase;
 import io.casehub.api.model.Worker;
+import io.casehub.api.model.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -122,13 +123,13 @@ public class TravelPlanCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("destination-research-agent")
                 .capabilities(List.of(cap("destination-research")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "options", List.of(
                                 Map.of("name", "Barcelona", "estimatedCost", 1800),
                                 Map.of("name", "Tokyo", "estimatedCost", 4500),
                                 Map.of("name", "Reykjavik", "estimatedCost", 6200)
                         )
-                ))
+                )))
                 .build();
     }
 
@@ -139,12 +140,12 @@ public class TravelPlanCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("flight-search-agent")
                 .capabilities(List.of(cap("flight-search")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "flights", List.of(
                                 Map.of("airline", "BA", "price", 450, "duration", "2h30m"),
                                 Map.of("airline", "Ryanair", "price", 180, "duration", "3h15m")
                         )
-                ))
+                )))
                 .build();
     }
 
@@ -155,12 +156,12 @@ public class TravelPlanCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("hotel-search-agent")
                 .capabilities(List.of(cap("hotel-search")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "hotels", List.of(
                                 Map.of("name", "Grand Hotel", "pricePerNight", 120, "rating", 4.5),
                                 Map.of("name", "Budget Inn", "pricePerNight", 55, "rating", 3.8)
                         )
-                ))
+                )))
                 .build();
     }
 
@@ -174,11 +175,11 @@ public class TravelPlanCaseHub extends YamlCaseHub {
                 .capabilities(List.of(cap("budget-assessment")))
                 .function((Map<String, Object> input) -> {
                     int totalCost = 3500; // stub mid-range cost
-                    return Map.of(
+                    return WorkerResult.of(Map.of(
                             "totalCost", totalCost,
                             "requiresApproval", totalCost > 2000,
                             "isHighValue", totalCost > 5000
-                    );
+                    ));
                 })
                 .build();
     }
@@ -194,15 +195,15 @@ public class TravelPlanCaseHub extends YamlCaseHub {
                 .function((Map<String, Object> input) -> {
                     Object simulateDecline = input.get("simulateDecline");
                     if (Boolean.TRUE.equals(simulateDecline)) {
-                        return Map.of(
+                        return WorkerResult.of(Map.of(
                                 "declined", true,
                                 "reason", "No availability for selected dates"
-                        );
+                        ));
                     }
-                    return Map.of(
+                    return WorkerResult.of(Map.of(
                             "bookingRef", "TRV-" + System.currentTimeMillis(),
                             "status", "confirmed"
-                    );
+                    ));
                 })
                 .build();
     }
@@ -214,11 +215,11 @@ public class TravelPlanCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("rebooking-agent")
                 .capabilities(List.of(cap("rebooking")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "bookingRef", "TRV-ALT-" + System.currentTimeMillis(),
                         "status", "confirmed",
                         "alternativeDates", true
-                ))
+                )))
                 .build();
     }
 
@@ -229,11 +230,11 @@ public class TravelPlanCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("confirmation-agent")
                 .capabilities(List.of(cap("confirmation")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "confirmed", true,
                         "itinerarySent", true,
                         "confirmationRef", "CONF-" + System.currentTimeMillis()
-                ))
+                )))
                 .build();
     }
 }

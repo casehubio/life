@@ -19,6 +19,7 @@ import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.Capability;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.Worker;
+import io.casehub.api.model.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -84,16 +85,16 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
                     String provider = input.get("provider") != null
                             ? String.valueOf(input.get("provider")) : "";
                     if ("unavailable".equalsIgnoreCase(provider)) {
-                        return Map.of(
+                        return WorkerResult.of(Map.of(
                                 "declined", true,
                                 "reason", "Provider not accepting new patients"
-                        );
+                        ));
                     }
-                    return Map.of(
+                    return WorkerResult.of(Map.of(
                             "appointmentId", "APT-" + System.currentTimeMillis(),
                             "provider", provider,
                             "confirmed", false
-                    );
+                    ));
                 })
                 .build();
     }
@@ -105,12 +106,12 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("find-alternative-agent")
                 .capabilities(List.of(cap("find-alternative")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "alternativeFound", true,
                         "appointmentId", "APT-ALT-" + System.currentTimeMillis(),
                         "provider", "Dr Alternative",
                         "confirmed", false
-                ))
+                )))
                 .build();
     }
 
@@ -121,10 +122,10 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("confirm-appointment-agent")
                 .capabilities(List.of(cap("confirm-appointment")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "confirmed", true,
                         "reminderSent", true
-                ))
+                )))
                 .build();
     }
 
@@ -135,10 +136,10 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("pre-visit-prep-agent")
                 .capabilities(List.of(cap("pre-visit-prep")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "checklistSent", true,
                         "instructions", "Bring ID, insurance card, list of medications"
-                ))
+                )))
                 .build();
     }
 
@@ -150,10 +151,10 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("record-health-decision-agent")
                 .capabilities(List.of(cap("record-health-decision")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "recorded", true,
                         "ledgerEntryId", "LEDGER-" + System.currentTimeMillis()
-                ))
+                )))
                 .build();
     }
 }

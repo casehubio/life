@@ -19,6 +19,7 @@ import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.Capability;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.Worker;
+import io.casehub.api.model.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -80,11 +81,11 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("schedule-inspection-agent")
                 .capabilities(List.of(cap("schedule-inspection")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "inspected", true,
                         "condition", "roof needs repair",
                         "inspectionDate", "2026-06-15"
-                ))
+                )))
                 .build();
     }
 
@@ -95,13 +96,13 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("get-quotes-agent")
                 .capabilities(List.of(cap("get-quotes")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "quoteCount", 2,
                         "quotes", List.of(
                                 Map.of("contractor", "ABC Roofing", "amount", 4500, "timeline", "2 weeks"),
                                 Map.of("contractor", "XYZ Repairs", "amount", 3800, "timeline", "3 weeks")
                         )
-                ))
+                )))
                 .build();
     }
 
@@ -114,10 +115,10 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("issue-commitment-agent")
                 .capabilities(List.of(cap("issue-commitment")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "commitmentIssued", true,
                         "channel", "case-stub/contractor"
-                ))
+                )))
                 .build();
     }
 
@@ -128,10 +129,10 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("monitor-job-agent")
                 .capabilities(List.of(cap("monitor-job")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "progress", "in-progress",
                         "estimatedCompletion", "2026-07-01"
-                ))
+                )))
                 .build();
     }
 
@@ -143,10 +144,10 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("record-completion-agent")
                 .capabilities(List.of(cap("record-completion")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "recorded", true,
                         "ledgerEntryId", "LEDGER-" + System.currentTimeMillis()
-                ))
+                )))
                 .build();
     }
 }

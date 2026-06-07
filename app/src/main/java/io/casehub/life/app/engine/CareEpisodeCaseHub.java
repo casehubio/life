@@ -19,6 +19,7 @@ import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.Capability;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.Worker;
+import io.casehub.api.model.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -76,11 +77,11 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("assess-patient-agent")
                 .capabilities(List.of(cap("assess-patient")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "vitalSigns", Map.of("bloodPressure", "130/85", "heartRate", 72, "temperature", 36.8),
                         "mobility", "assisted",
                         "cognition", "alert and oriented"
-                ))
+                )))
                 .build();
     }
 
@@ -91,11 +92,11 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("provide-care-agent")
                 .capabilities(List.of(cap("provide-care")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "tasksCompleted", List.of("medication administered", "mobility exercises done", "meal prepared"),
                         "duration", "2 hours",
                         "observations", "Patient in good spirits, appetite normal"
-                ))
+                )))
                 .build();
     }
 }

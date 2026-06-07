@@ -52,7 +52,7 @@ public class LifeTrustRoutingPolicyProvider implements TrustRoutingPolicyProvide
 
         Map<String, Double> qualityFloors = buildQualityFloors(prefs);
 
-        return new TrustRoutingPolicy(threshold, minObs, margin, blendFactor, Map.copyOf(qualityFloors));
+        return new TrustRoutingPolicy(threshold, minObs, margin, blendFactor, Map.copyOf(qualityFloors), false);
     }
 
     private Map<String, Double> buildQualityFloors(Preferences prefs) {

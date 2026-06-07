@@ -19,6 +19,7 @@ import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.Capability;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.Worker;
+import io.casehub.api.model.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -90,11 +91,11 @@ public class FinancialReviewCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("gather-data-agent")
                 .capabilities(List.of(cap("gather-data")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "totalSpend", 5000,
                         "budgetLimit", 4500,
                         "categories", List.of("groceries", "utilities", "contractor")
-                ))
+                )))
                 .build();
     }
 
@@ -106,10 +107,10 @@ public class FinancialReviewCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("analyse-anomalies-agent")
                 .capabilities(List.of(cap("analyse-anomalies")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "hasAnomalies", true,
                         "anomalyDetails", "Spending exceeded budget by $500 (11%)"
-                ))
+                )))
                 .build();
     }
 
@@ -124,10 +125,10 @@ public class FinancialReviewCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("escalate-anomalies-agent")
                 .capabilities(List.of(cap("escalate-anomalies")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "escalationSent", true,
                         "channel", "case-stub/oversight"
-                ))
+                )))
                 .build();
     }
 
@@ -140,10 +141,10 @@ public class FinancialReviewCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("oversight-response-agent")
                 .capabilities(List.of(cap("oversight-response")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "approved", true,
                         "comments", "Approved — one-time overrun acceptable"
-                ))
+                )))
                 .build();
     }
 
@@ -160,11 +161,11 @@ public class FinancialReviewCaseHub extends YamlCaseHub {
         return Worker.builder()
                 .name("produce-report-agent")
                 .capabilities(List.of(cap("produce-report")))
-                .function((Map<String, Object> input) -> Map.of(
+                .function((Map<String, Object> input) -> WorkerResult.of(Map.of(
                         "reportGenerated", true,
                         "summary", "Monthly financial review complete",
                         "ledgerEntryId", "LEDGER-" + System.currentTimeMillis()
-                ))
+                )))
                 .build();
     }
 }

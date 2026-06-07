@@ -122,8 +122,9 @@ public class ExternalActorService {
             profile = ExternalActorResponse.TrustProfile.EMPTY;
         } else {
             String actorId = LifeActorIds.of(actor.id);
-            Double global = trustGateService.currentScore(actorId).orElse(null);
-            Map<String, Double> dimensions = trustGateService.dimensionScores(actorId);
+            java.util.OptionalDouble globalOpt = trustGateService.currentScore(actorId);
+            Double global = globalOpt.isPresent() ? globalOpt.getAsDouble() : null;
+            Map<String, Double> dimensions = trustGateService.allDimensionScores(actorId);
             Map<String, Double> capabilities = trustGateService.allCapabilityScores(actorId);
             profile = new ExternalActorResponse.TrustProfile(global, dimensions, capabilities);
         }
