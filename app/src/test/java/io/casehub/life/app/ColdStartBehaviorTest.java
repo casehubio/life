@@ -53,7 +53,7 @@ class ColdStartBehaviorTest {
     @Test
     void trustGateDimensionScoresEmptyForUnknownActor() {
         String unknownActorId = LifeActorIds.of(UUID.randomUUID());
-        assertThat(trustGateService.dimensionScores(unknownActorId)).isEmpty();
+        assertThat(trustGateService.allDimensionScores(unknownActorId)).isEmpty();
     }
 
     @Test

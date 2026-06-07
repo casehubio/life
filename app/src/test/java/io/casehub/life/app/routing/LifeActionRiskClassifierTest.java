@@ -36,11 +36,11 @@ class LifeActionRiskClassifierTest {
     @BeforeEach
     void setUp() {
         Preferences prefs = mock(Preferences.class);
-        when(preferenceProvider.resolve(any(SettingsScope.class))).thenReturn(prefs);
-        when(prefs.get(LifeRiskPolicyKeys.SPEND_THRESHOLD)).thenReturn(DoublePreference.of(100.0));
-        when(prefs.get(LifeRiskPolicyKeys.CONTRACTOR_THRESHOLD)).thenReturn(DoublePreference.of(200.0));
-        when(prefs.get(LifeRiskPolicyKeys.BOOKING_THRESHOLD)).thenReturn(DoublePreference.of(150.0));
-        when(prefs.get(LifeRiskPolicyKeys.APPROVAL_EXPIRES_HOURS)).thenReturn(DoublePreference.of(24.0));
+        lenient().when(preferenceProvider.resolve(any(SettingsScope.class))).thenReturn(prefs);
+        lenient().when(prefs.get(LifeRiskPolicyKeys.SPEND_THRESHOLD)).thenReturn(DoublePreference.of(100.0));
+        lenient().when(prefs.get(LifeRiskPolicyKeys.CONTRACTOR_THRESHOLD)).thenReturn(DoublePreference.of(200.0));
+        lenient().when(prefs.get(LifeRiskPolicyKeys.BOOKING_THRESHOLD)).thenReturn(DoublePreference.of(150.0));
+        lenient().when(prefs.get(LifeRiskPolicyKeys.APPROVAL_EXPIRES_HOURS)).thenReturn(DoublePreference.of(24.0));
     }
 
     // --- helpers ---
@@ -162,6 +162,11 @@ class LifeActionRiskClassifierTest {
     @Test
     void spendSubscriptionModify_atThreshold_returnsGateRequired() {
         assertInstanceOf(GateRequired.class, classifier.classify(actionWithAmount(SPEND_SUBSCRIPTION_MODIFY, 100.0)));
+    }
+
+    @Test
+    void spendSubscriptionModify_belowThreshold_returnsAutonomous() {
+        assertInstanceOf(Autonomous.class, classifier.classify(actionWithAmount(SPEND_SUBSCRIPTION_MODIFY, 99.99)));
     }
 
     // --- AMOUNT_THRESHOLD: contractor ---

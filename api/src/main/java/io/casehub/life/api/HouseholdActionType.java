@@ -16,7 +16,7 @@ public enum HouseholdActionType {
         List.of(HouseholdGroups.ADMIN)),
 
     SPEND_SUBSCRIPTION_CANCEL(
-        GatePolicy.ALWAYS, null, true,
+        GatePolicy.ALWAYS, null, false,
         List.of(HouseholdGroups.ADMIN)),
 
     SPEND_SUBSCRIPTION_MODIFY(

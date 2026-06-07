@@ -56,6 +56,11 @@ class HouseholdActionTypeTest {
     }
 
     @Test
+    void spendSubscriptionCancel_isIrreversible() {
+        assertFalse(SPEND_SUBSCRIPTION_CANCEL.reversible());
+    }
+
+    @Test
     void healthMedicationFlag_isIrreversible() {
         assertFalse(HEALTH_MEDICATION_FLAG.reversible());
     }
