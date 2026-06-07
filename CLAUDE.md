@@ -284,6 +284,19 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - `TrustProfile` — nested record on `ExternalActorResponse` enriched from `TrustGateService` (globalScore, dimensionScores, capabilityScores).
 - ActorId convention: `life-actor:{uuid}` for ExternalActor behaviour in ledger entries; `"life-system"` for system actions.
 
+**Layer 7 additions (partial — risk classification):**
+- `HouseholdActionType` — `api/` enum: 11 action types, `GatePolicy` (ALWAYS/AMOUNT_THRESHOLD/NEVER),
+  `ThresholdCategory` (SPEND/BOOKING/CONTRACTOR), `reversible`, `candidateGroups`.
+  `actionType()` / `fromActionType()` provide type-safe `PlannedAction` construction.
+- `HouseholdGroups` — `api/` string constants: `household-admin`, `household-member`, `household-junior`.
+- `LifeRiskPolicyKeys` — `app/routing/` `PreferenceKey` constants. Namespace: `casehubio.life.risk-policy`.
+  spend.threshold (100.0), contractor.threshold (200.0), booking.threshold (150.0), approval.expires-hours (24.0).
+- `LifeActionRiskClassifier` — `app/routing/` `@ApplicationScoped @RiskClassifier`; implements
+  `ActionRiskClassifier` from casehub-engine-api. Discovered by engine's `ChainedReactiveActionRiskClassifier`
+  via `@Inject @RiskClassifier Instance<ActionRiskClassifier>`.
+- `risk-policy.yaml` — YAML config at `casehub/life/risk-policy.yaml`; single scope `casehubio/life/risk-policy`.
+- scope convention: `"casehubio/life/oversight"` — verify against engine#437 once engine docs clarify scope→channel mapping.
+
 **Capability tags:**
 - `household-management` — routine household coordination: grocery ordering, maintenance scheduling, contractor liaison
 - `health-coordination` — appointment booking, medication reminders, follow-up tracking, GP escalation
@@ -395,9 +408,18 @@ Layer 6: Trust routing — TrustRoutingPolicyProvider with 8 domain policies +
          with ledger-backed TrustProfile. casehub-engine-ledger activates TrustWeightedAgentStrategy.
          casehub-platform-config provides YAML PreferenceProvider.
          Single-candidate limitation: FuncDSL workers = trivial routing decisions until Layer 7.
-         🔲 PENDING — implementation complete, not yet merged
+         ✅ COMPLETE
 
-Layer 7: + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecosystem (banking APIs,
+Layer 7 (partial): Action risk classification — LifeActionRiskClassifier intercepts
+         consequential worker actions before execution. @RiskClassifier CDI qualifier
+         activates via ChainedReactiveActionRiskClassifier. HouseholdActionType enum
+         (api/) owns the full action taxonomy: 11 types across 3 gate policies
+         (ALWAYS / AMOUNT_THRESHOLD / NEVER). YAML thresholds in risk-policy.yaml
+         via casehub-platform-config. RBAC-differentiated thresholds deferred (life#26,
+         blocked on auth retrofit). Full Layer 7 = + casehub-openclaw as WorkerProvisioner.
+         ✅ COMPLETE (risk classification)  🔲 PENDING (OpenClaw integration)
+
+Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecosystem (banking APIs,
          calendar integration, Home Assistant, messaging).
 ```
 
