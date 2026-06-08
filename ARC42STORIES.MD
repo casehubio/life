@@ -4,7 +4,7 @@
 **Profile:** CaseHub — Application tier
 **Profile ref:** `../parent/docs/arc42stories-casehub-profile.md` · fallback: `https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-casehub-profile.md`
 **Prefix:** LIF
-**Status:** Layers 1–5 complete. Layers 6–7 stubs. Chapters C1–C4 complete; C5–C6 stubs.
+**Status:** Layers 1–6 complete. Layer 7 partial (risk classification ✅; OpenClaw pending). Chapters C1–C5 complete; C6 stub.
 
 ---
 
