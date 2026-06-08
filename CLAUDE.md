@@ -173,6 +173,7 @@ This is an application, not a framework. If the capability requires knowledge of
 | `../parent/docs/PLATFORM.md` | Platform architecture, boundary rules, capability ownership |
 | `../garden/docs/protocols/casehub/HARNESS-INDEX.md` | CaseHub app protocols |
 | `../garden/docs/protocols/universal/INDEX.md` | Universal Java/Quarkus protocols |
+| `docs/protocols/casehub-life/INDEX.md` | Life-specific standing rules (e.g. platform-config YAML registration — PP-20260607-4c59f4) |
 
 ---
 
@@ -231,6 +232,8 @@ Read these **before designing**, not after. The concern column tells you when ea
 | Testing engine case definitions | Definition tests (verify YAML loads, binding count, goal count, capabilities) are pure unit tests — no Quarkus startup needed. Integration tests (start case → workers execute → goals met) require @QuarkusTest. Use `CaseIntegrationTestSupport` helpers: `startCase`, `awaitWorker`, `completeHumanTask`, `awaitCaseCompleted`. Pattern: `QuarkusTransaction.requiringNew()` for Panache queries inside Awaitility lambdas; filter WorkItems by `callerRef` prefix to avoid cross-test interference. Pure humanTask cases (e.g. family-vote) skip `startCase` — no workers to await. |
 | Testing attestation pipeline (unit) | Mock `LedgerEntryRepository` with Mockito. Verify verdicts (SOUND/FLAGGED), capability tags, dimension scores. Guard: CREATED events produce no attestation. See `LifeOutcomeAttestationWriterTest`. |
 | Trust routing policy provider | `@QuarkusTest` — inject `TrustRoutingPolicyProvider`, verify capability→domain resolution, YAML blend factors and quality floors. See `LifeTrustRoutingPolicyProviderTest`. |
+| Testing `ActionRiskClassifier` | Unit tests: mock `PreferenceProvider`, use `lenient().when(...)` in `@BeforeEach` for shared stubs — NEVER/unknown types skip `resolve()` entirely, triggering `UnnecessaryStubbingException` in strict mode. `@QuarkusTest`: inject `@RiskClassifier Instance<ActionRiskClassifier>` to verify CDI qualifier wiring. See `LifeActionRiskClassifierTest`, `LifeActionRiskClassifierQuarkusTest`. |
+| Testing `HumanTaskTarget.candidateGroups()` | Returns sealed `ListEvaluator`. Pattern: `ht.candidateGroups() instanceof ListEvaluator.StaticList sl && sl.values().contains("group-name")`. Import `io.casehub.api.model.evaluator.ListEvaluator`. |
 | Engine CDI wiring | `quarkus.arc.selected-alternatives` must include `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` from casehub-engine-persistence-memory (GE-20260531-1e51d4). |
 | Engine-ledger PU packages | `io.casehub.ledger.model` must be in the qhorus PU packages — this is `casehub-engine-ledger`'s entity package (e.g. `WorkerDecisionEntry`, `CaseLedgerEntry`), distinct from `io.casehub.ledger.runtime` (casehub-ledger base). Without it: `Unknown entity type 'WorkerDecisionEntry' does not belong to this persistence unit`. |
 | SubCase M-of-N in YAML | M-of-N fields (groupId, totalInGroup, requiredCount) are DSL-only — not YAML-supported. Add via Java augmentation in YamlCaseHub.getDefinition() (GE-20260531-d896bf). |
@@ -450,7 +453,7 @@ Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecos
 - **auth-retrofit-readiness.md** — auth not yet wired to internal services; design for retrofit
 - **alternative-extension-patterns.md** — `@Alternative` CDI patterns for SPI wiring
 - **PP-20260518-case-definition-layers** — YAML and fluent Java DSL are paired, equal authoring paths; every YAML must have a DSL companion
-- **PP-20260531-worker-func-exec** — worker functions must use FuncWorkflowBuilder, not raw lambdas; FuncDSL task types: function/agent/get
+- **PP-20260531-worker-func-exec** — worker functions must use FuncWorkflowBuilder, not raw lambdas; FuncDSL task types: function/agent/get. `function()` lambdas must return `WorkerResult.of(map)` — `Map<String,Object>` return no longer compiles (engine#402).
 - **PP-20260529-3ffe28** — three-phase case start: never join() inside @Transactional
 
 ---
