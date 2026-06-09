@@ -46,6 +46,7 @@ public final class LifeTestFixtures {
             t.defaultExpiryHours = expiryHours;
             t.description = description;
             t.createdBy = "life-system";
+            t.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
             t.persist();
         }
     }
