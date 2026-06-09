@@ -33,7 +33,7 @@ public class ContractorCommitmentStrategy implements LifeCommitmentStrategy {
     @Override
     public CommitmentOutcome execute(final CommitmentContext context) {
         final var cc = (ContractorContext) context;
-        final String actorChannelName = "life/actor/" + cc.externalActor().id;
+        final String actorChannelName = "life/actor/ext-" + cc.externalActor().id;
         final UUID actorChannelId = channelInitializer.ensureActorChannel(cc.externalActor().id);
         final String correlationId = UUID.randomUUID().toString();
 

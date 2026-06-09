@@ -57,7 +57,7 @@ public class LifeChannelInitializer {
      */
     @Transactional
     public UUID ensureActorChannel(final UUID externalActorId) {
-        final String name = "life/actor/" + externalActorId;
+        final String name = "life/actor/ext-" + externalActorId;
         return ensureChannelWithWatchdog(name, List.of("household-admin", "household-member"), null);
     }
 
