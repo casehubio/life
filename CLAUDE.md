@@ -225,7 +225,8 @@ Read these **before designing**, not after. The concern column tells you when ea
 | Writing a `@QuarkusTest` | `../garden/docs/protocols/universal/quarkus-test-database.md` — H2 MODE=PostgreSQL, datasource config |
 | Testing SPI wiring | `spi-testing-alternative-inner-classes` protocol |
 | Testing a WorkItem SLA | WorkItem test patterns in `casehub-work.md` |
-| Seeding WorkItemTemplates in tests | Flyway is disabled in tests (`migrate-at-start=false`). Seed templates via `LifeTestFixtures.seedStandardTemplates()` and/or `LifeTestFixtures.seedEscalationTemplate()` from `@BeforeEach @Transactional`. Canonical UUIDs 001–004; idempotency guard by template name. See `app/src/test/java/io/casehub/life/app/LifeTestFixtures.java`. |
+| Seeding WorkItemTemplates in tests | Flyway is disabled in tests (`migrate-at-start=false`). Seed templates via `LifeTestFixtures.seedStandardTemplates()` and/or `LifeTestFixtures.seedEscalationTemplate()` from `@BeforeEach @Transactional`. Canonical UUIDs 001–004; idempotency guard by template name. **Always set `tenancyId` to `"278776f9-e1b0-46fb-9032-8bddebdcf9ce"` — V35 adds NOT NULL with no H2 default.** See `app/src/test/java/io/casehub/life/app/LifeTestFixtures.java`. |
+| Non-JPA plain SQL tables in H2 tests | Hibernate `drop-and-create` only creates JPA entity tables. Plain SQL tables (e.g. `ledger_subject_sequence`) must be created via `quarkus.hibernate-orm."<pu>".sql-load-script` pointing to a SQL file with `CREATE TABLE IF NOT EXISTS`. See `app/src/test/resources/import-qhorus.sql` and PP-20260609-e2c3a1. |
 | Testing async CDI observers | Call the observer method directly through the injected CDI proxy — bypasses event dispatch and debounce. Method-level `@Transactional(REQUIRES_NEW)` is honoured via CDI proxy. Do NOT use `@TestTransaction` on the test method — it blocks the REQUIRES_NEW from seeing committed setup records. See GE-20260529-9f3557 and `LifeWatchdogAlertObserverTest`. |
 | Testing ledger writers (unit) | Mock `LedgerEntryRepository` with Mockito. Do NOT assert on `entry.id` or `entry.occurredAt` — these are set by `LedgerEntry.@PrePersist` which is bypassed in mocked tests. See `LifeLedgerWriterTest`. |
 | Multi-PU entity package placement | Ledger subclass entities must NOT be sub-packages of `io.casehub.life.app.entity` (default PU). Use `io.casehub.life.app.ledger` — Quarkus uses prefix matching for PU assignment; sub-packages of a default-PU package get assigned to the default PU, causing cross-PU association errors with `LedgerEntry.supplements`. |
@@ -453,7 +454,7 @@ Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecos
 - **auth-retrofit-readiness.md** — auth not yet wired to internal services; design for retrofit
 - **alternative-extension-patterns.md** — `@Alternative` CDI patterns for SPI wiring
 - **PP-20260518-case-definition-layers** — YAML and fluent Java DSL are paired, equal authoring paths; every YAML must have a DSL companion
-- **PP-20260531-worker-func-exec** — worker functions must use FuncWorkflowBuilder, not raw lambdas; FuncDSL task types: function/agent/get. `function()` lambdas must return `WorkerResult.of(map)` — `Map<String,Object>` return no longer compiles (engine#402).
+- **PP-20260531-worker-func-exec** — FuncWorkflowBuilder required for workers with multi-step structure, retry needs, or error handling. Single-step stub workers returning hardcoded maps (pending OpenClaw replacement at Layer 7) are exempt — migrate when real workers land. Design gap logged as engine#463 (function-as-worker abstraction). Raw `WorkerResult.of(map)` stubs stay until engine#463 resolves.
 - **PP-20260529-3ffe28** — three-phase case start: never join() inside @Transactional
 
 ---
