@@ -4,7 +4,7 @@
 **Profile:** CaseHub — Application tier
 **Profile ref:** `../parent/docs/arc42stories-casehub-profile.md` · fallback: `https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-casehub-profile.md`
 **Prefix:** LIF
-**Status:** Layers 1–6 complete. Layer 7 partial (risk classification ✅; OpenClaw pending). Chapters C1–C5 complete; C6 stub.
+**Status:** Layers 1–6 complete. Layer 7 partial (risk classification ✅; AgentExec wiring ✅ #25; OpenClaw WorkerProvisioner pending). Chapters C1–C5 complete; C6 stub.
 
 ---
 
@@ -1080,11 +1080,11 @@ Life's contribution:
 **Design refs:** 🔲 at Layer 7 close
 **Issues:** casehubio/life#8
 **Navigation:** `git log --grep="#8" --oneline`
-**Blog:** 🔲
-**Improvement refs:** 🔲
-**Completed:** 🔲 pending
+**Blog:** `2026-06-18-mdp01-first-real-worker.md` (partial — AgentExec wiring)
+**Improvement refs:** engine#536 (BlackboardEventCodecRegistrar idempotency), engine#537 (CaseContextChangedEventHandler @Blocking)
+**Completed:** 🔲 pending (AgentExec partial ✅ 2026-06-18)
 
-🔲 Full entry at C6 close. Blocked on Layer 7 implementation.
+🔲 Full entry at C6 close. Life#25 delivered WorkerFunction.AgentExec(Agent) pattern with OpenClaw LLM backend. Full WorkerProvisioner wiring (life#37, life#38) still pending.
 
 #### What it adds
 
