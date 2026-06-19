@@ -236,8 +236,7 @@ Read these **before designing**, not after. The concern column tells you when ea
 | Testing `ActionRiskClassifier` | Unit tests: mock `PreferenceProvider`, use `lenient().when(...)` in `@BeforeEach` for shared stubs — NEVER/unknown types skip `resolve()` entirely, triggering `UnnecessaryStubbingException` in strict mode. `@QuarkusTest`: inject `@RiskClassifier Instance<ActionRiskClassifier>` to verify CDI qualifier wiring. See `LifeActionRiskClassifierTest`, `LifeActionRiskClassifierQuarkusTest`. |
 | Testing `HumanTaskTarget.candidateGroups()` | Returns sealed `ListEvaluator`. Pattern: `ht.candidateGroups() instanceof ListEvaluator.StaticList sl && sl.values().contains("group-name")`. Import `io.casehub.api.model.evaluator.ListEvaluator`. |
 | Engine CDI wiring | `quarkus.arc.selected-alternatives` must include `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` from casehub-engine-persistence-memory (GE-20260531-1e51d4). |
-| Testing LLM-backed workers (`AppointmentCycleCaseHub`) | Use `@Alternative @Priority(10) @ApplicationScoped` test CDI bean (e.g. `TestLifeOpenClawChatModelProvider`) registered in `quarkus.arc.selected-alternatives` in test config. **Never use `@InjectMock`** for beans used in `augment()` — Mockito's CDI proxy reset between test classes triggers a Quarkus restart, re-registering Vert.x codecs and failing ALL subsequent `@QuarkusTest` classes (engine#536). The test bean must be request-aware: detect the rendered user message text to serve correct responses for both success and decline paths. `augmentedDefinition` is baked once per JVM lifetime — whichever test class runs first bakes the ChatModel. See `TestLifeOpenClawChatModelProvider`. |
-| @QuarkusTest status (2026-06-18) | All `@QuarkusTest` classes currently skip due to pre-existing Quarkus augmentation phase bug: `BlackboardEventCodecRegistrar.onStart()` registers Vert.x codecs during augmentation, then fails when the application tries to start again for tests. Filed as engine#536. Unit tests and non-Quarkus tests pass. |
+| Testing LLM-backed workers (`AppointmentCycleCaseHub`) | Use `@Alternative @Priority(10) @ApplicationScoped` test CDI bean (e.g. `TestLifeOpenClawChatModelProvider`) registered in `quarkus.arc.selected-alternatives` in test config. **Never use `@InjectMock`** for beans used in `augment()` — Mockito's CDI proxy reset between test classes triggers a Quarkus restart, re-registering Vert.x codecs and failing ALL subsequent `@QuarkusTest` classes. The test bean must be request-aware: detect the rendered user message text to serve correct responses for both success and decline paths. `augmentedDefinition` is baked once per JVM lifetime — whichever test class runs first bakes the ChatModel. See `TestLifeOpenClawChatModelProvider`. |
 | Engine-ledger PU packages | `io.casehub.ledger.model` must be in the qhorus PU packages — this is `casehub-engine-ledger`'s entity package (e.g. `WorkerDecisionEntry`, `CaseLedgerEntry`), distinct from `io.casehub.ledger.runtime` (casehub-ledger base). Without it: `Unknown entity type 'WorkerDecisionEntry' does not belong to this persistence unit`. |
 | SubCase M-of-N in YAML | M-of-N fields (groupId, totalInGroup, requiredCount) are DSL-only — not YAML-supported. Add via Java augmentation in YamlCaseHub.getDefinition() (GE-20260531-d896bf). |
 
@@ -303,7 +302,7 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - `TestLifeOpenClawChatModelProvider` (src/test only) — `@Alternative @Priority(10) @ApplicationScoped`;
   returns a request-aware `ChatModel` (detects "unavailable" in rendered user message → decline path).
   Registered via `quarkus.arc.selected-alternatives` in test config. Avoids `@InjectMock` which causes
-  Quarkus CDI restart between test classes and re-registers blackboard event bus codecs (engine#536).
+  Quarkus CDI restart between test classes and re-registers blackboard event bus codecs.
 - `casehub.life.tenancy-id` — required config property (no default); must be set in deployment environment
   (absent from production `application.properties`; present in test config with canonical test UUID).
 - `langchain4j-open-ai 1.14.1` — added as `runtime` dep in `app/pom.xml`.
@@ -453,8 +452,8 @@ Layer 7 (partial — AgentExec wiring): First real LLM-backed worker (life#25). 
          TCP probe), `TestLifeOpenClawChatModelProvider` (@Alternative @Priority(10) CDI test bean).
          AgentDescriptor.agentId = "openclaw:health-agent@1" per {model-family}:{persona}@{major}
          convention. Protocol: docs/protocols/casehub-life/openclaw-agent-worker-pattern.md.
-         engine#536 filed (BlackboardEventCodecRegistrar idempotency — all @QuarkusTest currently
-         skip due to pre-existing codec double-registration in augmentation phase).
+         engine#536 fixed (BlackboardEventCodecRegistrar idempotency — @QuarkusTest suite now green).
+         engine#537 fixed (CaseContextChangedEventHandler @Blocking — AppointmentCycle tests now green).
          ✅ COMPLETE (AgentExec wiring)  🔲 PENDING (WorkerProvisioner / /hooks/agent — life#37, life#38)
 
 Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecosystem (banking APIs,

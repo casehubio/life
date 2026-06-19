@@ -1081,7 +1081,7 @@ Life's contribution:
 **Issues:** casehubio/life#8
 **Navigation:** `git log --grep="#8" --oneline`
 **Blog:** `2026-06-18-mdp01-first-real-worker.md` (partial — AgentExec wiring)
-**Improvement refs:** engine#536 (BlackboardEventCodecRegistrar idempotency), engine#537 (CaseContextChangedEventHandler @Blocking)
+**Improvement refs:** engine#536 (BlackboardEventCodecRegistrar idempotency — ✅ fixed 2026-06-19), engine#537 (CaseContextChangedEventHandler @Blocking — ✅ fixed 2026-06-18)
 **Completed:** 🔲 pending (AgentExec partial ✅ 2026-06-18)
 
 🔲 Full entry at C6 close. Life#25 delivered WorkerFunction.AgentExec(Agent) pattern with OpenClaw LLM backend. Full WorkerProvisioner wiring (life#37, life#38) still pending.
