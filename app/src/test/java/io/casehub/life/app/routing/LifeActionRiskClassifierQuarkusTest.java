@@ -97,6 +97,15 @@ class LifeActionRiskClassifierQuarkusTest {
         assertInstanceOf(RiskDecision.GateRequired.class, classifier.classify(action));
     }
 
+    @Test
+    void admin_bookingRefundable_belowAdminYamlThreshold_returnsAutonomous() {
+        fixedPrincipal.setGroups(Set.of(HouseholdGroups.ADMIN));
+        // Admin booking threshold from YAML: 300.0. 200.0 is below that; above member threshold (150.0).
+        PlannedAction action = PlannedAction.of(
+            "hotel booking", BOOKING_REFUNDABLE.actionType(), Map.of("amount", "200.0"));
+        assertInstanceOf(RiskDecision.Autonomous.class, classifier.classify(action));
+    }
+
     // --- RBAC: junior always gates (end-to-end) ---
 
     @Test

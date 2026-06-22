@@ -1,10 +1,12 @@
 package io.casehub.life.app.resource;
 
+import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.api.commitment.CommitmentOutcome;
 import io.casehub.life.api.request.OversightGateRequest;
 import io.casehub.life.app.commitment.CommitmentConflictException;
 import io.casehub.life.app.commitment.LifeCommitmentService;
 import io.smallrye.common.annotation.Blocking;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -27,6 +29,7 @@ public class LifeOversightGateResource {
     LifeCommitmentService commitmentService;
 
     @POST
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response requestApproval(@Valid final OversightGateRequest request) {
         try {
             final CommitmentOutcome outcome = commitmentService.requestApproval(request);

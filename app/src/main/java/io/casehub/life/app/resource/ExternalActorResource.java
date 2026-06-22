@@ -1,5 +1,6 @@
 package io.casehub.life.app.resource;
 
+import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.api.LifeActorType;
 import io.casehub.life.api.request.CreateExternalActorRequest;
 import io.casehub.life.api.request.UpdateExternalActorRequest;
@@ -7,6 +8,7 @@ import io.casehub.life.api.response.ExternalActorResponse;
 import io.casehub.life.api.response.LifeTaskContextResponse;
 import io.casehub.life.app.service.ExternalActorService;
 import io.smallrye.common.annotation.Blocking;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -37,6 +39,7 @@ public class ExternalActorResource {
     ExternalActorService service;
 
     @POST
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response create(@Valid final CreateExternalActorRequest req) {
         final ExternalActorResponse created = service.create(req);
         return Response.created(URI.create("/external-actors/" + created.id()))
@@ -45,12 +48,14 @@ public class ExternalActorResource {
     }
 
     @GET
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public List<ExternalActorResponse> list(@QueryParam("actorType") final LifeActorType actorType) {
         return service.list(actorType);
     }
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response get(@PathParam("id") final UUID id) {
         return service.findById(id)
                 .map(a -> Response.ok(a).build())
@@ -59,6 +64,7 @@ public class ExternalActorResource {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed(HouseholdGroups.ADMIN)
     public Response update(@PathParam("id") final UUID id, @Valid final UpdateExternalActorRequest req) {
         return service.update(id, req)
                 .map(a -> Response.ok(a).build())
@@ -67,6 +73,7 @@ public class ExternalActorResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed(HouseholdGroups.ADMIN)
     public Response delete(@PathParam("id") final UUID id) {
         service.delete(id);
         return Response.noContent().build();
@@ -74,6 +81,7 @@ public class ExternalActorResource {
 
     @DELETE
     @Path("/{id}/personal-data")
+    @RolesAllowed(HouseholdGroups.ADMIN)
     public Response erasePersonalData(@PathParam("id") final UUID id) {
         service.erase(id);
         return Response.noContent().build();
@@ -81,6 +89,7 @@ public class ExternalActorResource {
 
     @GET
     @Path("/{id}/tasks")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response listTasks(@PathParam("id") final UUID id) {
         if (service.findById(id).isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();

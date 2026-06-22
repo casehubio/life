@@ -5,6 +5,7 @@ import io.casehub.api.spi.routing.TrustRoutingPolicyProvider;
 import io.casehub.ledger.runtime.service.TrustGateService;
 import io.casehub.life.api.LifeActorIds;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@TestSecurity(user = "household-admin", roles = {"household-admin"})
 class ColdStartBehaviorTest {
 
     @Inject

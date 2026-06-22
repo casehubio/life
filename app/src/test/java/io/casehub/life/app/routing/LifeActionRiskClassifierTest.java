@@ -256,6 +256,19 @@ class LifeActionRiskClassifierTest {
         assertInstanceOf(Autonomous.class, classifier.classify(actionWithAmount(CONTRACTOR_ENGAGE, 400.0)));
     }
 
+    @Test
+    void admin_bookingRefundable_belowAdminThreshold_returnsAutonomous() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.ADMIN));
+        // 200.0 is below admin booking threshold (300.0) but above member threshold (150.0)
+        assertInstanceOf(Autonomous.class, classifier.classify(actionWithAmount(BOOKING_REFUNDABLE, 200.0)));
+    }
+
+    @Test
+    void admin_bookingRefundable_atAdminThreshold_returnsGateRequired() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.ADMIN));
+        assertInstanceOf(GateRequired.class, classifier.classify(actionWithAmount(BOOKING_REFUNDABLE, 300.0)));
+    }
+
     // --- RBAC: junior always gates on AMOUNT_THRESHOLD ---
 
     @Test

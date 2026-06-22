@@ -1,10 +1,12 @@
 package io.casehub.life.app.resource;
 
+import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.api.commitment.CommitmentOutcome;
 import io.casehub.life.api.request.CommitmentRequest;
 import io.casehub.life.app.commitment.CommitmentConflictException;
 import io.casehub.life.app.commitment.LifeCommitmentService;
 import io.smallrye.common.annotation.Blocking;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ public class LifeCommitmentResource {
     LifeCommitmentService commitmentService;
 
     @POST
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response commit(
             @PathParam("id") final UUID workItemId,
             @Valid final CommitmentRequest request) {

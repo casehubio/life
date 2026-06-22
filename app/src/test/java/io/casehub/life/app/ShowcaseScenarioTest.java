@@ -2,6 +2,7 @@ package io.casehub.life.app;
 
 import io.casehub.work.runtime.service.ExpiryLifecycleService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.*;
  *                LifeSlaBreachPolicy escalates to household-admin then fails terminally.
  */
 @QuarkusTest
+@TestSecurity(user = "household-admin", roles = {"household-admin"})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ShowcaseScenarioTest {
 

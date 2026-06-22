@@ -44,15 +44,19 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
 
     private RiskDecision classifyKnownType(HouseholdActionType type, PlannedAction action) {
         return switch (type.gatePolicy()) {
-            case ALWAYS           -> buildGate(type, action, preferenceProvider.resolve(RISK_POLICY_SCOPE));
-            case NEVER            -> new RiskDecision.Autonomous();
-            case AMOUNT_THRESHOLD -> isJunior()
-                ? buildGate(type, action, preferenceProvider.resolve(RISK_POLICY_SCOPE))
-                : classifyByAmount(type, action);
+            case ALWAYS -> buildGate(type, action, preferenceProvider.resolve(RISK_POLICY_SCOPE));
+            case NEVER  -> new RiskDecision.Autonomous();
+            case AMOUNT_THRESHOLD -> {
+                // Compute admin once; pass it down to avoid additional groups() lookups.
+                final boolean admin = isAdmin();
+                yield isJunior(admin)
+                    ? buildGate(type, action, preferenceProvider.resolve(RISK_POLICY_SCOPE))
+                    : classifyByAmount(type, action, admin);
+            }
         };
     }
 
-    private RiskDecision classifyByAmount(HouseholdActionType type, PlannedAction action) {
+    private RiskDecision classifyByAmount(HouseholdActionType type, PlannedAction action, boolean admin) {
         Object raw = action.context().get("amount");
         if (raw == null) return new RiskDecision.Autonomous();
         double amount;
@@ -62,14 +66,13 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
             return new RiskDecision.Autonomous();
         }
         Preferences prefs = preferenceProvider.resolve(RISK_POLICY_SCOPE);
-        double threshold = resolveThreshold(type, prefs);
+        double threshold = resolveThreshold(type, prefs, admin);
         return amount >= threshold ? buildGate(type, action, prefs) : new RiskDecision.Autonomous();
     }
 
     // ThresholdCategory removed from HouseholdActionType in #27 — switch directly on type.
     // This method is interim: replaced by per-type HouseholdRiskRule implementations in Plan B.
-    private double resolveThreshold(HouseholdActionType type, Preferences prefs) {
-        final boolean admin = isAdmin();
+    private double resolveThreshold(HouseholdActionType type, Preferences prefs, boolean admin) {
         return switch (type) {
             case SPEND_PURCHASE, SPEND_SUBSCRIPTION_MODIFY ->
                 prefs.get(admin ? LifeRiskPolicyKeys.ADMIN_SPEND_THRESHOLD
@@ -93,15 +96,16 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
         }
     }
 
-    private boolean isJunior() {
+    private boolean isJunior(boolean admin) {
+        // Short-circuit: if caller is admin they cannot also be junior.
+        if (admin) return false;
         try {
             // Negative definition is deliberate: unknown/unrecognised roles → always-gate.
             // Fail-secure for a financial-gate system: an unrecognised identity must never
             // act autonomously. The JUNIOR constant is used in @RolesAllowed; the classifier
             // uses the negative form so any non-admin, non-member identity gets the same
             // restrictive treatment.
-            return !principal.groups().contains(HouseholdGroups.ADMIN)
-                && !principal.groups().contains(HouseholdGroups.MEMBER);
+            return !principal.groups().contains(HouseholdGroups.MEMBER);
         } catch (ContextNotActiveException e) {
             return false;
         }

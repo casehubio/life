@@ -5,6 +5,7 @@ import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
 import io.casehub.life.api.LifeActorIds;
 import io.casehub.platform.api.identity.ActorType;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.equalTo;
 
 @QuarkusTest
+@TestSecurity(user = "household-admin", roles = {"household-admin"})
 class ExternalActorTrustEnrichmentTest {
 
     @Inject ActorTrustScoreRepository trustScoreRepo;

@@ -15,10 +15,12 @@
  */
 package io.casehub.life.app.resource;
 
+import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.api.request.CreateLifeCaseRequest;
 import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.app.engine.LifeCaseService;
 import io.smallrye.common.annotation.Blocking;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -39,6 +41,7 @@ public class LifeCaseResource {
     LifeCaseService lifeCaseService;
 
     @POST
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response create(CreateLifeCaseRequest request) {
         LifeCaseResponse response = lifeCaseService.startCase(request);
         return Response.status(Response.Status.CREATED).entity(response).build();

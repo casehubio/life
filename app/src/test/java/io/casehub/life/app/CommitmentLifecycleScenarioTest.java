@@ -4,6 +4,7 @@ import io.casehub.life.api.commitment.CommitmentStatus;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.qhorus.runtime.watchdog.WatchdogEvaluationService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import static org.hamcrest.Matchers.*;
  *                oversight gate blocking task creation until approval.
  */
 @QuarkusTest
+@TestSecurity(user = "household-admin", roles = {"household-admin"})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CommitmentLifecycleScenarioTest {
 

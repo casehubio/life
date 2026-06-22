@@ -1,9 +1,11 @@
 package io.casehub.life.app.resource;
 
+import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.api.request.CreateLifeTaskRequest;
 import io.casehub.life.api.response.LifeTaskResponse;
 import io.casehub.life.app.service.LifeTaskService;
 import io.smallrye.common.annotation.Blocking;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ public class LifeTaskResource {
     LifeTaskService service;
 
     @POST
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response create(@Valid final CreateLifeTaskRequest req) {
         final LifeTaskResponse created = service.create(req);
         return Response.created(URI.create("/life-tasks/" + created.workItemId()))
@@ -39,6 +42,7 @@ public class LifeTaskResource {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
     public LifeTaskResponse get(@PathParam("id") final UUID workItemId) {
         return service.get(workItemId);
     }

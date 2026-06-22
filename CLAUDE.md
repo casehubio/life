@@ -264,7 +264,7 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - `LifeLedgerWriter` — unified writer service; owns `sequenceNumber` computation and base field assembly. `@PrePersist` on `LedgerEntry` handles `id` and `occurredAt`.
 - `LifeDecisionLedgerObserver` — CDI observer for `SlaBreachEvent` (HEALTH/LEGAL/FINANCE SLA_BREACH) and `WorkItemLifecycleEvent` (COMPLETED only). `@Transactional(REQUIRES_NEW)`.
 - GDPR Art.17 erasure: `DELETE /external-actors/{id}/personal-data` — nullifies PII, writes `ExternalActorErasureLedgerEntry`. Guards: 404/409 already-erased/409 active-tasks.
-- actorId convention: `"life-system"` for system events, `"household-admin"` for GDPR erasure (until auth wired).
+- actorId convention: `"life-system"` for system events; GDPR erasure actorId comes from `currentPrincipal.actorId()` (auth wired: life#40).
 
 **Layer 5 additions:**
 - `LifeCaseTracker` — JPA entity tracking active engine cases by type for cross-case signal lookup: `{id, caseType, engineCaseId, status, createdAt, completedAt}`. Default datasource.
@@ -316,11 +316,15 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
   `actionType()` / `fromActionType()` provide type-safe `PlannedAction` construction.
 - `HouseholdGroups` — `api/` string constants: `household-admin`, `household-member`, `household-junior`.
 - `LifeRiskPolicyKeys` — `app/routing/` `PreferenceKey` constants. Namespace: `casehubio.life.risk-policy`.
-  spend.threshold (100.0), contractor.threshold (200.0), booking.threshold (150.0), approval.expires-hours (24.0).
+  Member thresholds: spend.threshold (100.0), contractor.threshold (200.0), booking.threshold (150.0), approval.expires-hours (24.0).
+  Admin elevated thresholds: admin.spend.threshold (500.0), admin.contractor.threshold (500.0), admin.booking.threshold (300.0).
 - `LifeActionRiskClassifier` — `app/routing/` `@ApplicationScoped @RiskClassifier`; implements
   `ActionRiskClassifier` from casehub-engine-api. Discovered by engine's `ChainedReactiveActionRiskClassifier`
-  via `@Inject @RiskClassifier Instance<ActionRiskClassifier>`.
+  via `@Inject @RiskClassifier Instance<ActionRiskClassifier>`. Injects `CurrentPrincipal` (RBAC tier selection):
+  admin → elevated thresholds; junior (negative: !admin && !member) → always GateRequired on AMOUNT_THRESHOLD;
+  context-inactive (async worker, ContextNotActiveException) → member threshold fallback.
 - `risk-policy.yaml` — YAML config at `casehub/life/risk-policy.yaml`; single scope `casehubio/life/risk-policy`.
+  Contains both member and admin tier thresholds.
 - scope convention: `"casehubio/life/oversight"` — verify against engine#437 once engine docs clarify scope→channel mapping.
 
 **Capability tags:**
@@ -441,9 +445,10 @@ Layer 7 (partial): Action risk classification — LifeActionRiskClassifier inter
          activates via ChainedReactiveActionRiskClassifier. HouseholdActionType enum
          (api/) owns the full action taxonomy: 11 types across 3 gate policies
          (ALWAYS / AMOUNT_THRESHOLD / NEVER). YAML thresholds in risk-policy.yaml
-         via casehub-platform-config. RBAC-differentiated thresholds deferred (life#26,
-         blocked on auth retrofit). Full Layer 7 = + casehub-openclaw as WorkerProvisioner.
-         ✅ COMPLETE (risk classification)  🔲 PENDING (OpenClaw integration)
+         via casehub-platform-config. RBAC-differentiated thresholds: admin elevated
+         (spend/contractor/booking), junior always-gates on AMOUNT_THRESHOLD, context-inactive
+         falls back to member threshold (life#26). Full Layer 7 = + casehub-openclaw as WorkerProvisioner.
+         ✅ COMPLETE (risk classification + RBAC thresholds)  🔲 PENDING (OpenClaw integration)
 
 Layer 7 (partial — AgentExec wiring): First real LLM-backed worker (life#25). Establishes
          WorkerFunction.AgentExec(Agent) pattern for OpenClaw /v1/chat/completions. Components:
@@ -484,7 +489,7 @@ Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecos
 - **PP-20260526-d0b921** — REST resources must be `@Blocking @ApplicationScoped`; class-level `@Produces(APPLICATION_JSON)` and `@Consumes(APPLICATION_JSON)` required; creation endpoints return 201 Created (no Location header for resources without independent URIs)
 - **PP-20260526-75d9c9** — `@Transactional` on service methods only, never resource methods
 - **dual-trail-audit-pattern.md** — operational trail (casehub-work/qhorus) vs compliance ledger (casehub-ledger)
-- **auth-retrofit-readiness.md** — auth not yet wired to internal services; design for retrofit
+- **auth-retrofit-readiness.md** — auth wired (life#40): casehub-platform-oidc on classpath, @RolesAllowed on all REST resources; structural constraints (no auth in domain/service, thin resources, auth-free SPIs) remain active for future features
 - **alternative-extension-patterns.md** — `@Alternative` CDI patterns for SPI wiring
 - **PP-20260518-case-definition-layers** — YAML and fluent Java DSL are paired, equal authoring paths; every YAML must have a DSL companion
 - **PP-20260531-worker-func-exec** (superseded for LLM workers by PP-20260618-openclaw-agent) —

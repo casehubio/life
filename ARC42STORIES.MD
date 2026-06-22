@@ -340,14 +340,14 @@ GitHub Packages:
 | FuncDSL worker execution | PP-20260531-worker-func-exec — `FuncWorkflowBuilder`, not raw lambdas |
 | Three-phase case start | PP-20260529-3ffe28 — never join() inside @Transactional |
 | Dual-trail audit | `dual-trail-audit-pattern.md` — operational (casehub-work/qhorus) vs compliance (casehub-ledger) |
-| Auth retrofit readiness | `auth-retrofit-readiness.md` — auth not yet wired; design for retrofit |
+| Auth retrofit readiness | `auth-retrofit-readiness.md` — auth wired (life#40): casehub-platform-oidc, @RolesAllowed on all REST resources |
 | Post-generation quality gate | `docs/protocols/casehub/arc42stories-post-generation-quality-gate.md` |
 
 ### Security
 
 `ExternalActor` is the sole entity holding PII (name, contactMethod, contactValue). GDPR Art.17 erasure: `DELETE /external-actors/{id}/personal-data` nullifies PII fields and writes `ExternalActorErasureLedgerEntry` as proof. Guards: 404 (not found), 409 (already erased), 409 (active tasks exist).
 
-`@RolesAllowed` can be added to REST resources without structural change — auth-retrofit ready by design. `actorId` convention: `"life-system"` for system events, `"household-admin"` for GDPR erasure (until auth wired).
+`@RolesAllowed` is wired on all REST resources (life#40, casehub-platform-oidc). Permission topology: household-admin (full authority), household-member (standard), household-junior (view-only for tasks). `actorId` convention: `"life-system"` for system events; GDPR erasure actorId derived from `currentPrincipal.actorId()` (auth wired).
 
 ### Anti-patterns
 
@@ -1051,7 +1051,7 @@ Integration tests re-enabled (engine#410 resolved — commit 66a6e34, life#23). 
 **Issues:** casehubio/life#7
 **Navigation:** `git log --grep="#7" --oneline`
 **Blog:** `blog/2026-06-16-mdp01-snapshot-silent-alternatives.md`
-**Improvement refs:** Single-candidate limitation until Layer 7 (OpenClaw WorkerProvisioner); RBAC-differentiated thresholds deferred to life#26
+**Improvement refs:** Single-candidate limitation until Layer 7 (OpenClaw WorkerProvisioner); RBAC-differentiated thresholds complete (life#26 — admin elevated, junior always-gate)
 **Completed:** 2026-06-16
 
 #### What it adds
