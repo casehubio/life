@@ -4,3 +4,6 @@ entries:
     casehubio.life.risk-policy.contractor.threshold: "200.0"
     casehubio.life.risk-policy.booking.threshold: "150.0"
     casehubio.life.risk-policy.approval.expires-hours: "24.0"
+    casehubio.life.risk-policy.admin.spend.threshold: "500.0"
+    casehubio.life.risk-policy.admin.contractor.threshold: "500.0"
+    casehubio.life.risk-policy.admin.booking.threshold: "300.0"

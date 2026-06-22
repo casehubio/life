@@ -6,9 +6,11 @@ import io.casehub.api.spi.RiskDecision.Autonomous;
 import io.casehub.api.spi.RiskDecision.GateRequired;
 import io.casehub.life.api.HouseholdActionType;
 import io.casehub.life.api.HouseholdGroups;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.Preferences;
 import io.casehub.platform.api.preferences.SettingsScope;
+import jakarta.enterprise.context.ContextNotActiveException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 
 import static io.casehub.life.api.HouseholdActionType.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +33,9 @@ class LifeActionRiskClassifierTest {
     @Mock
     private PreferenceProvider preferenceProvider;
 
+    @Mock
+    private CurrentPrincipal principal;
+
     @InjectMocks
     private LifeActionRiskClassifier classifier;
 
@@ -37,10 +43,17 @@ class LifeActionRiskClassifierTest {
     void setUp() {
         Preferences prefs = mock(Preferences.class);
         lenient().when(preferenceProvider.resolve(any(SettingsScope.class))).thenReturn(prefs);
+        // Member thresholds
         lenient().when(prefs.get(LifeRiskPolicyKeys.SPEND_THRESHOLD)).thenReturn(DoublePreference.of(100.0));
         lenient().when(prefs.get(LifeRiskPolicyKeys.CONTRACTOR_THRESHOLD)).thenReturn(DoublePreference.of(200.0));
         lenient().when(prefs.get(LifeRiskPolicyKeys.BOOKING_THRESHOLD)).thenReturn(DoublePreference.of(150.0));
         lenient().when(prefs.get(LifeRiskPolicyKeys.APPROVAL_EXPIRES_HOURS)).thenReturn(DoublePreference.of(24.0));
+        // Admin thresholds
+        lenient().when(prefs.get(LifeRiskPolicyKeys.ADMIN_SPEND_THRESHOLD)).thenReturn(DoublePreference.of(500.0));
+        lenient().when(prefs.get(LifeRiskPolicyKeys.ADMIN_CONTRACTOR_THRESHOLD)).thenReturn(DoublePreference.of(500.0));
+        lenient().when(prefs.get(LifeRiskPolicyKeys.ADMIN_BOOKING_THRESHOLD)).thenReturn(DoublePreference.of(300.0));
+        // Default: member groups — AMOUNT_THRESHOLD tests exercise member-threshold path
+        lenient().when(principal.groups()).thenReturn(Set.of(HouseholdGroups.MEMBER));
     }
 
     // --- helpers ---
@@ -219,5 +232,58 @@ class LifeActionRiskClassifierTest {
     void nullActionType_returnsAutonomous() {
         PlannedAction nullType = PlannedAction.of("test", null, Map.of());
         assertInstanceOf(Autonomous.class, classifier.classify(nullType));
+    }
+
+    // --- RBAC: admin elevated threshold ---
+
+    @Test
+    void admin_spendPurchase_belowAdminThreshold_returnsAutonomous() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.ADMIN));
+        // 400.0 is below admin threshold (500.0) but above member threshold (100.0)
+        assertInstanceOf(Autonomous.class, classifier.classify(actionWithAmount(SPEND_PURCHASE, 400.0)));
+    }
+
+    @Test
+    void admin_spendPurchase_atAdminThreshold_returnsGateRequired() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.ADMIN));
+        assertInstanceOf(GateRequired.class, classifier.classify(actionWithAmount(SPEND_PURCHASE, 500.0)));
+    }
+
+    @Test
+    void admin_contractorEngage_belowAdminThreshold_returnsAutonomous() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.ADMIN));
+        // 400.0 is below admin contractor threshold (500.0) but above member threshold (200.0)
+        assertInstanceOf(Autonomous.class, classifier.classify(actionWithAmount(CONTRACTOR_ENGAGE, 400.0)));
+    }
+
+    // --- RBAC: junior always gates on AMOUNT_THRESHOLD ---
+
+    @Test
+    void junior_spendPurchase_belowMemberThreshold_returnsGateRequired() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.JUNIOR));
+        // 50.0 is below member threshold (100.0) — junior always gates regardless
+        assertInstanceOf(GateRequired.class, classifier.classify(actionWithAmount(SPEND_PURCHASE, 50.0)));
+    }
+
+    @Test
+    void junior_contractorEngage_belowMemberThreshold_returnsGateRequired() {
+        when(principal.groups()).thenReturn(Set.of(HouseholdGroups.JUNIOR));
+        assertInstanceOf(GateRequired.class, classifier.classify(actionWithAmount(CONTRACTOR_ENGAGE, 10.0)));
+    }
+
+    // --- RBAC: context inactive — member threshold fallback ---
+
+    @Test
+    void contextInactive_aboveThreshold_returnsGateRequired() {
+        when(principal.groups()).thenThrow(ContextNotActiveException.class);
+        // No context → member fallback: 100.0 >= 100.0 → gate
+        assertInstanceOf(GateRequired.class, classifier.classify(actionWithAmount(SPEND_PURCHASE, 100.0)));
+    }
+
+    @Test
+    void contextInactive_belowThreshold_returnsAutonomous() {
+        when(principal.groups()).thenThrow(ContextNotActiveException.class);
+        // No context → member fallback: 50.0 < 100.0 → autonomous (NOT always-gate for background workers)
+        assertInstanceOf(Autonomous.class, classifier.classify(actionWithAmount(SPEND_PURCHASE, 50.0)));
     }
 }

@@ -5,10 +5,13 @@ import io.casehub.api.spi.PlannedAction;
 import io.casehub.api.spi.RiskClassifier;
 import io.casehub.api.spi.RiskDecision;
 import io.casehub.life.api.HouseholdActionType;
+import io.casehub.life.api.HouseholdGroups;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.Preferences;
 import io.casehub.platform.api.preferences.SettingsScope;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ContextNotActiveException;
 import jakarta.inject.Inject;
 
 import java.time.Duration;
@@ -29,8 +32,8 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
     private static final SettingsScope RISK_POLICY_SCOPE =
         SettingsScope.of("casehubio", "life", "risk-policy");
 
-    @Inject
-    PreferenceProvider preferenceProvider;
+    @Inject PreferenceProvider preferenceProvider;
+    @Inject CurrentPrincipal principal;
 
     @Override
     public RiskDecision classify(PlannedAction action) {
@@ -43,7 +46,9 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
         return switch (type.gatePolicy()) {
             case ALWAYS           -> buildGate(type, action, preferenceProvider.resolve(RISK_POLICY_SCOPE));
             case NEVER            -> new RiskDecision.Autonomous();
-            case AMOUNT_THRESHOLD -> classifyByAmount(type, action);
+            case AMOUNT_THRESHOLD -> isJunior()
+                ? buildGate(type, action, preferenceProvider.resolve(RISK_POLICY_SCOPE))
+                : classifyByAmount(type, action);
         };
     }
 
@@ -64,16 +69,42 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
     // ThresholdCategory removed from HouseholdActionType in #27 — switch directly on type.
     // This method is interim: replaced by per-type HouseholdRiskRule implementations in Plan B.
     private double resolveThreshold(HouseholdActionType type, Preferences prefs) {
+        final boolean admin = isAdmin();
         return switch (type) {
             case SPEND_PURCHASE, SPEND_SUBSCRIPTION_MODIFY ->
-                prefs.get(LifeRiskPolicyKeys.SPEND_THRESHOLD).value();
+                prefs.get(admin ? LifeRiskPolicyKeys.ADMIN_SPEND_THRESHOLD
+                                : LifeRiskPolicyKeys.SPEND_THRESHOLD).value();
             case BOOKING_REFUNDABLE ->
-                prefs.get(LifeRiskPolicyKeys.BOOKING_THRESHOLD).value();
+                prefs.get(admin ? LifeRiskPolicyKeys.ADMIN_BOOKING_THRESHOLD
+                                : LifeRiskPolicyKeys.BOOKING_THRESHOLD).value();
             case CONTRACTOR_ENGAGE ->
-                prefs.get(LifeRiskPolicyKeys.CONTRACTOR_THRESHOLD).value();
+                prefs.get(admin ? LifeRiskPolicyKeys.ADMIN_CONTRACTOR_THRESHOLD
+                                : LifeRiskPolicyKeys.CONTRACTOR_THRESHOLD).value();
             default -> throw new IllegalStateException(
                 "resolveThreshold called for non-AMOUNT_THRESHOLD type: " + type);
         };
+    }
+
+    private boolean isAdmin() {
+        try {
+            return principal.groups().contains(HouseholdGroups.ADMIN);
+        } catch (ContextNotActiveException e) {
+            return false;
+        }
+    }
+
+    private boolean isJunior() {
+        try {
+            // Negative definition is deliberate: unknown/unrecognised roles → always-gate.
+            // Fail-secure for a financial-gate system: an unrecognised identity must never
+            // act autonomously. The JUNIOR constant is used in @RolesAllowed; the classifier
+            // uses the negative form so any non-admin, non-member identity gets the same
+            // restrictive treatment.
+            return !principal.groups().contains(HouseholdGroups.ADMIN)
+                && !principal.groups().contains(HouseholdGroups.MEMBER);
+        } catch (ContextNotActiveException e) {
+            return false;
+        }
     }
 
     private RiskDecision.GateRequired buildGate(HouseholdActionType type, PlannedAction action, Preferences prefs) {

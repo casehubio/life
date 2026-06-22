@@ -27,5 +27,17 @@ public final class LifeRiskPolicyKeys {
     public static final PreferenceKey<DoublePreference> APPROVAL_EXPIRES_HOURS =
         new PreferenceKey<>(NS, "approval.expires-hours", DoublePreference.of(24.0), DoublePreference::parse);
 
+    /** Spend threshold for household-admin — higher authority, less friction. Default: 500.0. */
+    public static final PreferenceKey<DoublePreference> ADMIN_SPEND_THRESHOLD =
+        new PreferenceKey<>(NS, "admin.spend.threshold", DoublePreference.of(500.0), DoublePreference::parse);
+
+    /** Contractor threshold for household-admin. Default: 500.0. */
+    public static final PreferenceKey<DoublePreference> ADMIN_CONTRACTOR_THRESHOLD =
+        new PreferenceKey<>(NS, "admin.contractor.threshold", DoublePreference.of(500.0), DoublePreference::parse);
+
+    /** Refundable booking threshold for household-admin. Default: 300.0. */
+    public static final PreferenceKey<DoublePreference> ADMIN_BOOKING_THRESHOLD =
+        new PreferenceKey<>(NS, "admin.booking.threshold", DoublePreference.of(300.0), DoublePreference::parse);
+
     private LifeRiskPolicyKeys() {}
 }
