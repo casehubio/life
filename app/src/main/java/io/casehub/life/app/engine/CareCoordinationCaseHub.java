@@ -18,9 +18,9 @@ package io.casehub.life.app.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.Agent;
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.life.app.engine.agent.CarePlanResult;
 import io.casehub.life.app.engine.agent.HealthCheckResult;
+import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import io.casehub.life.app.engine.agent.NeedsAssessmentResult;
 import io.casehub.api.model.AgentWorkerFunction;
@@ -28,7 +28,6 @@ import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -52,11 +51,13 @@ import java.util.Map;
 @ApplicationScoped
 public class CareCoordinationCaseHub extends YamlCaseHub {
 
+    private static final LifeAgent AGENT = LifeAgent.HEALTH;
+
     @Inject
     LifeOpenClawChatModelFactory openClawFactory;
 
-    @ConfigProperty(name = "casehub.life.tenancy-id")
-    String tenancyId;
+    @Inject
+    LifeAgentDescriptorFactory descriptorFactory;
 
     private volatile CaseDefinition augmentedDefinition;
 
@@ -82,7 +83,8 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
                 carePlanWorker(),
                 healthCheckWorker()
         ));
-        yaml.setAgentDescriptors(Map.of("openclaw:health-agent@1", healthDescriptor()));
+        yaml.setAgentDescriptors(Map.of(
+                AGENT.agentId(), descriptorFactory.descriptorFor(AGENT)));
         return yaml;
     }
 
@@ -98,7 +100,7 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
      */
     private Worker needsAssessmentWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a care coordination agent. Assess care needs for the patient,
                         determining care level, recommended frequency, and any special requirements.""")
@@ -120,7 +122,7 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
      */
     private Worker carePlanWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a care coordination agent. Create a care plan with schedule,
                         duration, and task list based on the needs assessment.""")
@@ -142,7 +144,7 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
      */
     private Worker healthCheckWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a care coordination agent. Perform a periodic health check,
                         reviewing the patient's condition and flagging any concerns.""")
@@ -154,28 +156,5 @@ public class CareCoordinationCaseHub extends YamlCaseHub {
                 .capabilities(List.of(cap("health-check")))
                 .function(new AgentWorkerFunction(agent))
                 .build();
-    }
-
-    private AgentDescriptor healthDescriptor() {
-        return new AgentDescriptor(
-                "openclaw:health-agent@1",       // agentId
-                "OpenClaw Health Agent",         // name
-                "1",                             // version
-                "openclaw",                      // provider
-                "openclaw",                      // modelFamily
-                null,                            // modelVersion
-                null,                            // weightsFingerprint
-                null,                            // domainVocabulary
-                null,                            // slotVocabulary
-                null,                            // dispositionVocabulary
-                null,                            // axisVocabularies
-                "casehubio/life/health",         // slot
-                List.of(),                       // capabilities
-                null,                            // disposition
-                "GB",                            // jurisdiction
-                null,                            // dataHandlingPolicy
-                tenancyId,                       // tenancyId
-                "Health domain agent"            // briefing
-        );
     }
 }

@@ -7,7 +7,7 @@ import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.ledger.HealthDecisionLedgerEntry;
 import io.casehub.work.runtime.model.WorkItem;
-import io.casehub.work.runtime.model.WorkItemStatus;
+import io.casehub.work.api.WorkItemStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

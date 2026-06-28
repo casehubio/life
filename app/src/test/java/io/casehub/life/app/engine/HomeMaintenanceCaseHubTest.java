@@ -53,21 +53,21 @@ class HomeMaintenanceCaseHubTest {
     void hasFiveCapabilities() {
         var names = caseHub.getDefinition().getCapabilities()
                 .stream().map(c -> c.name()).toList();
-        assertEquals(5, names.size());
+        assertEquals(6, names.size());
         assertTrue(names.containsAll(List.of(
                 "schedule-inspection", "get-quotes", "issue-commitment",
-                "monitor-job", "record-completion")));
+                "monitor-job", "record-completion", "maintenance-sentinel")));
     }
 
     @Test
     void hasSevenBindings() {
         var names = caseHub.getDefinition().getBindings()
                 .stream().map(b -> b.getName()).toList();
-        assertEquals(7, names.size());
+        assertEquals(9, names.size());
         assertTrue(names.containsAll(List.of(
                 "schedule-inspection", "get-quotes", "approve-contractor",
                 "issue-commitment", "monitor-job", "verify-completion",
-                "record-completion")));
+                "record-completion", "maintenance-sentinel", "sentinel-escalation")));
     }
 
     @Test

@@ -1,6 +1,6 @@
 package io.casehub.life.app;
 
-import io.casehub.work.runtime.model.WorkItemPriority;
+import io.casehub.work.api.WorkItemPriority;
 import io.casehub.work.runtime.model.WorkItemTemplate;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.transaction.Transactional;

@@ -59,20 +59,21 @@ class AppointmentCycleCaseHubTest {
     void hasFiveCapabilities() {
         var names = caseHub.getDefinition().getCapabilities()
                 .stream().map(c -> c.name()).toList();
-        assertEquals(5, names.size());
+        assertEquals(6, names.size());
         assertTrue(names.containsAll(List.of(
                 "book-appointment", "find-alternative", "confirm-appointment",
-                "pre-visit-prep", "record-health-decision")));
+                "pre-visit-prep", "record-health-decision", "follow-up-sentinel")));
     }
 
     @Test
     void hasSixBindings() {
         var names = caseHub.getDefinition().getBindings()
                 .stream().map(b -> b.getName()).toList();
-        assertEquals(6, names.size());
+        assertEquals(8, names.size());
         assertTrue(names.containsAll(List.of(
                 "book-appointment", "find-alternative", "confirm-appointment",
-                "pre-visit-prep", "attend-and-record", "record-health-decision")));
+                "pre-visit-prep", "attend-and-record", "record-health-decision",
+                "follow-up-sentinel", "sentinel-escalation")));
     }
 
     @Test
@@ -116,15 +117,15 @@ class AppointmentCycleCaseHubTest {
         // system and attestation pipeline can attribute outcomes to the correct agent.
         final var def = caseHub.getDefinition();
 
-        assertThat(def.agentDescriptorFor("openclaw:health-agent@1"))
-                .as("CaseDefinition must have agentDescriptor for openclaw:health-agent@1")
+        assertThat(def.agentDescriptorFor(LifeAgent.HEALTH.agentId()))
+                .as("CaseDefinition must have agentDescriptor for " + LifeAgent.HEALTH.agentId())
                 .isPresent();
 
-        final var descriptor = def.agentDescriptorFor("openclaw:health-agent@1").orElseThrow();
+        final var descriptor = def.agentDescriptorFor(LifeAgent.HEALTH.agentId()).orElseThrow();
         assertThat(descriptor.agentId())
                 .as("agentId must follow {model-family}:{persona}@{major} convention")
-                .isEqualTo("openclaw:health-agent@1");
-        assertThat(descriptor.provider()).isEqualTo("openclaw");
-        assertThat(descriptor.slot()).isEqualTo("casehubio/life/health");
+                .isEqualTo(LifeAgent.HEALTH.agentId());
+        assertThat(descriptor.provider()).isEqualTo(LifeAgent.MODEL_FAMILY);
+        assertThat(descriptor.slot()).isEqualTo(LifeAgent.HEALTH.slot());
     }
 }

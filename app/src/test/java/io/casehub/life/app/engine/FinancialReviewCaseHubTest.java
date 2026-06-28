@@ -51,20 +51,21 @@ class FinancialReviewCaseHubTest {
     void hasFiveCapabilities() {
         var names = caseHub.getDefinition().getCapabilities()
                 .stream().map(c -> c.name()).toList();
-        assertEquals(5, names.size());
+        assertEquals(6, names.size());
         assertTrue(names.containsAll(List.of(
                 "gather-data", "analyse-anomalies", "escalate-anomalies",
-                "oversight-response", "produce-report")));
+                "oversight-response", "produce-report", "anomaly-sentinel")));
     }
 
     @Test
     void hasFiveBindings() {
         var names = caseHub.getDefinition().getBindings()
                 .stream().map(b -> b.getName()).toList();
-        assertEquals(5, names.size());
+        assertEquals(7, names.size());
         assertTrue(names.containsAll(List.of(
                 "gather-data", "analyse-anomalies", "escalate-anomalies",
-                "oversight-response", "produce-report")));
+                "oversight-response", "produce-report", "anomaly-sentinel",
+                "sentinel-escalation")));
     }
 
     @Test

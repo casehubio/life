@@ -290,11 +290,17 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - ActorId convention: `life-actor:{uuid}` for ExternalActor behaviour in ledger entries; `"life-system"` for system actions.
 
 **Layer 7 additions (partial — AgentExec wiring, life#25):**
-- `LifeOpenClawChatModelFactory` — `app/engine/agent/` `@ApplicationScoped`; `forAgent(openClawAgentId)`
+- `LifeOpenClawChatModelFactory` — `app/engine/agent/` `@ApplicationScoped`; `forAgent(LifeAgent)`
   creates a per-agent `ChatModelProvider` backed by `OpenClawAgentProvider` → `DirectCallBridge` →
   `/hooks/agent` (webhook delivery). Config: standard `casehub.openclaw.*` keys from
   `OpenClawClientConfig` (`casehub-openclaw-core`). Each `forAgent()` call creates a `ChatModel` once
   during `augment()` (double-checked lock, once per JVM lifetime). Config changes require restart.
+- `LifeAgent` — `app/engine/` enum: 4 agent identity constants (HEALTH, HOME, FINANCE, TRAVEL).
+  `agentId()` derives `{MODEL_FAMILY}:{persona}@{MAJOR_VERSION}`. `persona()` returns the bare
+  persona for `LifeOpenClawChatModelFactory`. Separate from `LifeDomain` — mapping is not 1:1.
+- `LifeAgentDescriptorFactory` — `app/engine/agent/` `@ApplicationScoped`; constructor-injected
+  `tenancyId` + `jurisdiction` (new config, default "GB"). `descriptorFor(LifeAgent)` builds
+  `AgentDescriptor` via builder. Eliminates 7 per-CaseHub descriptor methods and config injections.
 - 32 response schema records — `app/engine/agent/` Java records; structured output schemas for all workers.
   `AgentBuilder.responseSchema(Record.class)` derives the JSON schema. `OpenClawChatModel.doChat()`
   auto-extracts the schema and serialises it into the message sent to `/hooks/agent`.
@@ -326,6 +332,26 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - `risk-policy.yaml` — YAML config at `casehub/life/risk-policy.yaml`; single scope `casehubio/life/risk-policy`.
   Contains both member and admin tier thresholds.
 - scope convention: `"casehubio/life/oversight"` — verify against engine#437 once engine docs clarify scope→channel mapping.
+
+**Layer 7 additions (full — WorkerProvisioner heartbeat, life#37):**
+- `LifeSentinelRegistry` — `app/engine/` `@ApplicationScoped`; tracks provisioned sentinels
+  by (caseId, capabilityName). CopyOnWriteArrayList per case. Supports concurrent same-agent
+  cases (no 1:1 constraint). `isProvisioned()` provides idempotency guard for the provisioner.
+- `LifeReactiveWorkerProvisioner` — `app/engine/` `@ApplicationScoped`; implements
+  `ReactiveWorkerProvisioner`. Idempotent via `LifeSentinelRegistry`. Resolves `LifeAgent`
+  from `LifeSentinelConfig`. Schedules Quartz `LifeHeartbeatJob` per sentinel. Displaces
+  `NoOpReactiveWorkerProvisioner` (`@DefaultBean`).
+- `LifeHeartbeatJob` — `app/engine/` `@ApplicationScoped` Quartz job. Each tick:
+  `CaseHubRuntime.query()` → `Agent.execute()` → `CaseHubRuntime.signal("sentinelReport")`.
+  Per-sentinel response schemas (7 records in `app/engine/agent/`).
+- `LifeProvisionerCleanupObserver` — `app/engine/` `@ApplicationScoped`; observes
+  `CaseLifecycleEvent` for terminal states (CaseCompleted, CaseFaulted, CaseCancelled).
+  Calls `provisioner.terminateAllForCase()`.
+- `LifeSentinelConfig` — `app/engine/` `@ConfigMapping(prefix="casehub.life.sentinel")`;
+  maps capability name → LifeAgent + heartbeat interval.
+- 7 sentinel response schemas — `app/engine/agent/` records: ContractorSentinelReport,
+  MaintenanceSentinelReport, FollowUpSentinelReport, CareQualitySentinelReport,
+  PatientStatusSentinelReport, AnomalySentinelReport, BookingSentinelReport.
 
 **Capability tags:**
 - `household-management` — routine household coordination: grocery ordering, maintenance scheduling, contractor liaison
@@ -462,6 +488,13 @@ Layer 7 (partial — AgentExec wiring): First real LLM-backed worker (life#25). 
 
 Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecosystem (banking APIs,
          calendar integration, Home Assistant, messaging).
+         LifeReactiveWorkerProvisioner implements ReactiveWorkerProvisioner SPI.
+         7 sentinel capabilities across all case plans. LifeSentinelRegistry tracks
+         provisioned sentinels (supports concurrent same-agent cases). LifeHeartbeatJob
+         (Quartz) invokes Agent.execute() periodically, signals results via
+         CaseHubRuntime.signal(). LifeProvisionerCleanupObserver handles termination.
+         LifeSentinelConfig maps capabilities to LifeAgent + heartbeat interval.
+         ✅ COMPLETE
 ```
 
 ### Foundation Gates

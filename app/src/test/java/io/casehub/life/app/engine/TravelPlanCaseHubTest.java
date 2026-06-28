@@ -57,22 +57,24 @@ class TravelPlanCaseHubTest {
     void hasSevenCapabilities() {
         var names = caseHub.getDefinition().getCapabilities()
                 .stream().map(c -> c.name()).toList();
-        assertEquals(7, names.size());
+        assertEquals(8, names.size());
         assertTrue(names.containsAll(List.of(
                 "destination-research", "flight-search", "hotel-search",
-                "budget-assessment", "booking", "rebooking", "confirmation")));
+                "budget-assessment", "booking", "rebooking", "confirmation",
+                "booking-sentinel")));
     }
 
     @Test
     void hasElevenBindings() {
-        // 8 from YAML + 3 SubCase from augmentation
+        // 10 from YAML + 3 SubCase from augmentation (family-vote M-of-N)
         var names = caseHub.getDefinition().getBindings()
                 .stream().map(b -> b.getName()).toList();
-        assertEquals(11, names.size());
+        assertEquals(13, names.size());
         assertTrue(names.containsAll(List.of(
                 "destination-research", "flight-search", "hotel-search",
                 "budget-assessment", "approval-gate", "booking", "rebooking",
-                "confirmation", "family-vote-a", "family-vote-b", "family-vote-c")));
+                "confirmation", "booking-sentinel", "sentinel-escalation",
+                "family-vote-a", "family-vote-b", "family-vote-c")));
     }
 
     @Test

@@ -7,6 +7,7 @@ import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import io.casehub.api.model.ai.ChatModelProvider;
 import io.casehub.api.model.ai.ModelType;
+import io.casehub.life.app.engine.LifeAgent;
 import io.casehub.openclaw.casehub.DirectCallBridge;
 import io.casehub.openclaw.client.OpenClawClientConfig;
 import io.casehub.openclaw.client.OpenClawHookClient;
@@ -140,7 +141,7 @@ public class TestLifeOpenClawChatModelFactory extends LifeOpenClawChatModelFacto
     }
 
     @Override
-    public ChatModelProvider forAgent(String openClawAgentId) {
+    public ChatModelProvider forAgent(LifeAgent agent) {
         return new ChatModelProvider() {
             @Override
             public ModelType type() {

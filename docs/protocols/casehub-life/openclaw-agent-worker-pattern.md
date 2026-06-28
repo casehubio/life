@@ -7,7 +7,9 @@ applies_to: "casehub-life — any app/ code declaring workers backed by an LLM o
 severity: important
 refs:
   - casehubio/life#25
+  - casehubio/life#37
   - casehubio/life#38
+  - casehubio/life#46
   - casehubio/openclaw#49
   - casehubio/engine#463
   - casehubio/engine#543
@@ -19,12 +21,12 @@ violation_hint: >
   OR agentId is absent, OR agentId does not follow {model-family}:{persona}@{major},
   OR AgentDescriptor is not registered on CaseDefinition
 created: 2026-06-18
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 Use `Worker.builder().function(new AgentWorkerFunction(agent))` for workers that call
 OpenClaw's `/hooks/agent` endpoint via the direct-call bridge. The `Agent` is built with
-`Agent.builder().model(openClawFactory.forAgent("<openClawAgentId>"))` where the factory
+`Agent.builder().model(openClawFactory.forAgent(AGENT))` where the factory
 produces a `ChatModelProvider` backed by `OpenClawAgentProvider` → `DirectCallBridge` →
 `/hooks/agent` (webhook delivery, virtual thread blocking).
 
@@ -37,15 +39,18 @@ or `AgentWorkerFunction`; a raw lambda cast to `WorkerFunction` is unrecognised.
 **AgentDescriptor is registered on CaseDefinition (not Worker)** per engine#543.
 In `augment()`, after adding workers:
 ```java
-yaml.setAgentDescriptors(Map.of("openclaw:health-agent@1", healthDescriptor()));
+yaml.setAgentDescriptors(Map.of(
+        AGENT.agentId(), descriptorFactory.descriptorFor(AGENT)));
 ```
+`LifeAgentDescriptorFactory` (CDI bean, `app.engine.agent`) owns config→descriptor
+construction. `LifeAgent` enum (`app.engine`) defines the 4 agent identity constants.
 `CaseDefinition.agentDescriptorFor(agentId)` returns `Optional<AgentDescriptor>`.
 
 **Agent identity format:** `{model-family}:{persona}@{major}` per docs/specs/life-actor-model.md.
 Named life personas: `home-agent`, `health-agent`, `finance-agent`, `travel-agent`.
 Example: `"openclaw:health-agent@1"`.
 
-**Factory pattern:** `LifeOpenClawChatModelFactory.forAgent("<openClawAgentId>")` creates a
+**Factory pattern:** `LifeOpenClawChatModelFactory.forAgent(LifeAgent)` creates a
 per-agent `ChatModelProvider`. Each worker gets its own `Agent` with its own system prompt
 and response schema, all routed through the same OpenClaw agent. The factory injects
 `DirectCallBridge` and `OpenClawHookClient` from `casehub-openclaw-casehub`/`casehub-openclaw-core`.
@@ -84,3 +89,12 @@ for all workers" (engine#463 pre-decision) is superseded. After engine#463:
 - Single LLM call → AgentWorkerFunction (this protocol)
 - Multi-step durable → FuncWorkflowBuilder or YAML workflow
 - Stub / in-process → Sync lambda via `function(Function)` overload
+
+**Provisioner mode (life#37):** Sentinel capabilities use the provisioner path — no inline
+worker exists, so the engine falls through to `LifeReactiveWorkerProvisioner`. The provisioner
+registers the sentinel in `LifeSentinelRegistry` and schedules a Quartz `LifeHeartbeatJob`.
+Each heartbeat tick: `CaseHubRuntime.query()` for fresh case context, `Agent.execute()` via
+DirectCallBridge for structured result, `CaseHubRuntime.signal()` to deliver the result.
+`LifeProvisionerCleanupObserver` terminates sentinels on `CaseLifecycleEvent` terminal states.
+Sentinel capabilities must NEVER have inline workers registered — they are reserved for the
+provisioner path. Uses life's own `LifeSentinelRegistry` (not `OpenClawAgentRegistry`).

@@ -6,8 +6,8 @@ import io.casehub.life.api.LifeActorType;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItemCreateRequest;
-import io.casehub.work.runtime.model.WorkItemPriority;
+import io.casehub.work.api.WorkItemCreateRequest;
+import io.casehub.work.api.WorkItemPriority;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -154,7 +154,7 @@ class ExternalActorGdprResourceTest {
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         var wi = workItemService.create(req);
-        wi.status = io.casehub.work.runtime.model.WorkItemStatus.COMPLETED;
+        wi.status = io.casehub.work.api.WorkItemStatus.COMPLETED;
         wi.persist();
 
         var ctx = new LifeTaskContext();

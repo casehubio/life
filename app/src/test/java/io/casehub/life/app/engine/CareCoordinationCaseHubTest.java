@@ -56,20 +56,20 @@ class CareCoordinationCaseHubTest {
     void hasThreeCapabilities() {
         var names = caseHub.getDefinition().getCapabilities()
                 .stream().map(c -> c.name()).toList();
-        assertEquals(3, names.size());
+        assertEquals(4, names.size());
         assertTrue(names.containsAll(List.of(
-                "needs-assessment", "care-plan", "health-check")));
+                "needs-assessment", "care-plan", "health-check", "care-quality-sentinel")));
     }
 
     @Test
     void hasSevenBindings() {
         var names = caseHub.getDefinition().getBindings()
                 .stream().map(b -> b.getName()).toList();
-        assertEquals(7, names.size());
+        assertEquals(9, names.size());
         assertTrue(names.containsAll(List.of(
                 "needs-assessment", "care-plan", "assign-carer",
                 "care-episode", "health-check", "escalate-concern",
-                "care-review")));
+                "care-review", "care-quality-sentinel", "sentinel-escalation")));
     }
 
     @Test

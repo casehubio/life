@@ -2,6 +2,7 @@ package io.casehub.life.app.engine.agent;
 
 import io.casehub.api.model.ai.ChatModelProvider;
 import io.casehub.api.model.ai.ModelType;
+import io.casehub.life.app.engine.LifeAgent;
 import io.casehub.openclaw.casehub.DirectCallBridge;
 import io.casehub.openclaw.casehub.OpenClawAgentProvider;
 import io.casehub.openclaw.casehub.OpenClawChatModel;
@@ -63,12 +64,12 @@ public class LifeOpenClawChatModelFactory {
     /**
      * Creates a ChatModelProvider for the specified OpenClaw agent.
      *
-     * @param openClawAgentId the agent identifier (e.g., "health-agent", "home-agent")
+     * @param agent the life agent constant
      * @return a ChatModelProvider backed by OpenClawAgentProvider → DirectCallBridge
      */
-    public ChatModelProvider forAgent(String openClawAgentId) {
+    public ChatModelProvider forAgent(LifeAgent agent) {
         var provider = new OpenClawAgentProvider(
-                bridge, hookClient, openClawAgentId, deliveryBaseUrl);
+                bridge, hookClient, agent.persona(), deliveryBaseUrl);
         var chatModel = new OpenClawChatModel(
                 provider, Duration.ofSeconds(timeoutSeconds));
         return new ChatModelProvider() {

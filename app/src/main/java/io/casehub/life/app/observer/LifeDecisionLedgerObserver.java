@@ -7,7 +7,7 @@ import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.work.runtime.event.SlaBreachEvent;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
 import io.casehub.work.runtime.model.WorkItem;
-import io.casehub.work.runtime.model.WorkItemStatus;
+import io.casehub.work.api.WorkItemStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Any;

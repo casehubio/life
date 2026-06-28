@@ -33,6 +33,11 @@ spec:
       inputSchema: "{ completionVerification: .completionVerification, inspection: .inspection, contractorApproval: .contractorApproval }"
       outputSchema: "{ completionRecord: . }"
 
+    - name: maintenance-sentinel
+      description: "Persistent heartbeat monitor for maintenance progress"
+      inputSchema: "."
+      outputSchema: "."
+
   ## --- Goals ---------------------------------------------------------------
   goals:
     - name: job-complete
@@ -101,3 +106,19 @@ spec:
       on: { contextChange: {} }
       when: ".completionVerification != null and .completionRecord == null"
       capability: record-completion
+
+    - name: maintenance-sentinel
+      on: { contextChange: {} }
+      when: ".request != null"
+      capability: maintenance-sentinel
+
+    - name: sentinel-escalation
+      on: { contextChange: {} }
+      when: ".sentinelReport != null and .sentinelReport.escalationRequired == true and (.sentinelEscalation == null or .sentinelEscalation.resolved == true)"
+      humanTask:
+        title: "Sentinel detected maintenance issue"
+        expiresIn: PT24H
+        candidateGroups: [household-admin]
+        scope: "casehubio/life/household"
+        inputMapping: "{ sentinelReport: .sentinelReport }"
+        outputMapping: "{ sentinelEscalation: . }"

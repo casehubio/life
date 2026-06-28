@@ -22,12 +22,12 @@ import io.casehub.api.model.ContextChangeTrigger;
 import io.casehub.api.model.OnThresholdReached;
 import io.casehub.api.model.SubCase;
 import io.casehub.api.model.ai.Agent;
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.life.app.engine.agent.BudgetAssessmentResult;
 import io.casehub.life.app.engine.agent.ConfirmationResult;
 import io.casehub.life.app.engine.agent.DestinationResearchResult;
 import io.casehub.life.app.engine.agent.FlightSearchResult;
 import io.casehub.life.app.engine.agent.HotelSearchResult;
+import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import io.casehub.life.app.engine.agent.RebookingResult;
 import io.casehub.life.app.engine.agent.TravelBookingResult;
@@ -36,7 +36,6 @@ import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -60,11 +59,13 @@ import java.util.Map;
 @ApplicationScoped
 public class TravelPlanCaseHub extends YamlCaseHub {
 
+    private static final LifeAgent AGENT = LifeAgent.TRAVEL;
+
     @Inject
     LifeOpenClawChatModelFactory openClawFactory;
 
-    @ConfigProperty(name = "casehub.life.tenancy-id")
-    String tenancyId;
+    @Inject
+    LifeAgentDescriptorFactory descriptorFactory;
 
     private volatile CaseDefinition augmentedDefinition;
 
@@ -103,7 +104,8 @@ public class TravelPlanCaseHub extends YamlCaseHub {
                 familyVoteBinding("family-vote-c")
         ));
 
-        yaml.setAgentDescriptors(Map.of("openclaw:travel-agent@1", travelDescriptor()));
+        yaml.setAgentDescriptors(Map.of(
+                AGENT.agentId(), descriptorFactory.descriptorFor(AGENT)));
         return yaml;
     }
 
@@ -143,7 +145,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker destinationResearchWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Research destination options with
                         costs and ratings.""")
@@ -165,7 +167,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker flightSearchWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Search for flights with airline,
                         price, and number of stops.""")
@@ -187,7 +189,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker hotelSearchWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Search for hotels with name,
                         price, and rating.""")
@@ -209,7 +211,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker budgetAssessmentWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Assess the total travel budget
                         and determine if approval is required.""")
@@ -231,7 +233,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker bookingWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Book the selected flights and hotels.
                         If booking fails, set declined=true with a reason.""")
@@ -253,7 +255,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker rebookingWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Rebook after a declined booking,
                         finding alternative dates.""")
@@ -275,7 +277,7 @@ public class TravelPlanCaseHub extends YamlCaseHub {
      */
     private Worker confirmationWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("travel-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a travel planning agent. Confirm the travel itinerary and
                         send confirmation details.""")
@@ -287,28 +289,5 @@ public class TravelPlanCaseHub extends YamlCaseHub {
                 .capabilities(List.of(cap("confirmation")))
                 .function(new AgentWorkerFunction(agent))
                 .build();
-    }
-
-    private AgentDescriptor travelDescriptor() {
-        return new AgentDescriptor(
-                "openclaw:travel-agent@1",       // agentId
-                "OpenClaw Travel Agent",         // name
-                "1",                             // version
-                "openclaw",                      // provider
-                "openclaw",                      // modelFamily
-                null,                            // modelVersion
-                null,                            // weightsFingerprint
-                null,                            // domainVocabulary
-                null,                            // slotVocabulary
-                null,                            // dispositionVocabulary
-                null,                            // axisVocabularies
-                "casehubio/life/travel",         // slot
-                List.of(),                       // capabilities
-                null,                            // disposition
-                "GB",                            // jurisdiction
-                null,                            // dataHandlingPolicy
-                tenancyId,                       // tenancyId
-                "Travel planning and booking agent"  // briefing
-        );
     }
 }

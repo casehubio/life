@@ -6,7 +6,7 @@ import io.casehub.api.model.CaseStatus;
 import io.casehub.api.model.event.CaseHubEventType;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.work.runtime.model.WorkItem;
-import io.casehub.work.runtime.model.WorkItemStatus;
+import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 

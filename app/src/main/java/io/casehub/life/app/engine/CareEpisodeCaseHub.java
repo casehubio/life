@@ -18,8 +18,8 @@ package io.casehub.life.app.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.Agent;
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.life.app.engine.agent.AssessPatientResult;
+import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import io.casehub.life.app.engine.agent.ProvideCareResult;
 import io.casehub.api.model.AgentWorkerFunction;
@@ -27,7 +27,6 @@ import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -47,11 +46,13 @@ import java.util.Map;
 @ApplicationScoped
 public class CareEpisodeCaseHub extends YamlCaseHub {
 
+    private static final LifeAgent AGENT = LifeAgent.HEALTH;
+
     @Inject
     LifeOpenClawChatModelFactory openClawFactory;
 
-    @ConfigProperty(name = "casehub.life.tenancy-id")
-    String tenancyId;
+    @Inject
+    LifeAgentDescriptorFactory descriptorFactory;
 
     private volatile CaseDefinition augmentedDefinition;
 
@@ -76,7 +77,8 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
                 assessPatientWorker(),
                 provideCareWorker()
         ));
-        yaml.setAgentDescriptors(Map.of("openclaw:health-agent@1", healthDescriptor()));
+        yaml.setAgentDescriptors(Map.of(
+                AGENT.agentId(), descriptorFactory.descriptorFor(AGENT)));
         return yaml;
     }
 
@@ -92,7 +94,7 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
      */
     private Worker assessPatientWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a care episode agent. Assess patient condition including
                         vital signs, mobility status, and cognitive state.""")
@@ -114,7 +116,7 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
      */
     private Worker provideCareWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a care episode agent. Provide care to the patient, completing
                         assigned tasks and recording observations.""")
@@ -126,28 +128,5 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
                 .capabilities(List.of(cap("provide-care")))
                 .function(new AgentWorkerFunction(agent))
                 .build();
-    }
-
-    private AgentDescriptor healthDescriptor() {
-        return new AgentDescriptor(
-                "openclaw:health-agent@1",       // agentId
-                "OpenClaw Health Agent",         // name
-                "1",                             // version
-                "openclaw",                      // provider
-                "openclaw",                      // modelFamily
-                null,                            // modelVersion
-                null,                            // weightsFingerprint
-                null,                            // domainVocabulary
-                null,                            // slotVocabulary
-                null,                            // dispositionVocabulary
-                null,                            // axisVocabularies
-                "casehubio/life/health",         // slot
-                List.of(),                       // capabilities
-                null,                            // disposition
-                "GB",                            // jurisdiction
-                null,                            // dataHandlingPolicy
-                tenancyId,                       // tenancyId
-                "Health domain agent"            // briefing
-        );
     }
 }

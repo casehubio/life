@@ -18,10 +18,10 @@ package io.casehub.life.app.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.Agent;
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.life.app.engine.agent.BookingResult;
 import io.casehub.life.app.engine.agent.ConfirmAppointmentResult;
 import io.casehub.life.app.engine.agent.FindAlternativeResult;
+import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import io.casehub.life.app.engine.agent.PreVisitPrepResult;
 import io.casehub.life.app.engine.agent.RecordHealthDecisionResult;
@@ -30,7 +30,6 @@ import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -55,11 +54,13 @@ import java.util.Map;
 @ApplicationScoped
 public class AppointmentCycleCaseHub extends YamlCaseHub {
 
+    private static final LifeAgent AGENT = LifeAgent.HEALTH;
+
     @Inject
     LifeOpenClawChatModelFactory openClawFactory;
 
-    @ConfigProperty(name = "casehub.life.tenancy-id")
-    String tenancyId;
+    @Inject
+    LifeAgentDescriptorFactory descriptorFactory;
 
     private volatile CaseDefinition augmentedDefinition;
 
@@ -80,27 +81,6 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
     }
 
     private CaseDefinition augment(final CaseDefinition yaml) {
-        final AgentDescriptor descriptor = new AgentDescriptor(
-                "openclaw:health-agent@1",    // agentId — MUST match provisioner config key (life#37)
-                "OpenClaw Health Agent",       // name
-                "1",                           // version
-                "openclaw",                    // provider
-                "openclaw",                    // modelFamily
-                null,                          // modelVersion — unknown
-                null,                          // weightsFingerprint
-                null,                          // domainVocabulary
-                null,                          // slotVocabulary
-                null,                          // dispositionVocabulary
-                null,                          // axisVocabularies
-                "casehubio/life/health",       // slot — matches scope path convention
-                List.of(),                     // capabilities (populated when skill manifest available)
-                null,                          // disposition
-                "GB",                          // jurisdiction
-                null,                          // dataHandlingPolicy
-                tenancyId,                     // tenancyId — required, injected from config
-                "Health domain booking and follow-up agent"  // briefing
-        );
-
         yaml.getWorkers().addAll(List.of(
                 bookAppointmentWorker(),
                 findAlternativeWorker(),
@@ -108,7 +88,8 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
                 preVisitPrepWorker(),
                 recordHealthDecisionWorker()
         ));
-        yaml.setAgentDescriptors(Map.of("openclaw:health-agent@1", descriptor));
+        yaml.setAgentDescriptors(Map.of(
+                AGENT.agentId(), descriptorFactory.descriptorFor(AGENT)));
         return yaml;
     }
 
@@ -130,7 +111,7 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
      */
     private Worker bookAppointmentWorker() {
         final Agent bookingAgent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a healthcare appointment booking agent for a UK household.
                         Book medical appointments with the requested provider.
@@ -156,7 +137,7 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
      */
     private Worker findAlternativeWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a healthcare appointment agent. Find an alternative provider
                         after a booking was declined. Search available providers and propose
@@ -179,7 +160,7 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
      */
     private Worker confirmAppointmentWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a healthcare appointment agent. Send appointment confirmation
                         to the patient and schedule a reminder for 24 hours before.""")
@@ -201,7 +182,7 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
      */
     private Worker preVisitPrepWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a healthcare appointment agent. Send pre-visit preparation
                         checklist and instructions to the patient.""")
@@ -223,7 +204,7 @@ public class AppointmentCycleCaseHub extends YamlCaseHub {
      */
     private Worker recordHealthDecisionWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("health-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a healthcare records agent. Record health decision outcomes
                         to the tamper-evident ledger.""")

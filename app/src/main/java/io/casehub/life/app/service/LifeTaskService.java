@@ -11,7 +11,7 @@ import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.work.runtime.model.WorkItem;
-import io.casehub.work.runtime.model.WorkItemCreateRequest;
+import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.runtime.model.WorkItemTemplate;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.casehub.work.runtime.service.WorkItemTemplateService;

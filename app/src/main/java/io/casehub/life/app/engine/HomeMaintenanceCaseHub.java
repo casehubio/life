@@ -18,9 +18,9 @@ package io.casehub.life.app.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.Agent;
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.life.app.engine.agent.GetQuotesResult;
 import io.casehub.life.app.engine.agent.IssueCommitmentResult;
+import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import io.casehub.life.app.engine.agent.MonitorJobResult;
 import io.casehub.life.app.engine.agent.RecordCompletionResult;
@@ -30,7 +30,6 @@ import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -51,11 +50,13 @@ import java.util.Map;
 @ApplicationScoped
 public class HomeMaintenanceCaseHub extends YamlCaseHub {
 
+    private static final LifeAgent AGENT = LifeAgent.HOME;
+
     @Inject
     LifeOpenClawChatModelFactory openClawFactory;
 
-    @ConfigProperty(name = "casehub.life.tenancy-id")
-    String tenancyId;
+    @Inject
+    LifeAgentDescriptorFactory descriptorFactory;
 
     private volatile CaseDefinition augmentedDefinition;
 
@@ -83,7 +84,8 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
                 monitorJobWorker(),
                 recordCompletionWorker()
         ));
-        yaml.setAgentDescriptors(Map.of("openclaw:home-agent@1", homeDescriptor()));
+        yaml.setAgentDescriptors(Map.of(
+                AGENT.agentId(), descriptorFactory.descriptorFor(AGENT)));
         return yaml;
     }
 
@@ -99,7 +101,7 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
      */
     private Worker scheduleInspectionWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("home-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a home maintenance agent. Schedule a property inspection,
                         assess the condition, and report findings.""")
@@ -121,7 +123,7 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
      */
     private Worker getQuotesWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("home-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a home maintenance agent. Gather contractor quotes for the
                         required maintenance work.""")
@@ -143,7 +145,7 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
      */
     private Worker issueCommitmentWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("home-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a home maintenance agent. Issue a commitment to the selected
                         contractor for the approved work.""")
@@ -165,7 +167,7 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
      */
     private Worker monitorJobWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("home-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a home maintenance agent. Monitor job progress and report
                         estimated completion.""")
@@ -187,7 +189,7 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
      */
     private Worker recordCompletionWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent("home-agent"))
+                .model(openClawFactory.forAgent(AGENT))
                 .systemPrompt("""
                         You are a home maintenance agent. Record job completion to the
                         tamper-evident ledger.""")
@@ -199,28 +201,5 @@ public class HomeMaintenanceCaseHub extends YamlCaseHub {
                 .capabilities(List.of(cap("record-completion")))
                 .function(new AgentWorkerFunction(agent))
                 .build();
-    }
-
-    private AgentDescriptor homeDescriptor() {
-        return new AgentDescriptor(
-                "openclaw:home-agent@1",       // agentId
-                "OpenClaw Home Agent",         // name
-                "1",                           // version
-                "openclaw",                    // provider
-                "openclaw",                    // modelFamily
-                null,                          // modelVersion
-                null,                          // weightsFingerprint
-                null,                          // domainVocabulary
-                null,                          // slotVocabulary
-                null,                          // dispositionVocabulary
-                null,                          // axisVocabularies
-                "casehubio/life/household",    // slot
-                List.of(),                     // capabilities
-                null,                          // disposition
-                "GB",                          // jurisdiction
-                null,                          // dataHandlingPolicy
-                tenancyId,                     // tenancyId
-                "Household maintenance agent"  // briefing
-        );
     }
 }

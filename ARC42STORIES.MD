@@ -4,7 +4,7 @@
 **Profile:** CaseHub — Application tier
 **Profile ref:** `../parent/docs/arc42stories-casehub-profile.md` · fallback: `https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-casehub-profile.md`
 **Prefix:** LIF
-**Status:** Layers 1–6 complete. Layer 7 partial (risk classification ✅; AgentExec wiring ✅ #25; OpenClaw WorkerProvisioner pending). Chapters C1–C5 complete; C6 stub.
+**Status:** Layers 1–7 complete. Chapters C1–C5 complete; C6 stub.
 
 ---
 
@@ -156,7 +156,7 @@ See `../parent/docs/PLATFORM.md` Capability Ownership table for the full boundar
 
 ### Layer Architecture View
 
-Current delivery state — Layers 1–6 complete. Layer 7 pending.
+Current delivery state — Layers 1–7 complete.
 
 ```mermaid
 C4Container
@@ -1068,7 +1068,7 @@ Life's contribution:
 
 **Design decision:** Bayesian Beta computation and materialized score tables are fully owned by casehub-ledger. Life only writes attestations and reads scores — it has no scoring logic of its own. This boundary prevents duplication and keeps trust computation consistent across all CaseHub applications.
 
-**Single-candidate limitation:** FuncDSL workers are trivial stubs — all routing decisions are single-candidate until Layer 7 adds OpenClaw WorkerProvisioner. Trust routing infrastructure is fully wired and ready; routing decisions become meaningful when real skill implementations compete.
+**Single-candidate limitation (resolved in Layer 7):** AgentExec workers are single-candidate per capability. Layer 7 adds the WorkerProvisioner path with sentinel capabilities — the provisioner can resolve agents from multiple candidates using trust-weighted routing when the provisioner path grows beyond single-agent-per-domain.
 
 ---
 
