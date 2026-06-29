@@ -72,17 +72,18 @@ public class LifeWatchdogAlertObserver {
     }
 
     private void createEscalationTask(final LifeCommitmentRecord record) {
-        final String title = switch (record.mode) {
-            case DELEGATION -> {
-                final String delegate = record.delegateTo;
-                yield delegate != null && delegate.contains(":")
-                        ? "Oversight gate expired — request not approved"
-                        : (delegate != null ? delegate : "Unknown")
-                                + " has not confirmed — action required";
-            }
-            case CONTRACTOR -> "Contractor has not confirmed by deadline";
-            case OVERSIGHT  -> "Oversight gate expired — request not approved";
-        };
+        final String title;
+        if (record.mode == CommitmentMode.DELEGATION) {
+            final String delegate = record.delegateTo;
+            // delegateTo semantic overload: oversight keys contain ":"
+            // Task 5 will separate oversightKey from delegateTo.
+            title = delegate != null && delegate.contains(":")
+                    ? CommitmentMode.OVERSIGHT.escalationTemplate()
+                    : record.mode.escalationTemplate().formatted(
+                        delegate != null ? delegate : "Unknown");
+        } else {
+            title = record.mode.escalationTemplate();
+        }
 
         // "life-escalation" WorkItemTemplate seeded at V104.
         // CreateLifeTaskRequest(templateRef, title, externalActorId, deadline)
