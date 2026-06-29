@@ -5,6 +5,7 @@ import io.casehub.life.api.commitment.CommitmentMode;
 import io.casehub.life.api.commitment.CommitmentStatus;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record LifeTaskResponse(
@@ -15,5 +16,7 @@ public record LifeTaskResponse(
         UUID externalActorId,          // nullable
         Instant createdAt,
         CommitmentMode commitmentMode,  // null if no commitment on this task
-        CommitmentStatus commitmentStatus
+        CommitmentStatus commitmentStatus,
+        String assigneeId,             // nullable — identity of the actor assigned to this task
+        List<String> candidateGroups   // groups eligible to claim this task
 ) {}

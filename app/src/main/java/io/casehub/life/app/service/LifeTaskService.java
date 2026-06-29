@@ -24,6 +24,8 @@ import jakarta.ws.rs.WebApplicationException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 
 @ApplicationScoped
 public class LifeTaskService {
@@ -106,7 +108,8 @@ public class LifeTaskService {
                 workItem.status.name(),
                 req.externalActorId(),
                 workItem.createdAt,
-                null, null  // commitmentMode / commitmentStatus — null at creation time
+                null, null,  // commitmentMode / commitmentStatus — null at creation time
+                null, List.of()  // assigneeId / candidateGroups — not set at creation time
         );
     }
 
@@ -128,7 +131,14 @@ public class LifeTaskService {
                 workItem.status.name(),
                 ctx.externalActorId,
                 workItem.createdAt,
-                mode, status
+                mode, status,
+                workItem.assigneeId,
+                workItem.candidateGroups != null && !workItem.candidateGroups.isBlank()
+                    ? Arrays.stream(workItem.candidateGroups.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .toList()
+                    : List.of()
         );
     }
 }

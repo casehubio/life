@@ -12,7 +12,7 @@ import static io.casehub.life.api.HouseholdActionType.*;
 /**
  * Descriptor map linking HouseholdActionType constants to their threshold preference keys.
  * Only AMOUNT_THRESHOLD types have entries — calling forType() with a non-threshold type
- * (ALWAYS/NEVER) throws IllegalStateException.
+ * (ALWAYS/NEVER) throws NullPointerException.
  */
 public final class HouseholdActionThresholdKeys {
 

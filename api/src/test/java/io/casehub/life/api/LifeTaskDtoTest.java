@@ -5,6 +5,7 @@ import io.casehub.life.api.response.LifeTaskResponse;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +37,7 @@ class LifeTaskDtoTest {
         var actorId = UUID.randomUUID();
         var now = Instant.now();
         var resp = new LifeTaskResponse(workItemId, "household-task", LifeDomain.HOUSEHOLD,
-                "PENDING", actorId, now, null, null);
+                "PENDING", actorId, now, null, null, null, List.of());
 
         assertThat(resp.workItemId()).isEqualTo(workItemId);
         assertThat(resp.domain()).isEqualTo(LifeDomain.HOUSEHOLD);
