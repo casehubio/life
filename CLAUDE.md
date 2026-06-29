@@ -576,7 +576,7 @@ quarkus.arc.selected-alternatives=\
   io.casehub.ledger.runtime.repository.jpa.JpaActorTrustScoreRepository
 ```
 
-**CurrentPrincipal disambiguation:** when a foundation SNAPSHOT introduces a new `@Default CurrentPrincipal` bean (e.g. `QhorusInboundCurrentPrincipal`), add it to `quarkus.arc.exclude-types` in both `application.properties` (production) and `test/resources/application.properties` (tests). Production keeps `TenantScopedPrincipal` (@RequestScoped); tests exclude `TenantScopedPrincipal` so `DefaultTestPrincipal` wins (provides canonical tenancyId `278776f9-e1b0-46fb-9032-8bddebdcf9ce`). `DefaultTestPrincipal` is not `@Alternative` — never add it to `selected-alternatives`.
+**CurrentPrincipal resolution (since platform#112):** `OidcCurrentPrincipal @Alternative @Priority(100)` wins in production; `FixedCurrentPrincipal @Alternative @Priority(200)` wins in tests (canonical tenancyId `278776f9-e1b0-46fb-9032-8bddebdcf9ce`). No `quarkus.arc.exclude-types` entries needed for CurrentPrincipal — CDI `@Alternative @Priority` handles disambiguation. Non-alternative beans (`TenantScopedPrincipal`, `QhorusInboundCurrentPrincipal`, `MockCurrentPrincipal`, `DefaultTestPrincipal`) are superseded automatically.
 
 ---
 
