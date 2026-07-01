@@ -7,9 +7,9 @@ import io.casehub.life.app.LifeTestFixtures;
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.ledger.ExternalActorErasureLedgerEntry;
 import io.casehub.platform.api.identity.TenancyConstants;
-import io.casehub.platform.api.memory.CaseMemoryStore;
-import io.casehub.platform.api.memory.MemoryCapability;
-import io.casehub.platform.api.memory.MemoryCapabilityException;
+import io.casehub.memory.CaseMemoryStore;
+import io.casehub.memory.MemoryCapability;
+import io.casehub.memory.MemoryCapabilityException;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -18,7 +18,6 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
