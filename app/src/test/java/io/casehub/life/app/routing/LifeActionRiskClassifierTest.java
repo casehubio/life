@@ -1,8 +1,8 @@
 package io.casehub.life.app.routing;
 
-import io.casehub.api.spi.RiskDecision;
-import io.casehub.api.spi.RiskDecision.Autonomous;
-import io.casehub.api.spi.RiskDecision.GateRequired;
+import io.casehub.blocks.oversight.RiskDecision;
+import io.casehub.blocks.oversight.RiskDecision.Autonomous;
+import io.casehub.blocks.oversight.RiskDecision.GateRequired;
 import io.casehub.worker.api.PlannedAction;
 import io.casehub.life.api.HouseholdActionType;
 import io.casehub.life.api.HouseholdGroups;
