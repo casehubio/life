@@ -15,13 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Agent response schema for rebooking after a decline.
- *
- * <p>Rebooks with alternative dates when initial booking fails.
- */
+import java.util.List;
+
 public record RebookingResult(
-        String bookingRef,
-        String status,
-        boolean alternativeDates
-) {}
+        String bookingRef, String status, boolean alternativeDates,
+        String calendarEventId, List<String> toolsUsed) {}

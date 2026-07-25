@@ -17,11 +17,6 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Response schema for provide-care-agent worker.
- */
 public record ProvideCareResult(
-        List<String> tasksCompleted,
-        String duration,
-        String observations
-) {}
+        List<String> tasksCompleted, String duration, String observations,
+        String notificationMessageId, List<String> toolsUsed) {}

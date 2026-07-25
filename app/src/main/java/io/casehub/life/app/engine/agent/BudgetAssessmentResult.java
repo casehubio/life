@@ -15,13 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Agent response schema for budget assessment.
- *
- * <p>Assesses total travel cost and determines approval requirements.
- */
+import java.util.List;
+
 public record BudgetAssessmentResult(
-        int totalCost,
-        boolean requiresApproval,
-        boolean isHighValue
-) {}
+        int totalCost, boolean requiresApproval, boolean isHighValue,
+        List<String> toolsUsed) {}

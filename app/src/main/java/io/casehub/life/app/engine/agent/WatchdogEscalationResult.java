@@ -15,10 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the watchdog escalation worker.
- *
- * @param escalated whether the commitment was escalated
- * @param reminderSent whether a reminder was sent to the contractor
- */
-public record WatchdogEscalationResult(boolean escalated, boolean reminderSent) {}
+import java.util.List;
+
+public record WatchdogEscalationResult(boolean escalated, boolean reminderSent,
+                                       String notificationMessageId, List<String> toolsUsed) {}

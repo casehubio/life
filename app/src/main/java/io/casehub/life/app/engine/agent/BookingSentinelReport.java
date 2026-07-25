@@ -19,4 +19,6 @@ import java.util.List;
 
 public record BookingSentinelReport(
         String bookingStatus, boolean priceChanged, String priceChangeDetail,
-        List<String> alerts, boolean escalationRequired) {}
+        List<String> alerts, boolean escalationRequired,
+        String calendarEventId, String reminderMessageId,
+        List<String> toolsUsed) {}

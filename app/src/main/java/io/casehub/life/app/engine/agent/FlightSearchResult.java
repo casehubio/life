@@ -17,11 +17,7 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Agent response schema for flight search.
- *
- * <p>Returns a list of flight options with airline, price, and number of stops.
- */
-public record FlightSearchResult(List<FlightOption> flights) {
+public record FlightSearchResult(List<FlightOption> flights,
+                                 List<String> toolsUsed) {
     public record FlightOption(String airline, int price, int stops) {}
 }

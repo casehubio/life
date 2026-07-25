@@ -15,11 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the quote request worker.
- *
- * @param quoteRequested whether the quote request was successfully sent
- * @param channel qhorus channel where the request was sent
- * @param deadlinePassed whether the quote deadline has been exceeded
- */
-public record RequestQuoteResult(boolean quoteRequested, String channel, boolean deadlinePassed) {}
+import java.util.List;
+
+public record RequestQuoteResult(boolean quoteRequested, String channel,
+                                 boolean deadlinePassed, String notificationMessageId,
+                                 List<String> toolsUsed) {}

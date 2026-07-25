@@ -16,10 +16,8 @@
 package io.casehub.life.app.engine.agent;
 
 import java.util.List;
+import java.util.Map;
 
-/**
- * Structured output from gather-data agent — financial data collection result.
- *
- * <p>Refs casehub-life#38 Task 4 (finance domain AgentExec conversion).
- */
-public record GatherDataResult(int totalSpend, int budgetLimit, List<String> categories) {}
+public record GatherDataResult(int totalSpend, int budgetLimit,
+                               List<String> categories, Map<String, Object> transactionSummary,
+                               List<String> toolsUsed) {}

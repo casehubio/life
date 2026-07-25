@@ -1,15 +1,16 @@
 package io.casehub.life.app.routing;
 
-import io.casehub.api.spi.routing.TrustRoutingPolicy;
-import io.casehub.api.spi.routing.TrustRoutingPolicyProvider;
 import io.casehub.api.spi.routing.DoublePreference;
+import io.casehub.api.spi.routing.TrustRoutingPolicy;
 import io.casehub.api.spi.routing.TrustRoutingPolicyKeys;
+import io.casehub.api.spi.routing.TrustRoutingPolicyProvider;
 import io.casehub.api.spi.routing.TrustRoutingPolicyResolver;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.LifeRoutingPolicy;
 import io.casehub.life.api.LifeTrustDimensions;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.Preferences;
+import io.casehub.platform.api.path.Path;
 import io.casehub.platform.api.preferences.SettingsScope;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -59,8 +60,8 @@ public class LifeTrustRoutingPolicyProvider implements TrustRoutingPolicyProvide
         }
 
         LifeRoutingPolicy base = domain.descriptor().routingPolicy();
-        SettingsScope scope = SettingsScope.of("casehubio", "life", "trust-routing",
-                domain.descriptor().capability());
+        SettingsScope scope = SettingsScope.of("casehubio",
+                Path.of("life", "trust-routing", domain.descriptor().capability()));
         Preferences prefs = preferenceProvider.resolve(scope);
 
         double threshold = base.threshold().orElse(TrustRoutingPolicy.DEFAULT.threshold());

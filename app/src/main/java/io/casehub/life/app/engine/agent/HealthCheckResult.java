@@ -15,11 +15,9 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Response schema for health-check-agent worker.
- */
+import java.util.List;
+
 public record HealthCheckResult(
-        boolean reviewed,
-        boolean healthConcern,
-        String notes
-) {}
+        boolean reviewed, boolean healthConcern, String notes,
+        List<String> sensorReadings, String notificationMessageId,
+        List<String> toolsUsed) {}

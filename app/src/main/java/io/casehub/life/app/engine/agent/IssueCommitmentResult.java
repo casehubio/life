@@ -15,10 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the commitment issuance worker.
- *
- * @param commitmentIssued whether the commitment was successfully issued
- * @param channel qhorus channel where the commitment was issued
- */
-public record IssueCommitmentResult(boolean commitmentIssued, String channel) {}
+import java.util.List;
+
+public record IssueCommitmentResult(boolean commitmentIssued, String channel,
+                                    String notificationMessageId, List<String> toolsUsed) {}

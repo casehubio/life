@@ -15,12 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the payment recording worker.
- *
- * @param paymentRecorded whether the payment was successfully recorded
- * @param amount payment amount
- * @param ledgerEntryId tamper-evident ledger entry identifier
- * @param crossCaseSignal identifier of the case type to signal with this payment
- */
-public record RecordPaymentResult(boolean paymentRecorded, int amount, String ledgerEntryId, String crossCaseSignal) {}
+import java.util.List;
+
+public record RecordPaymentResult(boolean paymentRecorded, int amount,
+                                  String ledgerEntryId, String crossCaseSignal,
+                                  String notificationMessageId, List<String> toolsUsed) {}

@@ -19,4 +19,6 @@ import java.util.List;
 
 public record CareQualitySentinelReport(
         int sessionsScheduled, int sessionsCompleted, List<String> missedSessions,
-        String concerns, boolean escalationRequired) {}
+        String concerns, boolean escalationRequired,
+        String calendarEventId, String notificationMessageId,
+        List<String> toolsUsed) {}

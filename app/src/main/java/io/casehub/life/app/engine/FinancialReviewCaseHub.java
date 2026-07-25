@@ -59,21 +59,29 @@ public class FinancialReviewCaseHub extends LifeTypedCaseHub {
     @Override
     protected void configureCase(CaseDefinition definition) {
         definition.getWorkers().add(agentWorker("gather-data", """
-                You are a financial review agent. Gather financial data by aggregating
-                transactions across all linked accounts.""", GatherDataResult.class));
+                                                               You are a financial review agent. Gather financial data by aggregating
+                                                               transactions across all linked accounts.
+                                                               Use bank_get_transactions to pull recent transactions.
+                                                               Use bank_get_balances to get current account balances.
+                                                               Include the transaction summary in your response.""", GatherDataResult.class));
         definition.getWorkers().add(agentWorker("analyse-anomalies", """
-                You are a financial review agent. Analyse spending anomalies by
-                comparing current spending patterns against budget limits.
-                If cbrCalibration is provided, use featureStats.estimatedBudget for
-                historical spending patterns and threshold calibration.""", AnalyseAnomaliesResult.class));
+                                                                     You are a financial review agent. Analyse spending anomalies by
+                                                                     comparing current spending patterns against budget limits.
+                                                                     Use bank_get_transactions to identify unusual patterns.
+                                                                     Include the transaction details supporting any anomalies found.
+                                                                     If cbrCalibration is provided, use featureStats.estimatedBudget for
+                                                                     historical spending patterns and threshold calibration.""", AnalyseAnomaliesResult.class));
         definition.getWorkers().add(agentWorker("escalate-anomalies", """
-                You are a financial review agent. Escalate anomalies to the oversight
-                channel for human review.""", EscalateAnomaliesResult.class));
+                                                                      You are a financial review agent. Escalate anomalies to the oversight
+                                                                      channel for human review.
+                                                                      Use send_chat to notify the household admin about flagged anomalies.
+                                                                      Include the notification message ID in your response.""", EscalateAnomaliesResult.class));
         definition.getWorkers().add(agentWorker("oversight-response", """
-                You are a financial review agent. Process oversight response from
-                the household admin regarding flagged anomalies.""", OversightResponseResult.class));
+                                                                      You are a financial review agent. Process oversight response from
+                                                                      the household admin regarding flagged anomalies.""", OversightResponseResult.class));
         definition.getWorkers().add(agentWorker("produce-report", """
-                You are a financial review agent. Produce a monthly financial report
-                summarising spending and recording it to the ledger.""", ProduceReportResult.class));
-    }
+                                                                  You are a financial review agent. Produce a monthly financial report
+                                                                  summarising spending and recording it to the ledger.
+                                                                  Use send_chat to distribute the report to household members.
+                                                                  Include the notification message ID in your response.""", ProduceReportResult.class));}
 }

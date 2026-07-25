@@ -15,9 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output from escalate-anomalies agent — escalation result.
- *
- * <p>Refs casehub-life#38 Task 4 (finance domain AgentExec conversion).
- */
-public record EscalateAnomaliesResult(boolean escalationSent, String channel) {}
+import java.util.List;
+
+public record EscalateAnomaliesResult(boolean escalationSent, String channel,
+                                      String notificationMessageId, List<String> toolsUsed) {}

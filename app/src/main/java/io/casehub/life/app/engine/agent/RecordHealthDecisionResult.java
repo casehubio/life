@@ -15,10 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Response schema for record-health-decision-agent worker.
- */
+import java.util.List;
+
 public record RecordHealthDecisionResult(
-        boolean recorded,
-        String ledgerEntryId
-) {}
+        boolean recorded, String ledgerEntryId,
+        List<String> toolsUsed) {}

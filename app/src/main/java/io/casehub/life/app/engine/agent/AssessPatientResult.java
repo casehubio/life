@@ -15,13 +15,10 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Response schema for assess-patient-agent worker.
- */
+import java.util.List;
+
 public record AssessPatientResult(
-        VitalSigns vitalSigns,
-        String mobility,
-        String cognition
-) {
+        VitalSigns vitalSigns, String mobility, String cognition,
+        List<String> sensorReadings, List<String> toolsUsed) {
     public record VitalSigns(String bp, int hr, double temp) {}
 }

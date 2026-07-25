@@ -15,14 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Agent response schema for travel booking.
- *
- * <p>Books flights and hotels. Sets {@code declined} when booking fails.
- */
+import java.util.List;
+
 public record TravelBookingResult(
-        String bookingRef,
-        String status,
-        Boolean declined,
-        String reason
-) {}
+        String bookingRef, String status, Boolean declined, String reason,
+        String calendarEventId, List<String> toolsUsed) {}

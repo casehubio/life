@@ -16,7 +16,10 @@
 package io.casehub.life.app.engine.agent;
 
 import java.util.List;
+import java.util.Map;
 
 public record AnomalySentinelReport(
         List<String> anomalies, String severity,
-        String concerns, boolean escalationRequired) {}
+        String concerns, boolean escalationRequired,
+        Map<String, Object> transactionSummary, String alertMessageId,
+        List<String> toolsUsed) {}

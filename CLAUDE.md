@@ -351,6 +351,21 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
   MaintenanceSentinelReport, FollowUpSentinelReport, CareQualitySentinelReport,
   PatientStatusSentinelReport, AnomalySentinelReport, BookingSentinelReport.
 
+**Layer 7 additions (skill integration, life#60):**
+- Two-tier skill model: NATIVE (CaseHub MCP tools, full platform properties) and
+  OPENCLAW (community skills, turn-level accountability). Promotion OPENCLAW → NATIVE
+  transparent to agents.
+- Tool-aware system prompts for all 32 workers and 7 sentinels reference available MCP
+  tools (calendar_create_event, iot_get_state, bank_get_transactions, send_chat).
+- Response schemas gain tool-derived fields: `calendarEventId`, `sensorReadings`,
+  `transactionSummary`, `notificationMessageId`, `alertMessageId`, `reminderMessageId`.
+- `List<String> toolsUsed` on all 39 schemas — LLM self-reported, convenience for UI
+  and debugging (not authoritative for audit).
+- `casehub-iot-api` dependency for `DeviceEntity` types in sensor readings.
+- Banking data uses `Map<String, Object>` (OPENCLAW tier — no CaseHub type).
+- Skill tier config: `casehub.life.skills.{domain}.tier` in application.properties.
+- Cross-repo: connectors#88 (CalendarPlatform SPI), iot#69 (MCP tool exposure).
+
 **Layer 8 additions (CBR — Case-Based Reasoning, life#52):**
 - `LifeCaseOutcomeCbrWriter` — `app/cbr/` `@ApplicationScoped` implements `CaseOutcomeObserver`;
   per-case retention: on terminal state, extracts features via CbrConfig JQ expressions,
@@ -588,8 +603,14 @@ Layer 7 (full): + casehub-openclaw — OpenClaw as WorkerProvisioner; skill ecos
          LifeChannelContextProvider (life#61) enriches heartbeat agents with recent
          qhorus channel messages (delegation, oversight, per-actor) before execution.
          Config: `casehub.life.channel-context.message-limit` (default 10).
-         Skill integration (#60) blocked on casehub-openclaw Epic 4.
-         ✅ COMPLETE (wiring + channel context)  🔲 PENDING (skill integration — #60)
+         Skill integration (#60): two-tier skill model (NATIVE/OPENCLAW). All 32 worker
+         prompts + 7 sentinel prompts upgraded to tool-aware — reference calendar_create_event,
+         iot_get_state, bank_get_transactions, send_chat. 39 response schemas gain tool-derived
+         fields (calendarEventId, sensorReadings, transactionSummary, notificationMessageId) and
+         toolsUsed. casehub-iot-api dependency added for DeviceEntity types. Banking uses
+         Map<String,Object> (OPENCLAW tier). Skill tier config in application.properties.
+         Cross-repo: connectors#88 (CalendarPlatform SPI), iot#69 (MCP tool exposure).
+         ✅ COMPLETE (wiring + channel context + skill integration)
 
 Layer 8: + casehub-neocortex (CBR) — Case-Based Reasoning for adaptive life automation.
          Per-case retention via CaseOutcomeObserver (LifeCaseOutcomeCbrWriter), per-routing-decision
@@ -614,7 +635,7 @@ Layer 8: + casehub-neocortex (CBR) — Case-Based Reasoning for adaptive life au
          for actors in context, enriches feature map before adapt(). 4 rules gain trust logic
          (Contractor, Health, AppointmentCycle, HomeMaintenance). FeatureStatistics upstream
          move tracked as neocortex#157.
-         ✅ COMPLETE (retention + retrieval + integration + adaptation + trust-aware)  🔲 PENDING (#60 skill integration)
+         ✅ COMPLETE (retention + retrieval + integration + adaptation + trust-aware)
 ```
 
 ### Foundation Gates

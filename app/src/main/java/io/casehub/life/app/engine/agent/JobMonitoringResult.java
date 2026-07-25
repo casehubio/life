@@ -15,10 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the contractor job monitoring worker.
- *
- * @param progress current job status
- * @param estimatedCompletion estimated completion date
- */
-public record JobMonitoringResult(String progress, String estimatedCompletion) {}
+import java.util.List;
+
+public record JobMonitoringResult(String progress, String estimatedCompletion,
+                                  String notificationMessageId, List<String> toolsUsed) {}

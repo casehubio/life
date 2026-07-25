@@ -77,7 +77,7 @@ class LifeOpenClawAgentTest {
                 "{\"appointmentId\":\"APT-123\",\"provider\":\"Dr Smith\","
                 + "\"confirmed\":false,\"declined\":null,\"reason\":null}"));
 
-        final WorkerResult result = bookingAgent().execute(
+        final WorkerResult<Map<String, Object>> result = bookingAgent().execute(
                 Map.of("appointmentType", "GP checkup", "provider", "Dr Smith"));
 
         assertThat(result.output().get("appointmentId")).isEqualTo("APT-123");
@@ -92,7 +92,7 @@ class LifeOpenClawAgentTest {
                 "{\"appointmentId\":null,\"provider\":\"Dr Gone\","
                 + "\"confirmed\":false,\"declined\":true,\"reason\":\"Not accepting new patients\"}"));
 
-        final WorkerResult result = bookingAgent().execute(
+        final WorkerResult<Map<String, Object>> result = bookingAgent().execute(
                 Map.of("appointmentType", "GP checkup", "provider", "Dr Gone"));
 
         assertThat(result.output().get("declined")).isEqualTo(true);

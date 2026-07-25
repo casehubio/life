@@ -57,21 +57,28 @@ public class ContractorCoordinationCaseHub extends LifeTypedCaseHub {
     @Override
     protected void configureCase(CaseDefinition definition) {
         definition.getWorkers().add(agentWorker("request-quote", """
-                You are a contractor coordination agent. Request a quote from the
-                contractor via the appropriate messaging channel.
-                If cbrCalibration is provided, use featureStats.estimatedCost for
-                typical cost ranges in similar jobs.""", RequestQuoteResult.class));
+                                                                 You are a contractor coordination agent. Request a quote from the
+                                                                 contractor via the appropriate messaging channel.
+                                                                 Use send_chat to send the quote request to the contractor.
+                                                                 Include the notification message ID in your response.
+                                                                 If cbrCalibration is provided, use featureStats.estimatedCost for
+                                                                 typical cost ranges in similar jobs.""", RequestQuoteResult.class));
         definition.getWorkers().add(agentWorker("watchdog-escalation", """
-                You are a contractor coordination agent. Escalate an overdue
-                contractor commitment by sending a reminder.""", WatchdogEscalationResult.class));
+                                                                       You are a contractor coordination agent. Escalate an overdue
+                                                                       contractor commitment by sending a reminder.
+                                                                       Use send_chat to send the escalation reminder to the contractor.
+                                                                       Include the notification message ID in your response.""", WatchdogEscalationResult.class));
         definition.getWorkers().add(agentWorker("quote-received", """
-                You are a contractor coordination agent. Process a received quote,
-                extracting amount, contractor details, and validity period.""", QuoteReceivedResult.class));
+                                                                  You are a contractor coordination agent. Process a received quote,
+                                                                  extracting amount, contractor details, and validity period.""", QuoteReceivedResult.class));
         definition.getWorkers().add(agentWorker("job-monitoring", """
-                You are a contractor coordination agent. Monitor an active contractor
-                job and report progress.""", JobMonitoringResult.class));
+                                                                  You are a contractor coordination agent. Monitor an active contractor
+                                                                  job and report progress.
+                                                                  Use send_chat to request a progress update from the contractor.
+                                                                  Include the notification message ID in your response.""", JobMonitoringResult.class));
         definition.getWorkers().add(agentWorker("record-payment", """
-                You are a contractor coordination agent. Record a contractor payment
-                to the tamper-evident ledger and emit a cross-case signal.""", RecordPaymentResult.class));
-    }
+                                                                  You are a contractor coordination agent. Record a contractor payment
+                                                                  to the tamper-evident ledger and emit a cross-case signal.
+                                                                  Use send_chat to send payment confirmation to the contractor.
+                                                                  Include the notification message ID in your response.""", RecordPaymentResult.class));}
 }

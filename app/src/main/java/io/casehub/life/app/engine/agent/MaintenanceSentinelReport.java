@@ -15,6 +15,10 @@
  */
 package io.casehub.life.app.engine.agent;
 
+import java.util.List;
+
 public record MaintenanceSentinelReport(
         int progressPercent, String status, String concerns,
-        String recommendedAction, boolean escalationRequired) {}
+        String recommendedAction, boolean escalationRequired,
+        List<String> sensorReadings, String notificationMessageId,
+        List<String> toolsUsed) {}

@@ -15,9 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output from analyse-anomalies agent — anomaly detection result.
- *
- * <p>Refs casehub-life#38 Task 4 (finance domain AgentExec conversion).
- */
-public record AnalyseAnomaliesResult(boolean hasAnomalies, String anomalyDetails) {}
+import java.util.List;
+import java.util.Map;
+
+public record AnalyseAnomaliesResult(boolean hasAnomalies, String anomalyDetails,
+                                     Map<String, Object> transactionSummary, List<String> toolsUsed) {}

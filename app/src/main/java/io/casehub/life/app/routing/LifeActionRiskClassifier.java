@@ -9,6 +9,7 @@ import io.casehub.life.api.HouseholdGroups;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.Preferences;
+import io.casehub.platform.api.path.Path;
 import io.casehub.platform.api.preferences.SettingsScope;
 import io.casehub.worker.api.PlannedAction;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -31,7 +32,7 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
 
     private static final String OVERSIGHT_SCOPE = "casehubio/life/oversight";
     private static final SettingsScope RISK_POLICY_SCOPE =
-        SettingsScope.of("casehubio", "life", "risk-policy");
+        SettingsScope.of("casehubio", Path.of("life", "risk-policy"));
 
     @Inject PreferenceProvider preferenceProvider;
     @Inject CurrentPrincipal principal;

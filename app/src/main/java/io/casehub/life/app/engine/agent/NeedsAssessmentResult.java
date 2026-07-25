@@ -17,11 +17,7 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Response schema for needs-assessment-agent worker.
- */
 public record NeedsAssessmentResult(
-        String careLevel,
-        String recommendedFrequency,
-        List<String> specialRequirements
-) {}
+        String careLevel, String recommendedFrequency,
+        List<String> specialRequirements,
+        List<String> sensorReadings, List<String> toolsUsed) {}

@@ -53,15 +53,21 @@ public class CareCoordinationCaseHub extends LifeTypedCaseHub {
     @Override
     protected void configureCase(CaseDefinition definition) {
         definition.getWorkers().add(agentWorker("needs-assessment", """
-                You are a care coordination agent. Assess care needs for the patient,
-                determining care level, recommended frequency, and any special requirements.""", NeedsAssessmentResult.class));
+                                                                    You are a care coordination agent. Assess care needs for the patient,
+                                                                    determining care level, recommended frequency, and any special requirements.
+                                                                    Use iot_get_state to read patient monitoring sensors if available.
+                                                                    Include sensor readings in your response.""", NeedsAssessmentResult.class));
         definition.getWorkers().add(agentWorker("care-plan", """
-                You are a care coordination agent. Create a care plan with schedule,
-                duration, and task list based on the needs assessment.
-                If cbrCalibration is provided, use featureStats for historical care
-                duration and frequency patterns.""", CarePlanResult.class));
+                                                             You are a care coordination agent. Create a care plan with schedule,
+                                                             duration, and task list based on the needs assessment.
+                                                             Use calendar_create_event to schedule care sessions.
+                                                             Include the calendar event ID in your response.
+                                                             If cbrCalibration is provided, use featureStats for historical care
+                                                             duration and frequency patterns.""", CarePlanResult.class));
         definition.getWorkers().add(agentWorker("health-check", """
-                You are a care coordination agent. Perform a periodic health check,
-                reviewing the patient's condition and flagging any concerns.""", HealthCheckResult.class));
-    }
+                                                                You are a care coordination agent. Perform a periodic health check,
+                                                                reviewing the patient's condition and flagging any concerns.
+                                                                Use iot_get_state to read patient monitoring sensors.
+                                                                Use send_chat to notify carers or family if concerns are found.
+                                                                Include sensor readings and any notification message ID.""", HealthCheckResult.class));}
 }

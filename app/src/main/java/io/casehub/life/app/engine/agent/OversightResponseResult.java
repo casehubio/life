@@ -15,9 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output from oversight-response agent — oversight decision result.
- *
- * <p>Refs casehub-life#38 Task 4 (finance domain AgentExec conversion).
- */
-public record OversightResponseResult(boolean approved, String comments) {}
+import java.util.List;
+
+public record OversightResponseResult(boolean approved, String comments,
+                                      List<String> toolsUsed) {}

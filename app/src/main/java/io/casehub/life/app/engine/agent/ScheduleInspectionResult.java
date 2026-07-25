@@ -15,11 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the home inspection worker.
- *
- * @param inspected whether the inspection was completed
- * @param condition description of the property condition
- * @param inspectionDate date when the inspection took place
- */
-public record ScheduleInspectionResult(boolean inspected, String condition, String inspectionDate) {}
+import java.util.List;
+
+public record ScheduleInspectionResult(boolean inspected, String condition, String inspectionDate,
+                                       String calendarEventId, List<String> sensorReadings,
+                                       List<String> toolsUsed) {}

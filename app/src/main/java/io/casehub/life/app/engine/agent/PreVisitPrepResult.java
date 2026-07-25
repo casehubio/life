@@ -15,10 +15,8 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Response schema for pre-visit-prep-agent worker.
- */
+import java.util.List;
+
 public record PreVisitPrepResult(
-        boolean checklistSent,
-        String instructions
-) {}
+        boolean checklistSent, String instructions,
+        String notificationMessageId, List<String> toolsUsed) {}

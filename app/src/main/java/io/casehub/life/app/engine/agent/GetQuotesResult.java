@@ -17,20 +17,8 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Structured output schema for the contractor quotes worker.
- *
- * @param quoteCount number of quotes gathered
- * @param quotes list of quote items from contractors
- */
-public record GetQuotesResult(int quoteCount, List<QuoteItem> quotes) {
+public record GetQuotesResult(int quoteCount, List<QuoteItem> quotes,
+                              String notificationMessageId, List<String> toolsUsed) {
 
-    /**
-     * Individual quote from a contractor.
-     *
-     * @param contractor contractor name
-     * @param amount quoted price
-     * @param available whether contractor is available for the work
-     */
     public record QuoteItem(String contractor, int amount, boolean available) {}
 }

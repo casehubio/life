@@ -19,4 +19,6 @@ import java.util.List;
 
 public record PatientStatusSentinelReport(
         String conditionSummary, String trend,
-        List<String> alerts, boolean escalationRequired) {}
+        List<String> alerts, boolean escalationRequired,
+        List<String> sensorReadings, String notificationMessageId,
+        List<String> toolsUsed) {}

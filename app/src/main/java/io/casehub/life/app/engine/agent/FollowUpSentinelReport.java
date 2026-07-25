@@ -19,4 +19,6 @@ import java.util.List;
 
 public record FollowUpSentinelReport(
         List<String> pendingActions, int daysOverdue,
-        String concerns, boolean escalationRequired) {}
+        String concerns, boolean escalationRequired,
+        String calendarEventId, String notificationMessageId,
+        List<String> toolsUsed) {}

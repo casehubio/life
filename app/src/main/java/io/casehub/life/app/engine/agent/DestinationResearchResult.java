@@ -17,11 +17,7 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Agent response schema for destination research.
- *
- * <p>Returns a list of destination options with name, cost, and rating.
- */
-public record DestinationResearchResult(List<DestinationOption> options) {
+public record DestinationResearchResult(List<DestinationOption> options,
+                                        List<String> toolsUsed) {
     public record DestinationOption(String name, int cost, String rating) {}
 }

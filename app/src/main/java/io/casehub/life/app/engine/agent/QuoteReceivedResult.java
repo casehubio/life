@@ -15,11 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the quote received worker.
- *
- * @param quoteAmount quoted price from contractor
- * @param contractor contractor name
- * @param validUntil date until which the quote is valid
- */
-public record QuoteReceivedResult(int quoteAmount, String contractor, String validUntil) {}
+import java.util.List;
+
+public record QuoteReceivedResult(int quoteAmount, String contractor,
+                                  String validUntil, List<String> toolsUsed) {}

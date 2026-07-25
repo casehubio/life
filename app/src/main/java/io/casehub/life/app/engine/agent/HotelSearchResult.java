@@ -17,11 +17,7 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Agent response schema for hotel search.
- *
- * <p>Returns a list of hotel options with name, price per night, and rating.
- */
-public record HotelSearchResult(List<HotelOption> hotels) {
+public record HotelSearchResult(List<HotelOption> hotels,
+                                List<String> toolsUsed) {
     public record HotelOption(String name, int price, double rating) {}
 }

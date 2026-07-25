@@ -15,12 +15,9 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Response schema for find-alternative-agent worker.
- */
+import java.util.List;
+
 public record FindAlternativeResult(
-        boolean alternativeFound,
-        String appointmentId,
-        String provider,
-        boolean confirmed
-) {}
+        boolean alternativeFound, String appointmentId,
+        String provider, boolean confirmed,
+        String calendarEventId, List<String> toolsUsed) {}

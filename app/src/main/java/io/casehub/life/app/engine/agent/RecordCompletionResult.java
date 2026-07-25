@@ -15,10 +15,7 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Structured output schema for the job completion recording worker.
- *
- * @param recorded whether the completion was successfully recorded
- * @param ledgerEntryId tamper-evident ledger entry identifier
- */
-public record RecordCompletionResult(boolean recorded, String ledgerEntryId) {}
+import java.util.List;
+
+public record RecordCompletionResult(boolean recorded, String ledgerEntryId,
+                                     String notificationMessageId, List<String> toolsUsed) {}

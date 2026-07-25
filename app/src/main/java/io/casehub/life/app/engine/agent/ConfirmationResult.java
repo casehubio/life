@@ -15,13 +15,9 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Agent response schema for booking confirmation.
- *
- * <p>Confirms the travel booking and sends itinerary.
- */
+import java.util.List;
+
 public record ConfirmationResult(
-        boolean confirmed,
-        boolean itinerarySent,
-        String confirmationRef
-) {}
+        boolean confirmed, boolean itinerarySent, String confirmationRef,
+        String calendarEventId, String notificationMessageId,
+        List<String> toolsUsed) {}

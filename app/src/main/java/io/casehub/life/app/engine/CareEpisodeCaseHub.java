@@ -16,13 +16,13 @@
 package io.casehub.life.app.engine;
 
 import io.casehub.api.engine.YamlCaseHub;
+import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.Agent;
 import io.casehub.life.app.engine.agent.AssessPatientResult;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import io.casehub.life.app.engine.agent.ProvideCareResult;
-import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -75,19 +75,21 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
      */
     private Worker assessPatientWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent(AGENT))
-                .systemPrompt("""
-                        You are a care episode agent. Assess patient condition including
-                        vital signs, mobility status, and cognitive state.""")
-                .responseSchema(AssessPatientResult.class)
-                .build();
+                                 .model(openClawFactory.forAgent(AGENT))
+                                 .systemPrompt("""
+                                               You are a care episode agent. Assess patient condition including
+                                               vital signs, mobility status, and cognitive state.
+                                               Use iot_get_state to read patient monitoring sensors (movement,
+                                               temperature, medical devices) if available.
+                                               Include sensor readings in your response.""")
+                                 .responseSchema(AssessPatientResult.class)
+                                 .build();
 
         return Worker.builder()
-                .name("assess-patient-agent")
-                .capabilityName("assess-patient")
-                .function(new AgentWorkerFunction(agent))
-                .build();
-    }
+                     .name("assess-patient-agent")
+                     .capabilityName("assess-patient")
+                     .function(new AgentWorkerFunction(agent))
+                     .build();}
 
     /**
      * Provides care based on patient assessment and care plan.
@@ -97,17 +99,18 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
      */
     private Worker provideCareWorker() {
         final Agent agent = Agent.builder()
-                .model(openClawFactory.forAgent(AGENT))
-                .systemPrompt("""
-                        You are a care episode agent. Provide care to the patient, completing
-                        assigned tasks and recording observations.""")
-                .responseSchema(ProvideCareResult.class)
-                .build();
+                                 .model(openClawFactory.forAgent(AGENT))
+                                 .systemPrompt("""
+                                               You are a care episode agent. Provide care to the patient, completing
+                                               assigned tasks and recording observations.
+                                               Use send_chat to notify the family when care is complete.
+                                               Include the notification message ID in your response.""")
+                                 .responseSchema(ProvideCareResult.class)
+                                 .build();
 
         return Worker.builder()
-                .name("provide-care-agent")
-                .capabilityName("provide-care")
-                .function(new AgentWorkerFunction(agent))
-                .build();
-    }
+                     .name("provide-care-agent")
+                     .capabilityName("provide-care")
+                     .function(new AgentWorkerFunction(agent))
+                     .build();}
 }

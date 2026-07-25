@@ -52,23 +52,35 @@ public class HomeMaintenanceCaseHub extends LifeTypedCaseHub {
     @Override
     protected void configureCase(CaseDefinition definition) {
         definition.getWorkers().add(agentWorker("schedule-inspection", """
-                You are a home maintenance agent. Schedule a property inspection,
-                assess the condition, and report findings.
-                If cbrCalibration is provided, use featureStats for historical
-                maintenance duration and severity patterns.""", ScheduleInspectionResult.class));
+                                                                       You are a home maintenance agent. Schedule a property inspection,
+                                                                       assess the condition, and report findings.
+                                                                       Use iot_get_state to read current sensor data for the property.
+                                                                       Use calendar_create_event to schedule the inspection appointment.
+                                                                       Include the calendar event ID and sensor readings in your response.
+                                                                       If sensors show anomalies (temperature, humidity), flag them.
+                                                                       If cbrCalibration is provided, use featureStats for historical
+                                                                       maintenance duration and severity patterns.""", ScheduleInspectionResult.class));
         definition.getWorkers().add(agentWorker("get-quotes", """
-                You are a home maintenance agent. Gather contractor quotes for the
-                required maintenance work.
-                If cbrCalibration is provided, use featureStats.estimatedCost for
-                historical cost ranges to assess quote reasonableness.""", GetQuotesResult.class));
+                                                              You are a home maintenance agent. Gather contractor quotes for the
+                                                              required maintenance work.
+                                                              Use send_chat to contact contractors for quotes.
+                                                              Include the message ID from send_chat in your response.
+                                                              If cbrCalibration is provided, use featureStats.estimatedCost for
+                                                              historical cost ranges to assess quote reasonableness.""", GetQuotesResult.class));
         definition.getWorkers().add(agentWorker("issue-commitment", """
-                You are a home maintenance agent. Issue a commitment to the selected
-                contractor for the approved work.""", IssueCommitmentResult.class));
+                                                                    You are a home maintenance agent. Issue a commitment to the selected
+                                                                    contractor for the approved work.
+                                                                    Use send_chat to notify the contractor of the accepted quote.
+                                                                    Include the notification message ID in your response.""", IssueCommitmentResult.class));
         definition.getWorkers().add(agentWorker("monitor-job", """
-                You are a home maintenance agent. Monitor job progress and report
-                estimated completion.""", MonitorJobResult.class));
+                                                               You are a home maintenance agent. Monitor job progress and report
+                                                               estimated completion.
+                                                               Use iot_get_state to check property sensors for work progress indicators.
+                                                               Use send_chat to request a status update from the contractor if needed.
+                                                               Include sensor readings and any notification message ID in your response.""", MonitorJobResult.class));
         definition.getWorkers().add(agentWorker("record-completion", """
-                You are a home maintenance agent. Record job completion to the
-                tamper-evident ledger.""", RecordCompletionResult.class));
-    }
+                                                                     You are a home maintenance agent. Record job completion to the
+                                                                     tamper-evident ledger.
+                                                                     Use send_chat to send completion confirmation to the household.
+                                                                     Include the notification message ID in your response.""", RecordCompletionResult.class));}
 }

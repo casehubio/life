@@ -62,38 +62,45 @@ public class TravelPlanCaseHub extends LifeTypedCaseHub {
     @Override
     protected void configureCase(CaseDefinition definition) {
         definition.getWorkers().add(agentWorker("destination-research", """
-                You are a travel planning agent. Research destination options with
-                costs and ratings.""", DestinationResearchResult.class));
+                                                                        You are a travel planning agent. Research destination options with
+                                                                        costs and ratings.
+                                                                        Use calendar_list_events to check existing commitments that may
+                                                                        conflict with travel dates.""", DestinationResearchResult.class));
         definition.getWorkers().add(agentWorker("flight-search", """
-                You are a travel planning agent. Search for flights with airline,
-                price, and number of stops.""", FlightSearchResult.class));
+                                                                 You are a travel planning agent. Search for flights with airline,
+                                                                 price, and number of stops.""", FlightSearchResult.class));
         definition.getWorkers().add(agentWorker("hotel-search", """
-                You are a travel planning agent. Search for hotels with name,
-                price, and rating.""", HotelSearchResult.class));
+                                                                You are a travel planning agent. Search for hotels with name,
+                                                                price, and rating.""", HotelSearchResult.class));
         definition.getWorkers().add(agentWorker("budget-assessment", """
-                You are a travel planning agent. Assess the total travel budget
-                and determine if approval is required.
-                If cbrCalibration is provided, use featureStats.budget for typical cost
-                ranges and historicalSuccessRate to gauge risk.""", BudgetAssessmentResult.class));
+                                                                     You are a travel planning agent. Assess the total travel budget
+                                                                     and determine if approval is required.
+                                                                     If cbrCalibration is provided, use featureStats.budget for typical cost
+                                                                     ranges and historicalSuccessRate to gauge risk.""", BudgetAssessmentResult.class));
         definition.getWorkers().add(agentWorker("booking", """
-                You are a travel planning agent. Book the selected flights and hotels.
-                If booking fails, set declined=true with a reason.
-                If cbrCalibration is provided, use historicalSuccessRate to inform
-                booking confidence.""", TravelBookingResult.class));
+                                                           You are a travel planning agent. Book the selected flights and hotels.
+                                                           Use calendar_create_event to add the travel dates to the calendar.
+                                                           Include the calendar event ID in your response.
+                                                           If booking fails, set declined=true with a reason.
+                                                           If cbrCalibration is provided, use historicalSuccessRate to inform
+                                                           booking confidence.""", TravelBookingResult.class));
         definition.getWorkers().add(agentWorker("rebooking", """
-                You are a travel planning agent. Rebook after a declined booking,
-                finding alternative dates.""", RebookingResult.class));
+                                                             You are a travel planning agent. Rebook after a declined booking,
+                                                             finding alternative dates.
+                                                             Use calendar_create_event to add the new travel dates to the calendar.
+                                                             Include the calendar event ID in your response.""", RebookingResult.class));
         definition.getWorkers().add(agentWorker("confirmation", """
-                You are a travel planning agent. Confirm the travel itinerary and
-                send confirmation details.""", ConfirmationResult.class));
+                                                                You are a travel planning agent. Confirm the travel itinerary and
+                                                                send confirmation details.
+                                                                Use calendar_create_event to create the final itinerary event.
+                                                                Use send_chat to send confirmation to all travellers.
+                                                                Include the calendar event ID and notification message ID.""", ConfirmationResult.class));
 
-        // Add M-of-N SubCase bindings — YAML schema does not support these fields
         definition.getBindings().addAll(List.of(
                 familyVoteBinding("family-vote-a"),
                 familyVoteBinding("family-vote-b"),
                 familyVoteBinding("family-vote-c")
-        ));
-    }
+                                               ));}
 
     /**
      * Creates a family-vote SubCase binding with M-of-N quorum: 2-of-3, KEEP on threshold.

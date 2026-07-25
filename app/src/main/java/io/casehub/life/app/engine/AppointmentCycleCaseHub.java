@@ -15,6 +15,7 @@
  */
 package io.casehub.life.app.engine;
 
+import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.Agent;
 import io.casehub.life.api.LifeCaseType;
@@ -23,7 +24,6 @@ import io.casehub.life.app.engine.agent.ConfirmAppointmentResult;
 import io.casehub.life.app.engine.agent.FindAlternativeResult;
 import io.casehub.life.app.engine.agent.PreVisitPrepResult;
 import io.casehub.life.app.engine.agent.RecordHealthDecisionResult;
-import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -54,19 +54,26 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
     protected void configureCase(CaseDefinition definition) {
         definition.getWorkers().add(bookAppointmentWorker());
         definition.getWorkers().add(agentWorker("find-alternative", """
-                You are a healthcare appointment agent. Find an alternative provider
-                after a booking was declined. Search available providers and propose
-                an alternative appointment.""", FindAlternativeResult.class));
+                                                                    You are a healthcare appointment agent. Find an alternative provider
+                                                                    after a booking was declined. Search available providers and propose
+                                                                    an alternative appointment.
+                                                                    Use calendar_list_events to check availability for alternative dates.
+                                                                    Use calendar_create_event to book the alternative appointment.
+                                                                    Include the calendar event ID in your response.""", FindAlternativeResult.class));
         definition.getWorkers().add(agentWorker("confirm-appointment", """
-                You are a healthcare appointment agent. Send appointment confirmation
-                to the patient and schedule a reminder for 24 hours before.""", ConfirmAppointmentResult.class));
+                                                                       You are a healthcare appointment agent. Send appointment confirmation
+                                                                       to the patient and schedule a reminder for 24 hours before.
+                                                                       Use calendar_create_event to set the reminder event.
+                                                                       Use send_chat to send the confirmation message to the patient.
+                                                                       Include both the calendar event ID and notification message ID.""", ConfirmAppointmentResult.class));
         definition.getWorkers().add(agentWorker("pre-visit-prep", """
-                You are a healthcare appointment agent. Send pre-visit preparation
-                checklist and instructions to the patient.""", PreVisitPrepResult.class));
+                                                                  You are a healthcare appointment agent. Send pre-visit preparation
+                                                                  checklist and instructions to the patient.
+                                                                  Use send_chat to send the preparation instructions.
+                                                                  Include the notification message ID in your response.""", PreVisitPrepResult.class));
         definition.getWorkers().add(agentWorker("record-health-decision", """
-                You are a healthcare records agent. Record health decision outcomes
-                to the tamper-evident ledger.""", RecordHealthDecisionResult.class));
-    }
+                                                                          You are a healthcare records agent. Record health decision outcomes
+                                                                          to the tamper-evident ledger.""", RecordHealthDecisionResult.class));}
 
     /**
      * Books an appointment via OpenClaw's LLM API (/v1/chat/completions).
@@ -82,22 +89,23 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
      */
     private Worker bookAppointmentWorker() {
         final Agent bookingAgent = Agent.builder()
-                .model(openClawFactory.forAgent(agent()))
-                .systemPrompt("You are a healthcare appointment booking agent for a UK household. " +
-                        "Book medical appointments with the requested provider. " +
-                        "If the provider is unavailable, set declined=true and provide a reason. " +
-                        "If cbrCalibration is provided, use historicalSuccessRate to inform " +
-                        "booking confidence and featureStats for appointment patterns. " +
-                        "Respond with valid JSON only — no prose, no explanation. " + CBR_SYSTEM_PROMPT_SUFFIX)
-                .userMessage("Book a {{appointmentType}} appointment with provider {{provider}}.")
-                .inputTransformer(cbrInputTransformer)
-                .responseSchema(BookingResult.class)
-                .build();
+                                        .model(openClawFactory.forAgent(agent()))
+                                        .systemPrompt("You are a healthcare appointment booking agent for a UK household. " +
+                                                      "Book medical appointments with the requested provider. " +
+                                                      "Use calendar_create_event to create the appointment in the calendar. " +
+                                                      "Include the calendar event ID in your response. " +
+                                                      "If the provider is unavailable, set declined=true and provide a reason. " +
+                                                      "If cbrCalibration is provided, use historicalSuccessRate to inform " +
+                                                      "booking confidence and featureStats for appointment patterns. " +
+                                                      "Respond with valid JSON only — no prose, no explanation. " + CBR_SYSTEM_PROMPT_SUFFIX)
+                                        .userMessage("Book a {{appointmentType}} appointment with provider {{provider}}.")
+                                        .inputTransformer(cbrInputTransformer)
+                                        .responseSchema(BookingResult.class)
+                                        .build();
 
         return Worker.builder()
-                .name("book-appointment-agent")
-                .capabilityName("book-appointment")
-                .function(new AgentWorkerFunction(bookingAgent))
-                .build();
-    }
+                     .name("book-appointment-agent")
+                     .capabilityName("book-appointment")
+                     .function(new AgentWorkerFunction(bookingAgent))
+                     .build();}
 }

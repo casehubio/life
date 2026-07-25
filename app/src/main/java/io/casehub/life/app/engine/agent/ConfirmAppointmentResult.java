@@ -15,10 +15,9 @@
  */
 package io.casehub.life.app.engine.agent;
 
-/**
- * Response schema for confirm-appointment-agent worker.
- */
+import java.util.List;
+
 public record ConfirmAppointmentResult(
-        boolean confirmed,
-        boolean reminderSent
-) {}
+        boolean confirmed, boolean reminderSent,
+        String calendarEventId, String notificationMessageId,
+        List<String> toolsUsed) {}

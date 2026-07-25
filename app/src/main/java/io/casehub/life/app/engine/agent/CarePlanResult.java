@@ -17,11 +17,6 @@ package io.casehub.life.app.engine.agent;
 
 import java.util.List;
 
-/**
- * Response schema for care-plan-agent worker.
- */
 public record CarePlanResult(
-        List<String> schedule,
-        String duration,
-        List<String> tasks
-) {}
+        List<String> schedule, String duration, List<String> tasks,
+        String calendarEventId, List<String> toolsUsed) {}
