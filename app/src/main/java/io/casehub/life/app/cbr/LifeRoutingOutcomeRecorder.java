@@ -77,7 +77,9 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
                               outcome.name(),
                               null,
                               result.features(),
-                              List.of(trace));
+                              List.of(trace),
+                              null,
+                              null);
 
                       cbrStore.store(
                               cbrCase,

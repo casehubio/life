@@ -61,7 +61,7 @@ public class LifeHeartbeatJob implements Job {
         String capabilityName = data.getString("capabilityName");
 
         Map<String, Object> caseContext = (Map<String, Object>)
-                caseHubRuntime.query(caseId, ".").toCompletableFuture().join();
+                caseHubRuntime.query(caseId, ".");
 
         Map<String, Object> enrichedContext = new HashMap<>(caseContext);
         try {
@@ -78,8 +78,7 @@ public class LifeHeartbeatJob implements Job {
 
         WorkerResult result = sentinelAgent.execute(enrichedContext);
 
-        caseHubRuntime.signal(caseId, "sentinelReport", result.output())
-                .toCompletableFuture().join();
+        caseHubRuntime.signal(caseId, "sentinelReport", result.output());
     }
 
     static Class<?> sentinelResponseSchema(String capabilityName) {

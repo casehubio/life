@@ -110,7 +110,7 @@ public class LifeCaseService {
             }
 
             CaseHub caseHub = resolve(request.caseType());
-            UUID    caseId  = caseHub.startCase(initialContext).toCompletableFuture().join();
+            UUID    caseId  = caseHub.startCase(initialContext);
 
             persistCaseId(trackerId, caseId);
             caseHubRuntime.signal(caseId, "caseId", caseId.toString());

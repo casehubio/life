@@ -57,7 +57,9 @@ public class LifeCaseOutcomeCbrWriter implements CaseOutcomeObserver {
                     event.outcomeLabel(),
                     null,
                     result.features(),
-                    List.of());
+                    List.of(),
+                    null,
+                    null);
 
             cbrStore.store(
                     cbrCase,
