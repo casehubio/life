@@ -32,7 +32,7 @@ class FamilyVoteIntegrationTest {
         var caseId = caseHub.startCase(Map.of(
                 "proposal", "Family holiday to Barcelona",
                 "estimatedCost", 3500
-        )).toCompletableFuture().join();
+        ));
         assertNotNull(caseId);
 
         CaseIntegrationTestSupport.completeHumanTask(workItemService, caseId,

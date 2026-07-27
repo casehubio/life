@@ -82,7 +82,7 @@ class LifeCaseServiceCbrTest {
         when(mockCaseHub.lifeCaseType()).thenReturn(LifeCaseType.CONTRACTOR_COORDINATION);
         when(caseHubs.stream()).thenAnswer(inv -> java.util.stream.Stream.of(mockCaseHub));
         when(mockCaseHub.startCase(any()))
-                .thenReturn(CompletableFuture.completedFuture(engineCaseId).minimalCompletionStage());
+                .thenReturn(engineCaseId);
 
         doReturn(new HashMap<>(Map.of("lifeCaseType", "contractor-coordination")))
                 .when(service).prepareAndTrack(any(), any());
@@ -235,7 +235,7 @@ class LifeCaseServiceCbrTest {
     private ScoredCbrCase<PlanCbrCase> scoredCase(Map<String, FeatureValue> features) {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new PlanTrace("b1", "request-quote", "w1", "ok", 5, Map.of()))),
+                        List.of(new PlanTrace("b1", "request-quote", "w1", "ok", 5, Map.of())), null, null),
                 "source-case-1", 0.85);
     }
 

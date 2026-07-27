@@ -15,14 +15,14 @@
  */
 package io.casehub.life.app.engine;
 
-import io.casehub.api.engine.CaseHubRuntime;
-import io.casehub.api.model.ai.ChatModelProvider;
-import io.casehub.api.model.ai.ModelType;
-import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import io.casehub.api.engine.CaseHubRuntime;
+import io.casehub.api.model.ai.ChatModelProvider;
+import io.casehub.api.model.ai.ModelType;
+import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
@@ -31,12 +31,13 @@ import org.quartz.JobExecutionContext;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class LifeHeartbeatJobTest {
 
@@ -65,10 +66,7 @@ class LifeHeartbeatJobTest {
         when(mockFactory.forAgent(any(LifeAgent.class))).thenReturn(provider);
 
         when(mockRuntime.query(any(UUID.class), eq(".")))
-                .thenReturn(CompletableFuture.completedFuture(
-                        Map.of("contractorRequest", Map.of("contractor", "AcmeBuild"))));
-        when(mockRuntime.signal(any(UUID.class), any(String.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(Map.of("contractorRequest", Map.of("contractor", "AcmeBuild")));
 
         mockChannelProvider = mock(LifeChannelContextProvider.class);
         when(mockChannelProvider.gatherContext(any(UUID.class)))

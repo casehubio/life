@@ -29,8 +29,7 @@ final class CaseIntegrationTestSupport {
 
     static Set<String> scheduledWorkerNames(CaseHubRuntime runtime, UUID caseId) {
         return runtime.eventLog(caseId, Set.of(CaseHubEventType.WORKER_SCHEDULED))
-                .toCompletableFuture()
-                .join()
+                
                 .stream()
                 .filter(r -> r.metadata() != null && r.metadata().has("workerName"))
                 .map(r -> r.metadata().get("workerName").asText())
@@ -38,7 +37,7 @@ final class CaseIntegrationTestSupport {
     }
 
     static UUID startCase(CaseHub caseHub, CaseHubRuntime runtime, Map<String, Object> input) {
-        UUID caseId = caseHub.startCase(input).toCompletableFuture().join();
+        UUID caseId = caseHub.startCase(input);
         assertNotNull(caseId);
         await().atMost(Duration.ofSeconds(5)).pollInterval(POLL_INTERVAL).until(() ->
                 !scheduledWorkerNames(runtime, caseId).isEmpty());

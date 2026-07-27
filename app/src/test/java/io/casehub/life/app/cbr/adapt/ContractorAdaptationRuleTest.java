@@ -80,7 +80,7 @@ class ContractorAdaptationRuleTest {
                 Map.of("budget", FeatureValue.number(1000)),
                 List.of(
                         new PlanTrace("b1", "request-quote", "w1", "ok", 5, Map.of()),
-                        new PlanTrace("b2", "contractor-sentinel", "w2", "ok", 3, Map.of())));
+                        new PlanTrace("b2", "contractor-sentinel", "w2", "ok", 3, Map.of())), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.8);
         var steps = rule.adapt(scored, Map.<String, FeatureValue>of("budget", FeatureValue.number(1000)));
         assertEquals(AdaptationAction.SUPPRESSED, steps.get(0).action());
@@ -97,7 +97,7 @@ class ContractorAdaptationRuleTest {
     @Test
     void emptyPlanTrace_returnsEmpty() {
         var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
-                Map.of(), List.of());
+                Map.of(), List.of(), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.8);
         assertTrue(rule.adapt(scored, Map.of()).isEmpty());
     }
@@ -122,7 +122,7 @@ class ContractorAdaptationRuleTest {
         var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
                                    Map.of("budget", FeatureValue.number(1000)),
                                    List.of(new PlanTrace("b1", "request-quote", "w1", "ok", 5, Map.of()),
-                                           new PlanTrace("b2", "watchdog-escalation", "w2", "ok", 3, Map.of())));
+                                           new PlanTrace("b2", "watchdog-escalation", "w2", "ok", 3, Map.of())), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.85);
         Map<String, FeatureValue> current = new java.util.LinkedHashMap<>(Map.of(
                 "budget", FeatureValue.number(1000),
@@ -139,7 +139,7 @@ class ContractorAdaptationRuleTest {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
                         List.of(new PlanTrace("b1", "request-quote", "w1", "ok", 5, Map.of()),
-                                new PlanTrace("b2", "job-monitoring", "w2", "ok", 3, Map.of()))),
+                                new PlanTrace("b2", "job-monitoring", "w2", "ok", 3, Map.of())), null, null),
                 "case-1", 0.85);
     }
 }

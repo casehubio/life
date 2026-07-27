@@ -32,7 +32,7 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
 
     private static final String OVERSIGHT_SCOPE = "casehubio/life/oversight";
     private static final SettingsScope RISK_POLICY_SCOPE =
-        SettingsScope.of("casehubio", Path.of("life", "risk-policy"));
+        SettingsScope.of("casehubio", Path.of("casehubio", "life", "risk-policy"));
 
     @Inject PreferenceProvider preferenceProvider;
     @Inject CurrentPrincipal principal;

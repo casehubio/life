@@ -47,7 +47,7 @@ class FinancialAdaptationRuleTest {
     void pastEscalation_flagsMiscalibration() {
         var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
                 Map.of("amount", FeatureValue.number(1000)),
-                List.of(new PlanTrace("b1", "escalate-anomalies", "w1", "escalated-to-admin", 5, Map.of())));
+                List.of(new PlanTrace("b1", "escalate-anomalies", "w1", "escalated-to-admin", 5, Map.of())), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.8);
         Map<String, FeatureValue> current = Map.of("amount", FeatureValue.number(1000));
         var steps = rule.adapt(scored, current);
@@ -71,7 +71,7 @@ class FinancialAdaptationRuleTest {
 
     @Test
     void emptyTrace_returnsEmpty() {
-        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9, Map.of(), List.of());
+        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9, Map.of(), List.of(), null, null);
         assertTrue(rule.adapt(new ScoredCbrCase<>(past, "c1", 0.8), Map.of()).isEmpty());
     }
 
@@ -79,7 +79,7 @@ class FinancialAdaptationRuleTest {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
                         List.of(new PlanTrace("b1", "gather-data", "w1", "ok", 5, Map.of()),
-                                new PlanTrace("b2", "escalate-anomalies", "w2", "ok", 5, Map.of()))),
+                                new PlanTrace("b2", "escalate-anomalies", "w2", "ok", 5, Map.of())), null, null),
                 "case-1", 0.85);
     }
 }

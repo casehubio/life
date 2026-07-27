@@ -204,7 +204,7 @@ class LifeCbrSuggestionServiceTest {
 
     private ScoredCbrCase<PlanCbrCase> scoredCase(double budget, String outcome, double score) {
         var cbrCase = new PlanCbrCase("problem", "solution", outcome, null,
-                Map.of("budget", FeatureValue.number(budget)), List.of());
+                Map.of("budget", FeatureValue.number(budget)), List.of(), null, null);
         return new ScoredCbrCase<>(cbrCase, score);
     }
 
@@ -212,7 +212,7 @@ class LifeCbrSuggestionServiceTest {
         var cbrCase = new PlanCbrCase("problem", "solution", "COMPLETED", null,
                 Map.of("destination", FeatureValue.string(dest),
                        "budget", FeatureValue.number(budget)),
-                List.of());
+                List.of(), null, null);
         return new ScoredCbrCase<>(cbrCase, score);
     }
 }

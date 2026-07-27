@@ -77,7 +77,7 @@ class LifePlanAdapterTest {
         var adapter = new LifePlanAdapter(List.of());
         var scored = new ScoredCbrCase<>(
                 new PlanCbrCase("p", "s", "COMPLETED", 0.9,
-                        Map.of(), List.of()),
+                        Map.of(), List.of(), null, null),
                 "case-1", 0.85);
         var result = adapter.adapt("any", scored, Map.of());
         assertTrue(result.steps().isEmpty());
@@ -134,7 +134,7 @@ class LifePlanAdapterTest {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9,
                         Map.of("budget", FeatureValue.number(1000)),
-                        List.of(new PlanTrace("b1", capabilityName, "w1", "ok", 5, Map.of()))),
+                        List.of(new PlanTrace("b1", capabilityName, "w1", "ok", 5, Map.of())), null, null),
                 "case-1", 0.85);
     }
 

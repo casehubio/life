@@ -61,7 +61,7 @@ public class LifeTrustRoutingPolicyProvider implements TrustRoutingPolicyProvide
 
         LifeRoutingPolicy base = domain.descriptor().routingPolicy();
         SettingsScope scope = SettingsScope.of("casehubio",
-                Path.of("life", "trust-routing", domain.descriptor().capability()));
+                Path.of("casehubio", "life", "trust-routing", domain.descriptor().capability()));
         Preferences prefs = preferenceProvider.resolve(scope);
 
         double threshold = base.threshold().orElse(TrustRoutingPolicy.DEFAULT.threshold());
