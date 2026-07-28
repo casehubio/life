@@ -521,8 +521,8 @@ app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmen
           LifeEventSseResource; SSE CDI→broadcaster→stream bridge for real-time UI updates).
 
 life-ui/ — Lit 3.x SPA served via Quarkus Quinoa (quarkus-quinoa 2.8.3).
-           Vite build with aliases to sibling @casehubio/blocks-ui-* and
-           @casehubio/pages-* repos (not npm-published yet).
+           Vite build with aliases to Maven-resolved @casehubio/blocks-ui-* and
+           @casehubio/pages-* packages (extracted to .casehub-packages/ via Maven SNAPSHOT).
            app-shell (hash routing), home-view (KPI dashboard), inbox-view
            (work-item-workbench composition). Quinoa enabled only in dev/demo
            profiles (disabled default + tests). Start with:
@@ -767,7 +767,7 @@ npm run build --prefix life-ui
 
 **Important:** `mvn test -pl app` requires `api` to be installed in the local Maven repo first. Run `mvn install -pl api` if you get ClassNotFound errors for `io.casehub.life.api.*`.
 
-**Frontend:** life-ui uses Vite aliases to resolve `@casehubio/blocks-ui-*` and `@casehubio/pages-*` from sibling repos (`../../blocks-ui/` and `../../pages/`). Both repos must be cloned and built (`yarn build` in blocks-ui) before the Vite build will succeed.
+**Frontend:** life-ui uses Vite aliases to resolve `@casehubio/blocks-ui-*` and `@casehubio/pages-*` from Maven SNAPSHOT artifacts (extracted to `.casehub-packages/`). Run `mvn initialize -pl app` to unpack packages before the Vite build. See ADR-0001 in casehub-pages.
 
 ---
 
