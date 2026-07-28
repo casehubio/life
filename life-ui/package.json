@@ -9,6 +9,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@casehubio/blocks-ui-core": "*",
+    "@casehubio/blocks-ui-detail-pane": "*",
+    "@casehubio/blocks-ui-grouped-data-view": "*",
+    "@casehubio/blocks-ui-kpi-metric-row": "*",
+    "@casehubio/blocks-ui-list-pane": "*",
+    "@casehubio/blocks-ui-notification-inbox": "*",
+    "@casehubio/blocks-ui-sla-breach-policy": "*",
+    "@casehubio/blocks-ui-sla-indicator": "*",
+    "@casehubio/blocks-ui-split-workbench": "*",
+    "@casehubio/blocks-ui-work-item-detail": "*",
+    "@casehubio/blocks-ui-work-item-inbox": "*",
+    "@casehubio/blocks-ui-work-item-row": "*",
+    "@casehubio/blocks-ui-work-item-workbench": "*",
+    "@casehubio/pages-component": "*",
+    "@casehubio/pages-data": "*",
+    "@casehubio/pages-primitives": "*",
+    "@casehubio/pages-table": "*",
+    "@casehubio/pages-ui-tokens": "*",
     "lit": "^3.3.3"
   },
   "devDependencies": {
