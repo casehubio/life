@@ -107,6 +107,7 @@ public class LifeActionRiskClassifier implements ActionRiskClassifier {
                 type.candidateGroups(),
                 Duration.ofHours(hours),
                 OVERSIGHT_SCOPE,
+                null,
                 null
         );}
 

@@ -430,7 +430,7 @@ Integration tests re-enabled (engine#410 resolved — commit 66a6e34, life#23). 
 ### Key wiring
 
 - **Engine memory @Alternative beans** — `quarkus.arc.selected-alternatives` must include `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` from `casehub-engine-persistence-memory`. Without them the engine silently falls back to no-op implementations and cases start but never progress.
-- **Jandex index entries** — test `application.properties` must index `casehub-engine-common`, `casehub-engine-blackboard`, `casehub-engine-work-adapter`, `casehub-engine-scheduler-quartz`, `casehub-engine-persistence-memory`, `casehub-engine-testing`. Missing entries produce silent CDI resolution failures.
+- **Jandex index entries** — test `application.properties` must index `casehub-engine-common`, `casehub-engine-planning`, `casehub-engine-work-adapter`, `casehub-engine-scheduler-quartz`, `casehub-engine-persistence-memory`, `casehub-engine-testing`. Missing entries produce silent CDI resolution failures.
 - **Scope retrofit** — `LifeTaskService` changed WorkItem scope from `"life"` to `"casehubio/life/" + domain.name().toLowerCase()`. `LifeDecisionLedgerObserver` resolves domain from scope Path (primary), LifeTaskContext (fallback). Engine-created WorkItems produce correct ledger entries without supplements.
 - **M-of-N SubCase is DSL-only** — YAML schema does not support `groupId`, `totalInGroup`, `requiredCount`. Travel-plan's family-vote bindings added via Java augmentation in `TravelPlanCaseHub.getDefinition()`.
 - **Cross-case signals live in workers** — the completing worker queries `LifeCaseTracker` for active target cases and calls `CaseHubRuntime.signal()`. `LifeCaseTrackerObserver` is pure infrastructure (status update only).
@@ -470,7 +470,7 @@ Integration tests re-enabled (engine#410 resolved — commit 66a6e34, life#23). 
 
 ### Pattern to replicate
 
-1. Add `casehub-engine`, `casehub-engine-scheduler-quartz`, `casehub-engine-work-adapter`, `casehub-engine-blackboard`, and `casehub-engine-persistence-memory` to `app/pom.xml`. Add `casehub-engine-testing` at test scope.
+1. Add `casehub-engine`, `casehub-engine-scheduler-quartz`, `casehub-engine-work-adapter`, `casehub-engine-planning`, and `casehub-engine-persistence-memory` to `app/pom.xml`. Add `casehub-engine-testing` at test scope.
 2. Add `MemorySubCaseGroupRepository`, `MemoryPlanItemStore`, `MemoryReactivePlanItemStore` to `quarkus.arc.selected-alternatives` in both production and test `application.properties`.
 3. Add Jandex index entries for all engine modules in test `application.properties`.
 4. Create a `LifeCaseType`-equivalent enum in `api/` listing the case types exposed via REST. Sub-case-only types (e.g. family-vote, care-episode) are not LifeCaseTypes.
