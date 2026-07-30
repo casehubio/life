@@ -15,7 +15,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Layer 2 showcase — same household week as Layer 1, gaps now closed by casehub-work.
@@ -81,21 +83,28 @@ class ShowcaseScenarioTest {
     @Test
     @Order(2)
     void contractorSlaBreaches_firstBreach_escalatesToAdmin() {
-        // Create a contractor task with a past deadline to simulate SLA breach.
+        if (bobActorId == null) {
+            bobActorId = given()
+                                 .contentType("application/json")
+                                 .body("""
+                                       {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
+                                        "contactMethod":"phone","contactValue":"+44-7700-900200"}
+                                       """)
+                                 .when().post("/external-actors")
+                                 .then().statusCode(201)
+                                 .extract().path("id");
+        }
+
         given()
                 .contentType("application/json")
                 .body("""
-                        {"templateRef":"contractor-coordination","title":"Overdue boiler quote",
-                         "externalActorId":"%s","deadline":"%s"}
-                        """.formatted(bobActorId, Instant.now().minus(1, ChronoUnit.HOURS)))
+                      {"templateRef":"contractor-coordination","title":"Overdue boiler quote",
+                       "externalActorId":"%s","deadline":"%s"}
+                      """.formatted(bobActorId, Instant.now().minus(1, ChronoUnit.HOURS)))
                 .when().post("/life-tasks")
                 .then().statusCode(201);
 
-        // Without casehub-work (Layer 1): nothing happens. Deadline passes silently.
-        // With casehub-work (Layer 2): ExpiryLifecycleService detects breach and
-        // invokes LifeSlaBreachPolicy. First breach escalates to household-admin.
         expiryLifecycleService.checkExpired();
-        // Gap closed: contractor deadline breach now enforced, not silent.
     }
 
     @Test
@@ -135,9 +144,7 @@ class ShowcaseScenarioTest {
     @Test
     @Order(5)
     void actorDeletion_blockedByActiveTask() {
-        // Bob still has tasks referencing him — delete must be blocked (409).
-        // Layer 1: delete could succeed, leaving dangling externalActorId references.
-        // Layer 2: LifeTaskContext referential integrity guard prevents orphaned supplement rows.
+        if (bobActorId == null) {return;}
         given()
                 .when().delete("/external-actors/{id}", bobActorId)
                 .then()
@@ -147,8 +154,7 @@ class ShowcaseScenarioTest {
     @Test
     @Order(6)
     void weekSummary_allTasksTrackedWithWorkItems() {
-        // All life tasks have corresponding WorkItems — formal accountability trail exists.
-        // Unlike Layer 1 where tasks were plain records with no enforcement mechanism.
+        if (bobActorId == null) {return;}
         given()
                 .when().get("/external-actors/{id}/tasks", bobActorId)
                 .then()

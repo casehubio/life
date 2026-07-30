@@ -15,8 +15,8 @@
  */
 package io.casehub.life.app;
 
-import io.casehub.api.spi.routing.AgentRoutingStrategy;
-import io.casehub.ledger.routing.TrustWeightedAgentStrategy;
+import io.casehub.api.spi.routing.ImplementationRoutingStrategy;
+import io.casehub.ledger.routing.TrustWeightedImplementationRoutingStrategy;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -24,11 +24,11 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Verifies that {@link TrustWeightedAgentStrategy} has displaced
+ * Verifies that {@link TrustWeightedImplementationRoutingStrategy} has displaced
  * {@code LeastLoadedAgentStrategy} from casehub-engine.
  *
  * <p>The engine provides {@code LeastLoadedAgentStrategy @Priority(0)} as default.
- * casehub-engine-ledger provides {@code TrustWeightedAgentStrategy @Alternative @Priority(1)},
+ * casehub-engine-ledger provides {@code TrustWeightedImplementationRoutingStrategy @Alternative @Priority(1)},
  * which has higher priority and becomes the active implementation.
  *
  * <p>This test verifies the CDI wiring is correct and the trust-based routing
@@ -38,16 +38,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TrustStrategyDisplacementTest {
 
     @Inject
-    AgentRoutingStrategy strategy;
+    ImplementationRoutingStrategy strategy;
 
     /**
-     * Verifies that the injected {@link AgentRoutingStrategy} is an instance of
-     * {@link TrustWeightedAgentStrategy}, not the default {@code LeastLoadedAgentStrategy}.
+     * Verifies that the injected {@link ImplementationRoutingStrategy} is an instance of
+     * {@link TrustWeightedImplementationRoutingStrategy}, not the default {@code LeastLoadedAgentStrategy}.
      */
     @Test
     void trustWeightedStrategyIsActive() {
         assertThat(strategy)
-                .isInstanceOf(TrustWeightedAgentStrategy.class)
-                .as("AgentRoutingStrategy should be TrustWeightedAgentStrategy (from casehub-engine-ledger)");
+                .isInstanceOf(TrustWeightedImplementationRoutingStrategy.class)
+                .as("ImplementationRoutingStrategy should be TrustWeightedImplementationRoutingStrategy (from casehub-engine-ledger)");
     }
 }

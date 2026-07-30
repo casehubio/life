@@ -71,7 +71,7 @@ class LifeRoutingOutcomeRecorderTest {
                         config, Map.of("problemType", FeatureValue.string("boiler-repair")))));
 
         var context = new AgentRoutingContext(
-                caseId, "request-quote", contextJson, "test-tenant", List.of());
+                caseId, "request-quote", contextJson, "test-tenant", List.of(), null, null);
 
         recorder.record(context, "request-quote-agent", "request-quote",
                 RoutingOutcome.SUCCESS, Duration.ofSeconds(2))
@@ -103,7 +103,7 @@ class LifeRoutingOutcomeRecorderTest {
         when(caseTypeLookup.findCaseType(caseId)).thenReturn(Optional.empty());
 
         var context = new AgentRoutingContext(
-                caseId, "some-cap", NullNode.getInstance(), "test-tenant", List.of());
+                caseId, "some-cap", NullNode.getInstance(), "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.SUCCESS, null)
                 .await().indefinitely();
@@ -119,7 +119,7 @@ class LifeRoutingOutcomeRecorderTest {
                 .thenReturn(Optional.empty());
 
         var context = new AgentRoutingContext(
-                caseId, "cap", NullNode.getInstance(), "test-tenant", List.of());
+                caseId, "cap", NullNode.getInstance(), "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.SUCCESS, null)
                 .await().indefinitely();
@@ -145,7 +145,7 @@ class LifeRoutingOutcomeRecorderTest {
                 .thenThrow(new RuntimeException("boom"));
 
         var context = new AgentRoutingContext(
-                caseId, "cap", contextJson, "test-tenant", List.of());
+                caseId, "cap", contextJson, "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.FAILURE, null)
                 .await().indefinitely();
@@ -167,7 +167,7 @@ class LifeRoutingOutcomeRecorderTest {
                         config, Map.of("problemType", FeatureValue.string("y")))));
 
         var context = new AgentRoutingContext(
-                caseId, "cap", contextJson, "test-tenant", List.of());
+                caseId, "cap", contextJson, "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.GATE_REJECTED, null)
                 .await().indefinitely();
