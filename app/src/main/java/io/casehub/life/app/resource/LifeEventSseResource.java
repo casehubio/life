@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.app.event.LifeEventBroadcaster;
 import io.casehub.life.app.event.LifeEventType;
-import io.casehub.life.app.event.LifeSseEvent;
 import io.smallrye.mutiny.Multi;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -76,6 +75,29 @@ public class LifeEventSseResource {
         Multi<String> heartbeat = Multi.createFrom()
                 .ticks().every(Duration.ofSeconds(30))
                 .map(tick -> ":keepalive\n");
+
+        return Multi.createBy().merging().streams(events, heartbeat);
+    }
+
+    @GET
+    @Path("/stream")
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
+    public Multi<String> stream() {
+        Multi<String> events = Multi.createFrom().emitter(emitter -> {
+            var sub = broadcaster.subscribe(event -> {
+                try {
+                    emitter.emit(objectMapper.writeValueAsString(event));
+                } catch (Exception e) {
+                    LOG.debugf(e, "Failed to serialize SSE event");
+                }
+            });
+            emitter.onTermination(() -> sub.cancel());
+        });
+
+        Multi<String> heartbeat = Multi.createFrom()
+                                       .ticks().every(Duration.ofSeconds(30))
+                                       .map(tick -> ":keepalive\n");
 
         return Multi.createBy().merging().streams(events, heartbeat);
     }
