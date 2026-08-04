@@ -529,13 +529,14 @@ app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmen
           event (io.casehub.life.app.event — LifeEventBroadcaster, LifeEventBridge,
           LifeEventSseResource; SSE CDI→broadcaster→stream bridge for real-time UI updates).
 
-life-ui/ — Lit 3.x SPA served via Quarkus Quinoa (quarkus-quinoa 2.8.3).
-           Vite build with aliases to Maven-resolved @casehubio/blocks-ui-* and
-           @casehubio/pages-* packages (extracted to .casehub-packages/ via Maven SNAPSHOT).
-           app-shell (hash routing), home-view (KPI dashboard), inbox-view
-           (work-item-workbench composition). Quinoa enabled only in dev/demo
-           profiles (disabled default + tests). Start with:
-           JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn quarkus:dev -pl app -Dquarkus.profile=demo
+life-ui/ — Lit 3.x SPA. Vite build with aliases to Maven-resolved @casehubio/blocks-ui-*
+           and @casehubio/pages-* packages (extracted to .casehub-packages/ via Maven SNAPSHOT).
+           app-shell (hash routing, theme toggle, user identity), 5 views:
+           home-view (dock workbench: briefing, KPI, action items, active cases,
+           3 left docks, 3 right docks incl. mock panels), inbox-view (split list/detail),
+           people-view (external actors), cases-view (case list/detail), journal-view
+           (analytics dashboard). 10 panel components in src/panels/.
+           Run standalone: npm run dev --prefix life-ui (proxies to Quarkus on 127.0.0.1:8080).
 ```
 
 ---
@@ -711,7 +712,14 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.jdk/Contents/Home  # nati
 
 **Use `mvn` not `./mvnw`** — maven wrapper not configured on this machine.
 
-**Demo profile:** `quarkus.profile=demo` activates standalone Household Hub mode. H2 in-memory, Flyway seeds at `db/life/demo/` (V9000+ range — avoids collision with domain V100+ and ledger V2100+), OIDC disabled. Start with: `JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn quarkus:dev -pl app -Dquarkus.profile=demo`
+**Demo profile:** `quarkus.profile=demo` activates standalone Household Hub mode. H2 in-memory, Hibernate `drop-and-create` (Flyway disabled — cross-module V2000 collision), demo data via `import-demo.sql`, OIDC disabled, auth bypassed (`security.auth.enabled-in-dev-mode=false`), `DemoCurrentPrincipal` provides household-admin identity. Quinoa disabled in demo mode (IPv4/IPv6 forwarding hang on macOS — GE-20260805-ac9dfb). Two-process start:
+```bash
+# Terminal 1: Quarkus API
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn quarkus:dev -pl app -Dquarkus.profile=demo
+# Terminal 2: Vite frontend (proxies API to 127.0.0.1:8080)
+npm run dev --prefix life-ui
+# Open http://localhost:5173/
+```
 
 **Multi-module test scoping:** Always scope Maven with `-pl <module> -am`. When combining `-am` with `-Dtest=ClassName`, add `-Dsurefire.failIfNoSpecifiedTests=false`.
 

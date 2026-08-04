@@ -1,0 +1,41 @@
+-- Demo data for Household Hub dashboard (default PU: work_item, external_actor, life_task_context, life_case_tracker).
+-- Loaded via Hibernate sql-load-script in demo profile. Tables created by drop-and-create.
+
+-- External Actors
+INSERT INTO external_actor (id, name, actor_type, contact_method, contact_value, created_at) VALUES ('a0000000-0000-0000-0000-000000000001', 'Bob''s Plumbing', 'EXTERNAL_HUMAN', 'PHONE', '+44 7700 900001', CURRENT_TIMESTAMP);
+INSERT INTO external_actor (id, name, actor_type, contact_method, contact_value, created_at) VALUES ('a0000000-0000-0000-0000-000000000002', 'Dr. Patel', 'EXTERNAL_HUMAN', 'EMAIL', 'dr.patel@nhs.example.uk', CURRENT_TIMESTAMP);
+INSERT INTO external_actor (id, name, actor_type, contact_method, contact_value, created_at) VALUES ('a0000000-0000-0000-0000-000000000003', 'Harris & Co Solicitors', 'EXTERNAL_HUMAN', 'EMAIL', 'enquiries@harris-law.example.uk', CURRENT_TIMESTAMP);
+INSERT INTO external_actor (id, name, actor_type, contact_method, contact_value, created_at) VALUES ('a0000000-0000-0000-0000-000000000004', 'Oakwood Primary School', 'EXTERNAL_HUMAN', 'EMAIL', 'office@oakwood.example.uk', CURRENT_TIMESTAMP);
+INSERT INTO external_actor (id, name, actor_type, contact_method, contact_value, created_at) VALUES ('a0000000-0000-0000-0000-000000000005', 'Maria Santos', 'EXTERNAL_HUMAN', 'PHONE', '+44 7700 900005', CURRENT_TIMESTAMP);
+
+-- Case Tracker
+INSERT INTO life_case_tracker (id, case_type, domain, status, created_at) VALUES ('c0000000-0000-0000-0000-000000000001', 'contractor-coordination', 'CONTRACTOR_COORDINATION', 'ACTIVE', CURRENT_TIMESTAMP);
+INSERT INTO life_case_tracker (id, case_type, domain, status, created_at) VALUES ('c0000000-0000-0000-0000-000000000002', 'care-coordination', 'ELDER_CARE', 'ACTIVE', CURRENT_TIMESTAMP);
+INSERT INTO life_case_tracker (id, case_type, domain, status, created_at) VALUES ('c0000000-0000-0000-0000-000000000003', 'travel-plan', 'TRAVEL', 'COMPLETED', CURRENT_TIMESTAMP);
+INSERT INTO life_case_tracker (id, case_type, domain, status, created_at) VALUES ('c0000000-0000-0000-0000-000000000004', 'appointment-cycle', 'HEALTH', 'ACTIVE', CURRENT_TIMESTAMP);
+INSERT INTO life_case_tracker (id, case_type, domain, status, created_at) VALUES ('c0000000-0000-0000-0000-000000000005', 'financial-review', 'FINANCE', 'ACTIVE', CURRENT_TIMESTAMP);
+
+-- WorkItems: mix of overdue, due-today, due-soon, normal
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000001', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'Approve £450 boiler service invoice', 'Bob''s Plumbing completed the annual boiler service.', 'PENDING', 'HIGH', 'household-admin', 'casehubio/life/CONTRACTOR_COORDINATION', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(DAY, -2, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain, external_actor_id) VALUES ('b0000000-0000-0000-0000-000000000001', 'CONTRACTOR_COORDINATION', 'a0000000-0000-0000-0000-000000000001');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000002', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'GP follow-up for Jean', 'Check blood pressure results and book next review.', 'PENDING', 'HIGH', 'household-admin,household-member', 'casehubio/life/ELDER_CARE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(DAY, -3, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain, external_actor_id) VALUES ('b0000000-0000-0000-0000-000000000002', 'ELDER_CARE', 'a0000000-0000-0000-0000-000000000005');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000003', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'School trip consent — Ella', 'Oakwood Primary requires signed consent for geography trip.', 'PENDING', 'MEDIUM', 'household-admin,household-member', 'casehubio/life/FAMILY_SCHEDULING', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(HOUR, 6, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain, external_actor_id) VALUES ('b0000000-0000-0000-0000-000000000003', 'FAMILY_SCHEDULING', 'a0000000-0000-0000-0000-000000000004');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000004', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'Monthly direct debit review', 'Ella''s swimming cancelled — check if DD is still active.', 'PENDING', 'MEDIUM', 'household-admin', 'casehubio/life/FINANCE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(HOUR, 8, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain) VALUES ('b0000000-0000-0000-0000-000000000004', 'FINANCE');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000005', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'Confirm plumber appointment — Thu 2pm', 'Bob''s Plumbing confirmed Thursday 2pm for boiler check.', 'PENDING', 'MEDIUM', 'household-admin,household-member', 'casehubio/life/CONTRACTOR_COORDINATION', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(DAY, 2, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain, external_actor_id) VALUES ('b0000000-0000-0000-0000-000000000005', 'CONTRACTOR_COORDINATION', 'a0000000-0000-0000-0000-000000000001');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000006', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'Respond to lease renewal — Harris & Co', 'Solicitor requires response by end of month.', 'PENDING', 'HIGH', 'household-admin', 'casehubio/life/LEGAL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(DAY, 5, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain, external_actor_id) VALUES ('b0000000-0000-0000-0000-000000000006', 'LEGAL', 'a0000000-0000-0000-0000-000000000003');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000007', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'Order replacement football kit — Tom', 'Tom''s boots are too small. Order before Saturday.', 'PENDING', 'LOW', 'household-admin,household-member', 'casehubio/life/HOUSEHOLD', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(DAY, 10, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain) VALUES ('b0000000-0000-0000-0000-000000000007', 'HOUSEHOLD');
+
+INSERT INTO work_item (id, tenancy_id, title, description, status, priority, candidate_groups, scope, created_at, updated_at, expires_at, version, accumulated_unclaimed_seconds) VALUES ('b0000000-0000-0000-0000-000000000008', '278776f9-e1b0-46fb-9032-8bddebdcf9ce', 'Book dentist appointment — Ella', '6-month dental check-up is overdue.', 'PENDING', 'MEDIUM', 'household-admin,household-member', 'casehubio/life/HEALTH', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, DATEADD(DAY, 14, CURRENT_TIMESTAMP), 0, 0);
+INSERT INTO life_task_context (work_item_id, domain, external_actor_id) VALUES ('b0000000-0000-0000-0000-000000000008', 'HEALTH', 'a0000000-0000-0000-0000-000000000002');
