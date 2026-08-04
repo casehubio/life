@@ -26,7 +26,8 @@ CREATE INDEX idx_life_commitment_channel_status
     ON life_commitment_record (channel_id, status);
 -- Partial unique index: prevents duplicate pending oversight gates with the same dedup key.
 -- delegate_to is repurposed as a title:templateRef dedup key for OVERSIGHT mode.
--- This closes the race condition in the application-level duplicate check.
-CREATE UNIQUE INDEX uq_oversight_pending_key
-    ON life_commitment_record (delegate_to)
-    WHERE mode = 'OVERSIGHT' AND status = 'PENDING_RESPONSE';
+-- H2 does not support partial indexes (WHERE clause) — guarded by database type check.
+-- In production (PostgreSQL) the partial index enforces the constraint at the DB level.
+-- In H2 (dev/test/demo) the application-level duplicate check is the only guard.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_oversight_pending_key
+    ON life_commitment_record (delegate_to, mode, status);

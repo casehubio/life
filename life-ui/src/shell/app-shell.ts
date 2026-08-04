@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { injectTheme, generateThemeCSS, DEFAULT_THEME } from '@casehubio/blocks-ui-core';
+import '@casehubio/pages-ui-tokens/dist/init.js';
+import { applyTheme } from '@casehubio/blocks-ui-core';
 
 type View = 'home' | 'inbox' | 'people' | 'cases' | 'journal';
 
@@ -79,7 +80,7 @@ export class AppShell extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    injectTheme(generateThemeCSS(DEFAULT_THEME));
+    applyTheme('casehub-light');
     window.addEventListener('hashchange', this._onHashChange);
     this._syncViewFromHash();
   }
