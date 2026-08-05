@@ -531,11 +531,15 @@ app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmen
 
 life-ui/ — Lit 3.x SPA. Vite build with aliases to Maven-resolved @casehubio/blocks-ui-*
            and @casehubio/pages-* packages (extracted to .casehub-packages/ via Maven SNAPSHOT).
-           app-shell (hash routing, theme toggle, user identity), 5 views:
+           app-shell (hash routing, theme toggle, user identity, notification badge via
+           PagesBadge from pages-ui-components), 5 views:
            home-view (dock workbench: briefing, KPI, action items, active cases,
            3 left docks, 3 right docks incl. mock panels), inbox-view (split list/detail),
            people-view (external actors), cases-view (case list/detail), journal-view
            (analytics dashboard). 10 panel components in src/panels/.
+           events (LifeEventController — Lit Reactive Controller wrapping SSEManager
+           from pages-data for real-time dashboard updates via /events/stream SSE;
+           debounced callbacks, event type constants, notification unread count).
            Run standalone: npm run dev --prefix life-ui (proxies to Quarkus on 127.0.0.1:8080).
 ```
 
