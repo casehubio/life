@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { LifeEventController, INBOX_EVENT_TYPES } from '../events/life-event-controller.js';
 
 interface PendingAction {
   workItemId: string;
@@ -41,6 +42,11 @@ const DOMAIN_LABELS: Record<string, string> = {
 
 @customElement('life-action-items')
 export class ActionItems extends LitElement {
+  private _events = new LifeEventController(this, {
+    types: INBOX_EVENT_TYPES,
+    onEvent: () => this._fetchActions(),
+  });
+
   static override styles = css`
     :host {
       display: block;
