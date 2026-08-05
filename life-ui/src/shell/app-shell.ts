@@ -170,7 +170,10 @@ export class AppShell extends LitElement {
     switch (this.currentView) {
       case 'home': return html`<home-view></home-view>`;
       case 'inbox': return html`<inbox-view></inbox-view>`;
-      default: return html`<div class="placeholder">Coming in Phase 2</div>`;
+      case 'people': return html`<people-view></people-view>`;
+      case 'cases': return html`<cases-view></cases-view>`;
+      case 'journal': return html`<journal-view></journal-view>`;
+      default: return html`<div class="placeholder">Unknown view</div>`;
     }
   }
 }
