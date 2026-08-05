@@ -2,6 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import '@casehubio/pages-ui-tokens/dist/init.js';
 import { applyTheme } from '@casehubio/blocks-ui-core';
+import { LifeEventController, INBOX_EVENT_TYPES } from '../events/life-event-controller.js';
+import '@casehubio/pages-ui-components/badge/pages-badge.js';
 
 type View = 'home' | 'inbox' | 'people' | 'cases' | 'journal';
 
@@ -17,6 +19,9 @@ const NAV_ITEMS: { view: View; label: string }[] = [
 export class AppShell extends LitElement {
   @state() private currentView: View = 'home';
   @state() private _darkMode = false;
+  private _notifications = new LifeEventController(this, {
+    types: INBOX_EVENT_TYPES,
+  });
 
   static override styles = css`
     :host {
@@ -134,6 +139,9 @@ export class AppShell extends LitElement {
   }
 
   private _navigate(view: View): void {
+    if (view === 'inbox') {
+      this._notifications.clearUnread();
+    }
     window.location.hash = view;
   }
 
@@ -149,7 +157,16 @@ export class AppShell extends LitElement {
         `)}
         <span class="spacer"></span>
         <div class="toolbar">
-          <button title="Notifications" aria-label="Notifications">🔔</button>
+          <button title="Notifications" aria-label="Notifications"
+            @click=${() => this._navigate('inbox')}
+            style="position: relative">🔔${this._notifications.unreadCount > 0
+              ? html`<pages-badge
+                  label="${this._notifications.unreadCount > 9 ? '9+' : this._notifications.unreadCount}"
+                  variant="danger"
+                  size="sm"
+                  style="position: absolute; top: -4px; right: -4px;"
+                ></pages-badge>`
+              : ''}</button>
           <button title="Toggle theme" aria-label="Toggle theme"
             @click=${this._toggleTheme}>${this._darkMode ? '☀️' : '🌙'}</button>
           <span class="user">Mark (Admin)</span>

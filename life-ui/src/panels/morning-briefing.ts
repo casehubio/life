@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { LifeEventController, INBOX_EVENT_TYPES } from '../events/life-event-controller.js';
 
 interface BriefingItem {
   text: string;
@@ -26,6 +27,11 @@ const DOMAIN_ICONS: Record<string, string> = {
 
 @customElement('life-morning-briefing')
 export class MorningBriefing extends LitElement {
+  private _events = new LifeEventController(this, {
+    types: INBOX_EVENT_TYPES,
+    onEvent: () => this._fetchBriefing(),
+  });
+
   static override styles = css`
     :host {
       display: block;

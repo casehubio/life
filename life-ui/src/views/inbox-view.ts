@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { LifeEventController, INBOX_EVENT_TYPES } from '../events/life-event-controller.js';
 
 interface PendingAction {
   workItemId: string;
@@ -29,6 +30,11 @@ const URGENCY_COLORS: Record<string, string> = {
 
 @customElement('inbox-view')
 export class InboxView extends LitElement {
+  private _events = new LifeEventController(this, {
+    types: INBOX_EVENT_TYPES,
+    onEvent: () => this._fetch(),
+  });
+
   static override styles = css`
     :host { display: flex; height: 100%; gap: 1px; background: var(--pages-neutral-4, #d4d4d4); }
     .list-pane {

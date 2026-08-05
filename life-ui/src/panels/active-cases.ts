@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { LifeEventController, CASE_EVENT_TYPES } from '../events/life-event-controller.js';
 
 interface LifeCase {
   id: string;
@@ -47,6 +48,11 @@ interface DomainGroup {
 
 @customElement('life-active-cases')
 export class ActiveCases extends LitElement {
+  private _events = new LifeEventController(this, {
+    types: CASE_EVENT_TYPES,
+    onEvent: () => this._fetch(),
+  });
+
   static override styles = css`
     :host { display: block; }
 

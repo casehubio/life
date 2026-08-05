@@ -1,12 +1,18 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import '@casehubio/blocks-ui-kpi-metric-row';
+import { LifeEventController, ALL_EVENT_TYPES } from '../events/life-event-controller.js';
 import './morning-briefing.js';
 import './action-items.js';
 import './active-cases.js';
 
 @customElement('life-centre-content')
 export class CentreContent extends LitElement {
+  private _events = new LifeEventController(this, {
+    types: ALL_EVENT_TYPES,
+    onEvent: () => this._loadKpiData(),
+  });
+
   static override styles = css`
     :host {
       display: flex;
