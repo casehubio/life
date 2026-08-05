@@ -1,9 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import '@casehubio/blocks-ui-kpi-metric-row';
-import '@casehubio/blocks-ui-grouped-data-view';
 import './morning-briefing.js';
 import './action-items.js';
+import './active-cases.js';
 
 @customElement('life-centre-content')
 export class CentreContent extends LitElement {
@@ -43,15 +43,7 @@ export class CentreContent extends LitElement {
 
       <life-action-items></life-action-items>
 
-      <section>
-        <h3>Active Cases by Domain</h3>
-        <blocks-grouped-data-view
-          endpoint="/life-cases?status=ACTIVE"
-          groupBy="caseType"
-          preset="sectioned"
-          .defaultExpanded=${true}
-        ></blocks-grouped-data-view>
-      </section>
+      <life-active-cases></life-active-cases>
     `;
   }
 

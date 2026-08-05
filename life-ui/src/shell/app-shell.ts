@@ -16,6 +16,7 @@ const NAV_ITEMS: { view: View; label: string }[] = [
 @customElement('app-shell')
 export class AppShell extends LitElement {
   @state() private currentView: View = 'home';
+  @state() private _darkMode = false;
 
   static override styles = css`
     :host {
@@ -59,6 +60,35 @@ export class AppShell extends LitElement {
       background: var(--pages-accent-3, #e0e7ff);
       color: var(--pages-accent-11, #3730a3);
       font-weight: 500;
+    }
+
+    .spacer { flex: 1; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: var(--pages-space-2, 8px);
+    }
+
+    .toolbar button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: var(--pages-font-size-base, 15px);
+      padding: var(--pages-space-1, 4px) var(--pages-space-2, 8px);
+      border-radius: var(--pages-radius-md, 6px);
+      color: var(--pages-neutral-9, #525252);
+      transition: background var(--pages-duration-fast, 120ms);
+    }
+
+    .toolbar button:hover {
+      background: var(--pages-neutral-3, #f0f0f0);
+    }
+
+    .user {
+      font-size: var(--pages-font-size-xs, 12px);
+      color: var(--pages-neutral-9, #525252);
+      padding: var(--pages-space-1, 4px) var(--pages-space-2, 8px);
     }
 
     main {
@@ -117,11 +147,23 @@ export class AppShell extends LitElement {
             @click=${() => this._navigate(n.view)}
           >${n.label}</a>
         `)}
+        <span class="spacer"></span>
+        <div class="toolbar">
+          <button title="Notifications" aria-label="Notifications">🔔</button>
+          <button title="Toggle theme" aria-label="Toggle theme"
+            @click=${this._toggleTheme}>${this._darkMode ? '☀️' : '🌙'}</button>
+          <span class="user">Mark (Admin)</span>
+        </div>
       </nav>
       <main>
         ${this._renderView()}
       </main>
     `;
+  }
+
+  private _toggleTheme(): void {
+    this._darkMode = !this._darkMode;
+    applyTheme(this._darkMode ? 'casehub-dark' : 'casehub-light');
   }
 
   private _renderView() {
