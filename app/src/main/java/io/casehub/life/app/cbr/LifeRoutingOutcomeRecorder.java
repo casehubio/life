@@ -69,7 +69,7 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
 
                       PlanTrace trace = new PlanTrace(
                               bindingName, context.capabilityName(),
-                              workerId, outcome.name(), 0, Map.of());
+                              workerId, outcome.name(), 0, Map.of(), null);
 
                       PlanCbrCase cbrCase = new PlanCbrCase(
                               descProvider.describeProblem(caseData),

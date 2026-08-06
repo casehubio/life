@@ -56,8 +56,8 @@ class HomeMaintenanceAdaptationRuleTest {
     void failedOutcome_suppresses() {
         var past = new PlanCbrCase("p", "s", "FAILED", 0.5,
                 Map.of(), List.of(
-                        new PlanTrace("b1", "schedule-inspection", "w1", "ok", 5, Map.of()),
-                        new PlanTrace("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of())), null, null);
+                        new PlanTrace("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null),
+                        new PlanTrace("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of(), null)), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.8);
         var steps = rule.adapt(scored, Map.of());
         assertEquals(AdaptationAction.SUPPRESSED, steps.get(0).action());
@@ -96,8 +96,8 @@ class HomeMaintenanceAdaptationRuleTest {
     void lowDeadlineReliability_boostsSentinel() {
         var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
                                    Map.of("estimatedCost", FeatureValue.number(1000)),
-                                   List.of(new PlanTrace("b1", "schedule-inspection", "w1", "ok", 5, Map.of()),
-                                           new PlanTrace("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of())), null, null);
+                                   List.of(new PlanTrace("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null),
+                                           new PlanTrace("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of(), null)), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.85);
         Map<String, FeatureValue> current = new java.util.LinkedHashMap<>(Map.of(
                 "estimatedCost", FeatureValue.number(1000),
@@ -113,7 +113,7 @@ class HomeMaintenanceAdaptationRuleTest {
     private ScoredCbrCase<PlanCbrCase> scored(Map<String, FeatureValue> features) {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new PlanTrace("b1", "schedule-inspection", "w1", "ok", 5, Map.of())), null, null),
+                        List.of(new PlanTrace("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 }
