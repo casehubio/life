@@ -6,3 +6,6 @@ target/
 .claude/
 package-lock.json
 proj
+.build/
+.playwright-mcp/
+packages/
