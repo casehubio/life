@@ -51,7 +51,7 @@ class TravelPlanAdaptationRuleTest {
     void rejectedBooking_suppresses() {
         var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
                 Map.of("budget", FeatureValue.number(2000)),
-                List.of(new PlanTrace("b1", "booking", "w1", "rejected-by-airline", 5, Map.of())), null, null);
+                List.of(new PlanTrace("b1", "booking", "w1", "rejected-by-airline", 5, Map.of(), null)), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.8);
         Map<String, FeatureValue> current = Map.of("budget", FeatureValue.number(2000));
         var steps = rule.adapt(scored, current);
@@ -75,8 +75,8 @@ class TravelPlanAdaptationRuleTest {
     private ScoredCbrCase<PlanCbrCase> scored(Map<String, FeatureValue> features) {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new PlanTrace("b1", "destination-research", "w1", "ok", 5, Map.of()),
-                                new PlanTrace("b2", "booking", "w2", "ok", 5, Map.of())), null, null),
+                        List.of(new PlanTrace("b1", "destination-research", "w1", "ok", 5, Map.of(), null),
+                                new PlanTrace("b2", "booking", "w2", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 }
