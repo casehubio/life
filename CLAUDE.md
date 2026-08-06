@@ -716,7 +716,7 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.jdk/Contents/Home  # nati
 
 **Use `mvn` not `./mvnw`** — maven wrapper not configured on this machine.
 
-**Demo profile:** `quarkus.profile=demo` activates standalone Household Hub mode. H2 in-memory, Hibernate `drop-and-create` (Flyway disabled — cross-module V2000 collision), demo data via `import-demo.sql`, OIDC disabled, auth bypassed (`security.auth.enabled-in-dev-mode=false`), `DemoCurrentPrincipal` provides household-admin identity. Quinoa disabled in demo mode (IPv4/IPv6 forwarding hang on macOS — GE-20260805-ac9dfb). Two-process start:
+**Demo profile:** `quarkus.profile=demo` activates standalone Household Hub mode. H2 in-memory, Hibernate `drop-and-create` (Flyway disabled — cross-module V2000 collision), demo data via `import-demo.sql` (default PU) and `import-demo-qhorus.sql` (qhorus PU — trust scores), OIDC disabled, auth bypassed via `DemoCurrentPrincipal` (service layer) + `DemoIdentityProvider` (HTTP layer SecurityIdentity for jar mode). Quinoa disabled in demo mode (IPv4/IPv6 forwarding hang on macOS — GE-20260805-ac9dfb). Two-process start:
 ```bash
 # Terminal 1: Quarkus API
 JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn quarkus:dev -pl app -Dquarkus.profile=demo
