@@ -4,12 +4,11 @@ import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.app.LifeTestFixtures;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import io.restassured.config.HttpClientConfig;
+import io.restassured.config.RestAssuredConfig;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import io.restassured.config.HttpClientConfig;
-import io.restassured.config.RestAssuredConfig;
 
 import static io.restassured.RestAssured.given;
 
@@ -56,5 +55,28 @@ class LifeEventSseResourceTest {
                 .when().get("/events/cases")
                 .then()
                 .statusCode(403);
+    }
+
+    @Test
+    void streamEndpointConnects() {
+        given()
+                .config(RestAssuredConfig.config()
+                                         .httpClient(HttpClientConfig.httpClientConfig()
+                                                                     .setParam("http.socket.timeout", 1000)))
+                .when().get("/events/stream")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    @TestSecurity(user = "junior", roles = {HouseholdGroups.JUNIOR})
+    void streamEndpointAccessibleToJunior() {
+        given()
+                .config(RestAssuredConfig.config()
+                                         .httpClient(HttpClientConfig.httpClientConfig()
+                                                                     .setParam("http.socket.timeout", 1000)))
+                .when().get("/events/stream")
+                .then()
+                .statusCode(200);
     }
 }
