@@ -2,6 +2,8 @@ package io.casehub.life.app.resource;
 
 import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.app.LifeTestFixtures;
+import io.casehub.life.app.entity.LifeTaskContext;
+import io.casehub.work.runtime.model.WorkItem;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.transaction.Transactional;
@@ -22,6 +24,8 @@ class DashboardResourceTest {
     @BeforeEach
     @Transactional
     void seedTemplates() {
+        LifeTaskContext.deleteAll();
+        WorkItem.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
     }
 

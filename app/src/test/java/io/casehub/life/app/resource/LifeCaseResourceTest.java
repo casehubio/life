@@ -54,6 +54,7 @@ class LifeCaseResourceTest {
     @BeforeEach
     @Transactional
     void setup() {
+        LifeCaseTracker.deleteAll();
         currentPrincipal.setGroups(Set.of(HouseholdGroups.ADMIN));
         LifeTestFixtures.seedStandardTemplates();
         LifeTestFixtures.seedEscalationTemplate();
