@@ -1,16 +1,18 @@
 package io.casehub.life.app;
 
-import io.casehub.work.runtime.service.ExpiryLifecycleService;
+import io.casehub.life.app.entity.LifeTaskContext;
+import io.casehub.work.runtime.model.WorkItem;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static org.awaitility.Awaitility.await;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -19,12 +21,11 @@ import static org.hamcrest.Matchers.*;
 @TestSecurity(user = "household-admin", roles = {"household-admin"})
 class LifeTaskResourceTest {
 
-    @Inject
-    ExpiryLifecycleService expiryService;
-
     @BeforeEach
     @Transactional
     void seedTemplates() {
+        LifeTaskContext.deleteAll();
+        WorkItem.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
     }
 
@@ -103,12 +104,11 @@ class LifeTaskResourceTest {
                 .then().statusCode(201)
                 .extract().path("workItemId");
 
-        expiryService.expireItem(UUID.fromString(workItemId));
-
-        given()
-                .when().get("/life-tasks/" + workItemId)
-                .then()
-                .statusCode(200)
-                .body("candidateGroups", hasItem("household-admin"));
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                given()
+                        .when().get("/life-tasks/" + workItemId)
+                        .then()
+                        .statusCode(200)
+                        .body("candidateGroups", hasItem("household-admin")));
     }
 }

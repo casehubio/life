@@ -149,7 +149,7 @@ export class InboxView extends LitElement {
       this._items = data.items;
       this._totalCount = data.totalCount;
       if (this._items.length > 0) this._selected = this._items[0];
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
   }
 
   private get _filteredItems(): PendingAction[] {

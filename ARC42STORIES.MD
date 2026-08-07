@@ -140,7 +140,7 @@ See `../parent/docs/PLATFORM.md` Capability Ownership table for the full boundar
 | casehub-ledger | `casehub-ledger` | L4 | ✅ complete |
 | casehub-engine | `casehub-engine` | L5 | ✅ complete |
 | Trust routing | `casehub-ledger` (trust APIs) | L6 | ✅ complete |
-| casehub-openclaw | `casehub-openclaw` | L7 | 🔲 pending |
+| casehub-openclaw | `casehub-openclaw` | L7 | ✅ complete |
 
 ### Chapter Sequencing Rationale
 
@@ -1082,9 +1082,9 @@ Life's contribution:
 **Navigation:** `git log --grep="#8" --oneline`
 **Blog:** `2026-06-18-mdp01-first-real-worker.md` (partial — AgentExec wiring)
 **Improvement refs:** engine#536 (BlackboardEventCodecRegistrar idempotency — ✅ fixed 2026-06-19), engine#537 (CaseContextChangedEventHandler @Blocking — ✅ fixed 2026-06-18)
-**Completed:** 🔲 pending (AgentExec partial ✅ 2026-06-18)
+**Completed:** ✅ complete (AgentExec ✅ 2026-06-18, WorkerProvisioner ✅ life#37, life#38 closed)
 
-🔲 Full entry at C6 close. Life#25 delivered WorkerFunction.AgentExec(Agent) pattern with OpenClaw LLM backend. Full WorkerProvisioner wiring (life#37, life#38) still pending.
+Life#25 delivered WorkerFunction.AgentExec(Agent) pattern with OpenClaw LLM backend. WorkerProvisioner wiring completed: life#37 (heartbeat sentinels), life#38 (channel context) — both closed.
 
 #### What it adds
 

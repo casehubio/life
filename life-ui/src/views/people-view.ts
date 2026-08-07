@@ -282,7 +282,7 @@ export class PeopleView extends LitElement {
       this._actors = data.items ?? data;
       this._filtered = this._actors;
       if (this._actors.length > 0) this._selected = this._actors[0];
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
   }
 
   private _selectActor(a: ExternalActor): void {
@@ -299,7 +299,7 @@ export class PeopleView extends LitElement {
       if (!res.ok) { this._activity = []; return; }
       const data = await res.json();
       this._activity = data.items ?? [];
-    } catch { this._activity = []; }
+    } catch (e) { console.error(e); this._activity = []; }
     finally { this._activityLoading = false; }
   }
 
@@ -310,7 +310,7 @@ export class PeopleView extends LitElement {
       if (!res.ok) { this._tasks = []; return; }
       const data = await res.json();
       this._tasks = Array.isArray(data) ? data : (data.items ?? []);
-    } catch { this._tasks = []; }
+    } catch (e) { console.error(e); this._tasks = []; }
     finally { this._tasksLoading = false; }
   }
 
@@ -327,7 +327,7 @@ export class PeopleView extends LitElement {
     try {
       const res = await fetch(`/external-actors/${this._selected.id}/personal-data`, { method: 'DELETE' });
       if (res.ok) await this._fetch();
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
     finally { this._erasing = false; }
   }
 

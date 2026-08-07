@@ -98,7 +98,7 @@ export class CasesDock extends LitElement {
       if (!res.ok) return;
       const data = await res.json();
       this._cases = data.items;
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
     finally { this._loading = false; }
   }
 

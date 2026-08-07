@@ -245,7 +245,7 @@ export class CasesView extends LitElement {
       this._cases = data.items;
       this._applyFilter();
       if (!this._selected && this._filtered.length > 0) this._selected = this._filtered[0];
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
   }
 
   private _applyFilter(): void {
@@ -280,7 +280,7 @@ export class CasesView extends LitElement {
       if (!res.ok) { this._tasks = []; return; }
       const data = await res.json();
       this._tasks = data.items ?? [];
-    } catch { this._tasks = []; }
+    } catch (e) { console.error(e); this._tasks = []; }
     finally { this._tasksLoading = false; }
   }
 

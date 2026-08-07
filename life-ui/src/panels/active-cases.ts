@@ -142,7 +142,7 @@ export class ActiveCases extends LitElement {
         grouped.set(c.domain, list);
       }
       this._groups = [...grouped.entries()].map(([domain, items]) => ({ domain, cases: items }));
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
     finally { this._loading = false; }
   }
 

@@ -150,7 +150,7 @@ export class FamilySummary extends LitElement {
           pendingTasks: items.filter(i => i.candidateGroups === group).length,
         };
       });
-    } catch {
+    } catch (e) { console.error(e);
       // Keep mock defaults
     }
   }

@@ -90,7 +90,7 @@ export class CentreContent extends LitElement {
         { key: 'trust-avg', label: 'Trust Avg', value: avgTrust, unit: '%',
           status: (trust?.avgGlobalScore ?? 1) < 0.6 ? 'warning' : 'normal' },
       ];
-    } catch {
+    } catch (e) { console.error(e);
       // KPI stays at placeholder values
     }
   }

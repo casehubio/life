@@ -170,7 +170,7 @@ export class ActionItems extends LitElement {
       this._actions = data.items;
       this._totalCount = data.totalCount;
       this._error = '';
-    } catch {
+    } catch (e) { console.error(e);
       this._error = 'Could not load actions';
     } finally {
       this._loading = false;

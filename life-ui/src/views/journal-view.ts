@@ -132,7 +132,7 @@ export class JournalView extends LitElement {
       this._slaStats = sla?.entries ?? [];
       this._trustAvg = trust?.avgGlobalScore ?? null;
       this._actorCount = trust?.actorCount ?? 0;
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
     finally { this._loading = false; }
   }
 

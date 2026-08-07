@@ -104,7 +104,7 @@ export class InboxDock extends LitElement {
       const data = await res.json();
       this._items = data.items;
       this._totalCount = data.totalCount;
-    } catch { /* empty */ }
+    } catch (e) { console.error(e); }
     finally { this._loading = false; }
   }
 
