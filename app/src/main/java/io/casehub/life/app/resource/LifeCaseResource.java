@@ -24,6 +24,9 @@ import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.app.engine.LifeCaseService;
 import io.casehub.life.app.service.LifeCaseQueryService;
+import io.casehub.life.app.service.LifeCbrQueryService;
+import io.casehub.life.app.service.LifeChannelQueryService;
+import io.casehub.life.app.service.LifeRoutingQueryService;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -53,6 +56,13 @@ public class LifeCaseResource {
 
     @Inject
     LifeCaseQueryService queryService;
+    @Inject
+    LifeRoutingQueryService routingQueryService;
+    @Inject
+    LifeCbrQueryService     cbrQueryService;
+    @Inject
+    LifeChannelQueryService channelQueryService;
+
 
     @POST
     @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
@@ -80,4 +90,51 @@ public class LifeCaseResource {
                            .map(r -> Response.ok(r).build())
                            .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
+
+    @GET
+    @Path("/{id}/tasks")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
+    public Response listTasks(@PathParam("id") UUID id) {
+        return queryService.findTasksByCase(id)
+                           .map(tasks -> Response.ok(new PagedResponse<>(tasks, 0, tasks.size(), tasks.size())).build())
+                           .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/{id}/commitments")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
+    public Response listCommitments(@PathParam("id") UUID id) {
+        return queryService.findCommitmentsByCase(id)
+                           .map(c -> Response.ok(c).build())
+                           .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/{id}/routing")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
+    public Response listRouting(@PathParam("id") UUID id) {
+        return routingQueryService.findRoutingByCase(id)
+                                  .map(r -> Response.ok(r).build())
+                                  .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/{id}/cbr")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
+    public Response listCbrPrecedents(@PathParam("id") UUID id) {
+        return cbrQueryService.findPrecedentsByCase(id)
+                              .map(r -> Response.ok(r).build())
+                              .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/{id}/channels")
+    @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
+    public Response listChannels(@PathParam("id") UUID id) {
+        return channelQueryService.findChannelMessagesByCase(id)
+                                  .map(r -> Response.ok(r).build())
+                                  .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+
 }

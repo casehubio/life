@@ -86,7 +86,7 @@ class LifeCaseServiceCbrTest {
 
         doReturn(new HashMap<>(Map.of("lifeCaseType", "contractor-coordination")))
                 .when(service).prepareAndTrack(any(), any());
-        doNothing().when(service).persistCaseId(any(), any());
+        doNothing().when(service).persistCaseId(any(), any(), any());
     }
 
     @Test

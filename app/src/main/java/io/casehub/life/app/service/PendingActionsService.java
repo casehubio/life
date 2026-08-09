@@ -1,6 +1,8 @@
 package io.casehub.life.app.service;
 
+import io.casehub.life.api.ActionType;
 import io.casehub.life.api.LifeDomain;
+import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.api.Urgency;
 import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.api.response.PendingActionResponse;
@@ -12,6 +14,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
+import java.util.UUID;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,16 +74,35 @@ public class PendingActionsService {
     }
 
     private PendingActionResponse toPendingAction(WorkItem wi, Instant now, int dueSoonHours) {
-        LifeDomain domain = resolveDomain(wi);
-        Urgency urgency = Urgency.classify(wi.expiresAt, now, dueSoonHours);
-        Long daysOverdue = Urgency.daysOverdue(wi.expiresAt, now);
+        LifeDomain domain      = resolveDomain(wi);
+        Urgency    urgency     = Urgency.classify(wi.expiresAt, now, dueSoonHours);
+        Long       daysOverdue = Urgency.daysOverdue(wi.expiresAt, now);
+        ActionType actionType  = resolveActionType(wi.id, wi.callerRef);
 
         return new PendingActionResponse(
                 wi.id, wi.title, wi.description,
                 wi.status != null ? wi.status.name() : null,
                 domain, wi.candidateGroups,
-                wi.createdAt, wi.expiresAt, urgency, daysOverdue);
+                wi.createdAt, wi.expiresAt, urgency, daysOverdue, actionType);
     }
+
+    static final String ESCALATION_CALLER_REF = "life:task/life-escalation";
+
+    private ActionType resolveActionType(final UUID workItemId) {
+        return LifeCommitmentRecord.findByWorkItemId(workItemId)
+                                   .map(rec -> switch (rec.mode) {
+                                       case OVERSIGHT -> ActionType.OVERSIGHT_GATE;
+                                       case DELEGATION -> ActionType.DELEGATION;
+                                       case CONTRACTOR -> ActionType.WORK_ITEM;
+                                   })
+                                   .orElse(ActionType.WORK_ITEM);
+    }
+
+    private ActionType resolveActionType(final UUID workItemId, final String callerRef) {
+        if (ESCALATION_CALLER_REF.equals(callerRef)) return ActionType.WATCHDOG_ALERT;
+        return resolveActionType(workItemId);
+    }
+
 
     private LifeDomain resolveDomain(WorkItem wi) {
         return LifeTaskContext.<LifeTaskContext>findByIdOptional(wi.id)

@@ -42,6 +42,9 @@ public class LifeCaseTracker extends PanacheEntityBase {
 
     @Column(name = "completed_at")
     public Instant completedAt;
+    @Column(name = "cbr_precedents_json", columnDefinition = "TEXT")
+    public String  cbrPrecedentsJson;
+
 
     public static Optional<LifeCaseTracker> findByEngineCaseId(UUID engineCaseId) {
         return find("engineCaseId", engineCaseId).firstResultOptional();

@@ -1,5 +1,6 @@
 package io.casehub.life.api.response;
 
+import io.casehub.life.api.ActionType;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.Urgency;
 import java.time.Instant;
@@ -15,4 +16,5 @@ public record PendingActionResponse(
         Instant createdAt,
         Instant expiresAt,
         Urgency urgency,
-        Long daysOverdue) {}
+        Long daysOverdue,
+        ActionType actionType) {}

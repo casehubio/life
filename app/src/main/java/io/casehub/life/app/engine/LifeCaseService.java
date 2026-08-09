@@ -20,6 +20,7 @@ import io.casehub.api.engine.CaseHubRuntime;
 import io.casehub.life.api.LifeCaseStatus;
 import io.casehub.life.api.LifeCaseType;
 import io.casehub.life.api.request.CreateLifeCaseRequest;
+import io.casehub.life.api.response.CbrPrecedentResponse;
 import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.app.cbr.LifeCbrRetrievalResult;
 import io.casehub.life.app.cbr.LifeCbrSuggestionService;
@@ -27,6 +28,8 @@ import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.neocortex.memory.cbr.AdaptationTrace;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
+import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
@@ -36,6 +39,7 @@ import org.jboss.logging.Logger;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -109,10 +113,12 @@ public class LifeCaseService {
                 }
             }
 
+            String precedentsJson = serializePrecedents(retrieval.cases());
+
             CaseHub caseHub = resolve(request.caseType());
             UUID    caseId  = caseHub.startCase(initialContext);
 
-            persistCaseId(trackerId, caseId);
+            persistCaseId(trackerId, caseId, precedentsJson);
             caseHubRuntime.signal(caseId, "caseId", caseId.toString());
 
             return new LifeCaseResponse(caseId, request.caseType(),
@@ -144,10 +150,11 @@ public class LifeCaseService {
     }
 
     @Transactional
-    void persistCaseId(UUID trackerId, UUID caseId) {
+    void persistCaseId(UUID trackerId, UUID caseId, String cbrPrecedentsJson) {
         LifeCaseTracker tracker = LifeCaseTracker.findById(trackerId);
         if (tracker != null) {
             tracker.engineCaseId = caseId;
+            tracker.cbrPrecedentsJson = cbrPrecedentsJson;
         }
     }
 
@@ -169,4 +176,22 @@ public class LifeCaseService {
                                        new IllegalArgumentException(
                                                "No CaseHub registered for type: " + type));
     }
+
+    private String serializePrecedents(List<ScoredCbrCase<PlanCbrCase>> cases) {
+        if (cases.isEmpty()) {return null;}
+        try {
+            List<CbrPrecedentResponse> precedents = cases.stream()
+                                                         .map(s -> new CbrPrecedentResponse(
+                                                                 s.caseId(),
+                                                                 s.score(),
+                                                                 s.cbrCase().outcome(),
+                                                                 s.storedAt() != null ? s.storedAt().toString() : null))
+                                                         .toList();
+            return objectMapper.writeValueAsString(precedents);
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to serialize CBR precedents");
+            return null;
+        }
+    }
+
 }
