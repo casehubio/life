@@ -509,7 +509,7 @@ api/    — pure Java: LifeDomain enum, ExternalActor request/response records,
           Zero framework imports. No JPA.
 
 app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmentRecord,
-          LifeCaseTracker), REST resources, Flyway migrations (db/life/migration/, V100–V111),
+          LifeCaseTracker), REST resources, Flyway migrations (db/life/migration/, V100–V112),
           service layer (LifeGdprErasureService — GDPR erasure pipeline), SPI implementations (LifeSlaBreachPolicy, LifeCommitmentStrategy + 3 impls),
           infrastructure (LifeChannelInitializer), observers (LifeOversightResponseObserver,
           LifeWatchdogAlertObserver, LifeDecisionLedgerObserver, LifeCaseTrackerObserver),

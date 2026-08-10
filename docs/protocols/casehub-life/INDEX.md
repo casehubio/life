@@ -10,3 +10,4 @@ Rules specific to the casehub-life application repo.
 | [actor-channel-name-prefix.md](actor-channel-name-prefix.md) | Never use a raw UUID as a qhorus channel name segment — prefix with a letter-starting label | Any app/ code constructing a channel name from a UUID |
 | [current-principal-cdi-exclusion.md](current-principal-cdi-exclusion.md) | **RETIRED** — CDI `@Alternative @Priority` resolution handles CurrentPrincipal disambiguation since platform#112 | N/A |
 | [openclaw-agent-worker-pattern.md](openclaw-agent-worker-pattern.md) | Use WorkerFunction.AgentExec(Agent) + AgentDescriptor for LLM-backed workers; agentId = {model-family}:{persona}@{major}; responseSchema required | Any app/ worker backed by OpenClaw or an LLM API |
+| [case-scoped-endpoint-optional-list.md](case-scoped-endpoint-optional-list.md) | Case-scoped endpoints return Optional\<List\<T\>\> — 404 for unknown case, 200 empty for no data | All GET /life-cases/{id}/{resource} endpoints |
