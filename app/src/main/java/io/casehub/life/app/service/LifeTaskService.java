@@ -15,6 +15,7 @@ import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.runtime.model.WorkItemTemplate;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.casehub.work.runtime.service.WorkItemTemplateService;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
@@ -38,6 +39,9 @@ public class LifeTaskService {
 
     @Inject @Any
     Instance<DomainLedgerHandler> ledgerHandlers;
+
+    @Inject
+    CurrentPrincipal currentPrincipal;
 
     @Transactional
     public LifeTaskResponse create(final CreateLifeTaskRequest req) {
@@ -85,6 +89,7 @@ public class LifeTaskService {
                 .callerRef("life:task/" + req.templateRef())
                 .scope("casehubio/life/" + domain.name().toLowerCase())
                 .expiresAt(expiresAt)
+                .tenancyId(currentPrincipal.tenancyId())
                 .build();
 
         // Create WorkItem — joins this @Transactional boundary (REQUIRED semantics).

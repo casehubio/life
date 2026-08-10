@@ -22,6 +22,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class LifeCaseQueryService {
@@ -90,7 +92,6 @@ public class LifeCaseQueryService {
         List<WorkItem> workItems = WorkItem.<WorkItem>list("callerRef LIKE ?1 ORDER BY createdAt ASC",
                                                            callerRefPrefix + "%");
 
-        String      actorId = currentPrincipal.actorId();
         Set<String> groups  = currentPrincipal.groups();
 
         Instant now = Instant.now();
@@ -105,9 +106,11 @@ public class LifeCaseQueryService {
         if (groups.contains(HouseholdGroups.ADMIN) || groups.contains(HouseholdGroups.MEMBER)) {
             return true;
         }
-        if (task.candidateGroups() == null) {return false;}
+        if (task.candidateGroups() == null || task.candidateGroups().isEmpty()) {return false;}
+        Set<String> taskGroups = Arrays.stream(task.candidateGroups().split(","))
+                .map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
         for (String g : groups) {
-            if (task.candidateGroups().contains(g)) {return true;}
+            if (taskGroups.contains(g)) {return true;}
         }
         return false;
     }

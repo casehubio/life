@@ -3,9 +3,10 @@ wksp
 target/
 *.class
 .idea/
-.claude/
+.claude
 package-lock.json
 proj
-.build/
-.playwright-mcp/
-packages/
+.build
+.playwright-mcp
+packages
+.mvn
