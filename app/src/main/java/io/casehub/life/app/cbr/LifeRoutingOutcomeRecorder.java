@@ -11,8 +11,6 @@ import io.casehub.platform.api.path.Path;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.PlanCbrCase;
 import io.casehub.neocortex.memory.cbr.PlanTrace;
-import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -51,53 +49,48 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
     }
 
     @Override
-    public Uni<Void> record(AgentRoutingContext context, String workerId, String bindingName,
-                            RoutingOutcome outcome, @Nullable Duration executionDuration) {
-        return Uni.createFrom().item(() -> {
-                      Optional<String> caseTypeOpt = caseTypeLookup.findCaseType(context.caseId());
-                      if (caseTypeOpt.isEmpty()) {return null;}
-                      String caseType = caseTypeOpt.get();
+    public void record(AgentRoutingContext context, String workerId, String bindingName,
+                       RoutingOutcome outcome, @Nullable Duration executionDuration) {
+        try {
+            Optional<String> caseTypeOpt = caseTypeLookup.findCaseType(context.caseId());
+            if (caseTypeOpt.isEmpty()) { return; }
+            String caseType = caseTypeOpt.get();
 
-                      LifeCbrDescriptionProvider descProvider = providers.get(caseType);
-                      if (descProvider == null) {return null;}
+            LifeCbrDescriptionProvider descProvider = providers.get(caseType);
+            if (descProvider == null) { return; }
 
-                      var extraction = featureExtractor.extract(caseType, context.caseContext());
-                      if (extraction.isEmpty()) {return null;}
+            var extraction = featureExtractor.extract(caseType, context.caseContext());
+            if (extraction.isEmpty()) { return; }
 
-                      var                 result   = extraction.get();
-                      Map<String, Object> caseData = MAPPER.convertValue(context.caseContext(), MAP_TYPE);
+            var                 result   = extraction.get();
+            Map<String, Object> caseData = MAPPER.convertValue(context.caseContext(), MAP_TYPE);
 
-                      PlanTrace trace = new PlanTrace(
-                              bindingName, context.capabilityName(),
-                              workerId, outcome.name(), 0, Map.of(), null);
+            PlanTrace trace = new PlanTrace(
+                    bindingName, context.capabilityName(),
+                    workerId, outcome.name(), 0, Map.of(), null);
 
-                      PlanCbrCase cbrCase = new PlanCbrCase(
-                              descProvider.describeProblem(caseData),
-                              descProvider.describeSolution(caseData),
-                              outcome.name(),
-                              null,
-                              result.features(),
-                              List.of(trace),
-                              null,
-                              null);
+            PlanCbrCase cbrCase = new PlanCbrCase(
+                    descProvider.describeProblem(caseData),
+                    descProvider.describeSolution(caseData),
+                    outcome.name(),
+                    null,
+                    result.features(),
+                    List.of(trace),
+                    null,
+                    null);
 
-                      cbrStore.store(
-                              cbrCase,
-                              caseType,
-                              "agent-routing",
-                              new MemoryDomain(result.config().domain()),
-                              context.tenancyId(),
-                              context.caseId().toString(),
-                              Path.parse(result.config().domain()));
-
-                      return null;
-                  })
-                  .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                  .onFailure().recoverWithItem(failure -> {
-                    LOG.warnf(failure, "CBR routing retention failed — proceeding without recording");
-                    return null;
-                })
-                  .replaceWithVoid();}
+            cbrStore.store(
+                    cbrCase,
+                    caseType,
+                    "agent-routing",
+                    new MemoryDomain(result.config().domain()),
+                    context.tenancyId(),
+                    context.caseId().toString(),
+                    Path.parse(result.config().domain()));
+        } catch (Exception e) {
+            LOG.warnf(e, "CBR routing retention failed — proceeding without recording");
+        }
+    }
 
     @ApplicationScoped
     public static class CaseTypeLookup {
