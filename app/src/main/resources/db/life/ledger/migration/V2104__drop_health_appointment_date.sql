@@ -1,1 +1,0 @@
-ALTER TABLE health_decision_ledger_entry DROP COLUMN appointment_date;

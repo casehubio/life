@@ -75,7 +75,7 @@ class LifeRoutingOutcomeRecorderTest {
 
         recorder.record(context, "request-quote-agent", "request-quote",
                 RoutingOutcome.SUCCESS, Duration.ofSeconds(2))
-                .await().indefinitely();
+;
 
         var caseCaptor = ArgumentCaptor.forClass(PlanCbrCase.class);
         verify(cbrStore).store(
@@ -106,7 +106,7 @@ class LifeRoutingOutcomeRecorderTest {
                 caseId, "some-cap", NullNode.getInstance(), "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.SUCCESS, null)
-                .await().indefinitely();
+;
 
         verifyNoInteractions(cbrStore);
     }
@@ -122,13 +122,13 @@ class LifeRoutingOutcomeRecorderTest {
                 caseId, "cap", NullNode.getInstance(), "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.SUCCESS, null)
-                .await().indefinitely();
+;
 
         verifyNoInteractions(cbrStore);
     }
 
     @Test
-    void record_storeThrows_uniCompletes() {
+    void record_storeThrows_doesNotPropagate() {
         UUID caseId = UUID.randomUUID();
         when(caseTypeLookup.findCaseType(caseId)).thenReturn(Optional.of("contractor-coordination"));
 
@@ -148,7 +148,7 @@ class LifeRoutingOutcomeRecorderTest {
                 caseId, "cap", contextJson, "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.FAILURE, null)
-                .await().indefinitely();
+;
     }
 
     @Test
@@ -170,7 +170,7 @@ class LifeRoutingOutcomeRecorderTest {
                 caseId, "cap", contextJson, "test-tenant", List.of(), null, null);
 
         recorder.record(context, "w1", "b1", RoutingOutcome.GATE_REJECTED, null)
-                .await().indefinitely();
+;
 
         var captor = ArgumentCaptor.forClass(PlanCbrCase.class);
         verify(cbrStore).store(captor.capture(), any(), any(), any(), any(), any(), any());
