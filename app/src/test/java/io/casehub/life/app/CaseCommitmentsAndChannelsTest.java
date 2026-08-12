@@ -11,6 +11,7 @@ import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.model.WorkItem;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,9 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+
+import io.casehub.life.api.HouseholdGroups;
+import io.casehub.platform.testing.FixedCurrentPrincipal;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -29,6 +33,8 @@ class CaseCommitmentsAndChannelsTest {
 
     private static final String TENANCY_ID = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
 
+    @Inject FixedCurrentPrincipal fixedPrincipal;
+
     private UUID caseTrackerId;
     private UUID engineCaseId;
     private UUID emptyCaseTrackerId;
@@ -36,6 +42,7 @@ class CaseCommitmentsAndChannelsTest {
     @BeforeEach
     @Transactional
     void seed() {
+        fixedPrincipal.setGroups(java.util.Set.of(HouseholdGroups.ADMIN));
         LifeCommitmentRecord.deleteAll();
         LifeTaskContext.deleteAll();
         WorkItem.deleteAll();

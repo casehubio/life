@@ -2,9 +2,9 @@ package io.casehub.life.app.service;
 
 import io.casehub.life.api.response.ChannelMessageResponse;
 import io.casehub.life.app.entity.LifeCaseTracker;
+import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.infrastructure.LifeChannelInitializer;
-import io.casehub.qhorus.api.channel.Channel;
 import io.casehub.qhorus.api.message.Message;
 import io.casehub.qhorus.api.store.MessageStore;
 import io.casehub.qhorus.api.store.query.MessageQuery;
@@ -33,42 +33,44 @@ public class LifeChannelQueryService {
     @Transactional
     public Optional<List<ChannelMessageResponse>> findChannelMessagesByCase(UUID caseTrackerId) {
         LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
-        if (tracker == null) return Optional.empty();
-        if (tracker.engineCaseId == null) return Optional.of(List.of());
+        if (tracker == null) {return Optional.empty();}
+        if (tracker.engineCaseId == null) {return Optional.of(List.of());}
+
+        Set<String> caseCorrelationIds = resolveCaseCorrelationIds(tracker.engineCaseId);
 
         List<ChannelMessageResponse> all = new ArrayList<>();
 
-        queryChannel(LifeChannelInitializer.DELEGATION_CHANNEL).ifPresent(all::addAll);
-        queryChannel(LifeChannelInitializer.OVERSIGHT_CHANNEL).ifPresent(all::addAll);
+        queryChannel(LifeChannelInitializer.DELEGATION_CHANNEL, caseCorrelationIds).ifPresent(all::addAll);
+        queryChannel(LifeChannelInitializer.OVERSIGHT_CHANNEL, caseCorrelationIds).ifPresent(all::addAll);
 
         for (String actorChannel : resolveActorChannels(tracker.engineCaseId)) {
-            queryChannel(actorChannel).ifPresent(all::addAll);
+            queryChannel(actorChannel, null).ifPresent(all::addAll);
         }
 
         all.sort((a, b) -> {
-            if (a.createdAt() == null) return 1;
-            if (b.createdAt() == null) return -1;
+            if (a.createdAt() == null) {return 1;}
+            if (b.createdAt() == null) {return -1;}
             return a.createdAt().compareTo(b.createdAt());
         });
 
-        return Optional.of(all);
-    }
+        return Optional.of(all);}
 
-    private Optional<List<ChannelMessageResponse>> queryChannel(String channelName) {
+    private Optional<List<ChannelMessageResponse>> queryChannel(String channelName, Set<String> correlationIds) {
         return channelService.findByName(channelName)
-                .map(channel -> {
-                    List<Message> messages = messageStore.scan(
-                            MessageQuery.builder()
-                                    .channelId(channel.id())
-                                    .limit(MESSAGE_LIMIT)
-                                    .descending(true)
-                                    .build());
-                    List<Message> chronological = new ArrayList<>(messages);
-                    Collections.reverse(chronological);
-                    return chronological.stream()
-                            .map(m -> toResponse(m, channelName))
-                            .toList();
-                });
+                             .map(channel -> {
+                                 List<Message> messages = messageStore.scan(
+                                         MessageQuery.builder()
+                                                     .channelId(channel.id())
+                                                     .limit(MESSAGE_LIMIT)
+                                                     .descending(true)
+                                                     .build());
+                                 List<Message> chronological = new ArrayList<>(messages);
+                                 Collections.reverse(chronological);
+                                 return chronological.stream()
+                                                     .filter(m -> correlationIds == null || (m.correlationId() != null && correlationIds.contains(m.correlationId())))
+                                                     .map(m -> toResponse(m, channelName))
+                                                     .toList();
+                             });
     }
 
     private ChannelMessageResponse toResponse(Message msg, String channelName) {
@@ -104,4 +106,20 @@ public class LifeChannelQueryService {
         }
         return channels;
     }
+
+    private Set<String> resolveCaseCorrelationIds(UUID engineCaseId) {
+        String         callerRefPrefix = "case:" + engineCaseId + "/";
+        List<WorkItem> workItems       = WorkItem.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        List<UUID>     workItemIds     = workItems.stream().map(wi -> wi.id).toList();
+        if (workItemIds.isEmpty()) {return Set.of();}
+
+        List<LifeCommitmentRecord> records =
+                LifeCommitmentRecord.<LifeCommitmentRecord>list("workItemId IN ?1", workItemIds);
+        Set<String> ids = new LinkedHashSet<>();
+        for (LifeCommitmentRecord rec : records) {
+            if (rec.correlationId != null) {ids.add(rec.correlationId);}
+        }
+        return ids;
+    }
+
 }

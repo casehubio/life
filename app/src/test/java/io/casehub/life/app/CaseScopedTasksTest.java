@@ -122,9 +122,7 @@ class CaseScopedTasksTest {
                 .when()
                 .get("/life-cases/{id}/tasks", caseTrackerId)
                 .then()
-                .statusCode(200)
-                .body("items", hasSize(0));
-    }
+                .statusCode(404);}
 
 
     private void seedWorkItem(final String title, final String callerRef,

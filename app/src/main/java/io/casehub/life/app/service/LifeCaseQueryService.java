@@ -22,8 +22,8 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,25 +82,40 @@ public class LifeCaseQueryService {
         return Optional.of(toDetailResponse(tracker));
     }
 
+    private boolean isCaseVisible(UUID caseTrackerId) {
+        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        if (tracker == null) {return false;}
+        LifeCaseResponse response = toResponse(tracker);
+        return visibilityPolicy.isVisible(response, currentPrincipal.actorId(), currentPrincipal.groups());
+    }
+
+
     @Transactional
     public Optional<List<PendingActionResponse>> findTasksByCase(UUID caseTrackerId) {
         LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
         if (tracker == null) {return Optional.empty();}
+        if (!isCaseVisible(caseTrackerId)) {return Optional.empty();}
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
         String callerRefPrefix = "case:" + tracker.engineCaseId + "/";
         List<WorkItem> workItems = WorkItem.<WorkItem>list("callerRef LIKE ?1 ORDER BY createdAt ASC",
                                                            callerRefPrefix + "%");
 
-        Set<String> groups  = currentPrincipal.groups();
+        List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
+        Map<UUID, LifeCommitmentRecord> commitmentsByWorkItem = workItemIds.isEmpty()
+                                                                ? Map.of()
+                                                                : LifeCommitmentRecord.<LifeCommitmentRecord>list("workItemId IN ?1", workItemIds)
+                                                                                      .stream()
+                                                                                      .collect(Collectors.toMap(rec -> rec.workItemId, rec -> rec, (a, b) -> a));
+
+        Set<String> groups = currentPrincipal.groups();
 
         Instant now = Instant.now();
         List<PendingActionResponse> responses = workItems.stream()
-                                                         .map(wi -> toPendingAction(wi, now))
+                                                         .map(wi -> toPendingAction(wi, now, commitmentsByWorkItem))
                                                          .filter(r -> isTaskVisible(r, groups))
                                                          .toList();
-        return Optional.of(responses);
-    }
+        return Optional.of(responses);}
 
     private boolean isTaskVisible(PendingActionResponse task, Set<String> groups) {
         if (groups.contains(HouseholdGroups.ADMIN) || groups.contains(HouseholdGroups.MEMBER)) {
@@ -120,6 +135,7 @@ public class LifeCaseQueryService {
     public Optional<List<LifeCommitmentResponse>> findCommitmentsByCase(UUID caseTrackerId) {
         LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
         if (tracker == null) {return Optional.empty();}
+        if (!isCaseVisible(caseTrackerId)) {return Optional.empty();}
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
         String callerRefPrefix = "case:" + tracker.engineCaseId + "/";
@@ -130,8 +146,7 @@ public class LifeCaseQueryService {
 
         List<LifeCommitmentRecord> records = LifeCommitmentRecord
                                                      .<LifeCommitmentRecord>list("workItemId IN ?1", workItemIds);
-        return Optional.of(records.stream().map(this::toCommitmentResponse).toList());
-    }
+        return Optional.of(records.stream().map(this::toCommitmentResponse).toList());}
 
     private LifeCommitmentResponse toCommitmentResponse(LifeCommitmentRecord rec) {
         return new LifeCommitmentResponse(
@@ -192,18 +207,29 @@ public class LifeCaseQueryService {
         return new QueryParts(hql, params);
     }
 
-    private PendingActionResponse toPendingAction(WorkItem wi, Instant now) {
+    private PendingActionResponse toPendingAction(WorkItem wi, Instant now, Map<UUID, LifeCommitmentRecord> commitments) {
         LifeDomain domain      = domainFromScope(wi.scope);
         Urgency    urgency     = Urgency.classify(wi.expiresAt, now, 24);
         Long       daysOverdue = Urgency.daysOverdue(wi.expiresAt, now);
+        ActionType actionType  = resolveActionType(wi.id, wi.callerRef, commitments);
         return new PendingActionResponse(
                 wi.id, wi.title, wi.description,
                 wi.status != null ? wi.status.name() : null,
                 domain, wi.candidateGroups,
-                wi.createdAt, wi.expiresAt, urgency, daysOverdue,
-                PendingActionsService.ESCALATION_CALLER_REF.equals(wi.callerRef)
-                        ? ActionType.WATCHDOG_ALERT : ActionType.WORK_ITEM);
+                wi.createdAt, wi.expiresAt, urgency, daysOverdue, actionType);
     }
+
+    private ActionType resolveActionType(final UUID workItemId, final String callerRef, Map<UUID, LifeCommitmentRecord> commitments) {
+        if (PendingActionsService.ESCALATION_CALLER_REF.equals(callerRef)) {return ActionType.WATCHDOG_ALERT;}
+        return Optional.ofNullable(commitments.get(workItemId))
+                       .map(rec -> switch (rec.mode) {
+                           case OVERSIGHT -> ActionType.OVERSIGHT_GATE;
+                           case DELEGATION -> ActionType.DELEGATION;
+                           case CONTRACTOR -> ActionType.WORK_ITEM;
+                       })
+                       .orElse(ActionType.WORK_ITEM);
+    }
+
 
     private LifeDomain domainFromScope(String scope) {
         if (scope == null || !scope.startsWith(LIFE_SCOPE_PREFIX)) {return null;}

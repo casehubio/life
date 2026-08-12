@@ -44,32 +44,59 @@ class CaseChannelQueryTest {
     void seed() {
         fixedPrincipal.setGroups(Set.of("household-admin"));
         LifeCaseTracker.deleteAll();
+        io.casehub.life.app.entity.LifeCommitmentRecord.deleteAll();
+        io.casehub.life.app.entity.LifeTaskContext.deleteAll();
+        io.casehub.work.runtime.model.WorkItem.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
 
-        UUID engineCaseId = UUID.randomUUID();
-        LifeCaseTracker tracker = new LifeCaseTracker();
-        tracker.caseType = "contractor-coordination";
-        tracker.domain = LifeDomain.CONTRACTOR_COORDINATION;
-        tracker.status = LifeCaseStatus.ACTIVE;
+        UUID            engineCaseId = UUID.randomUUID();
+        LifeCaseTracker tracker      = new LifeCaseTracker();
+        tracker.caseType     = "contractor-coordination";
+        tracker.domain       = LifeDomain.CONTRACTOR_COORDINATION;
+        tracker.status       = LifeCaseStatus.ACTIVE;
         tracker.engineCaseId = engineCaseId;
-        tracker.createdAt = Instant.now();
+        tracker.createdAt    = Instant.now();
         tracker.persist();
         caseTrackerId = tracker.id;
 
+        UUID                                   wiId = UUID.randomUUID();
+        io.casehub.work.runtime.model.WorkItem wi   = new io.casehub.work.runtime.model.WorkItem();
+        wi.id              = wiId;
+        wi.title           = "Request Quote";
+        wi.callerRef       = "case:" + engineCaseId + "/pi:request-quote";
+        wi.scope           = "casehubio/life/contractor-coordination";
+        wi.status          = io.casehub.work.api.WorkItemStatus.PENDING;
+        wi.candidateGroups = "household-admin";
+        wi.tenancyId       = TENANCY_ID;
+        wi.createdAt       = Instant.now();
+        wi.persist();
+
+        String                                          correlationId = "corr-" + UUID.randomUUID();
+        io.casehub.life.app.entity.LifeCommitmentRecord rec           = new io.casehub.life.app.entity.LifeCommitmentRecord();
+        rec.id            = UUID.randomUUID();
+        rec.correlationId = correlationId;
+        rec.mode          = io.casehub.life.api.commitment.CommitmentMode.DELEGATION;
+        rec.status        = io.casehub.life.api.commitment.CommitmentStatus.PENDING_RESPONSE;
+        rec.workItemId    = wiId;
+        rec.domain        = LifeDomain.CONTRACTOR_COORDINATION;
+        rec.channelId     = LifeChannelInitializer.DELEGATION_CHANNEL;
+        rec.createdAt     = Instant.now();
+        rec.updatedAt     = Instant.now();
+        rec.persist();
+
         seedMessage(LifeChannelInitializer.DELEGATION_CHANNEL, "home-agent",
-                MessageType.COMMAND, "Schedule plumber visit");
+                    MessageType.COMMAND, "Schedule plumber visit", correlationId);
         seedMessage(LifeChannelInitializer.OVERSIGHT_CHANNEL, "finance-agent",
-                MessageType.COMMAND, "Approve £500 spend");
+                    MessageType.COMMAND, "Approve £500 spend", correlationId);
 
         LifeCaseTracker emptyCase = new LifeCaseTracker();
-        emptyCase.caseType = "travel-plan";
-        emptyCase.domain = LifeDomain.TRAVEL;
-        emptyCase.status = LifeCaseStatus.ACTIVE;
+        emptyCase.caseType     = "travel-plan";
+        emptyCase.domain       = LifeDomain.TRAVEL;
+        emptyCase.status       = LifeCaseStatus.ACTIVE;
         emptyCase.engineCaseId = UUID.randomUUID();
-        emptyCase.createdAt = Instant.now();
+        emptyCase.createdAt    = Instant.now();
         emptyCase.persist();
-        emptyCaseTrackerId = emptyCase.id;
-    }
+        emptyCaseTrackerId = emptyCase.id;}
 
     @AfterEach
     void resetPrincipal() {
@@ -118,17 +145,18 @@ class CaseChannelQueryTest {
     }
 
     private void seedMessage(String channelName, String sender,
-                             MessageType type, String content) {
+                             MessageType type, String content, String correlationId) {
         channelService.findByName(channelName).ifPresent(channel -> {
             Message msg = Message.builder()
-                    .channelId(channel.id())
-                    .sender(sender)
-                    .messageType(type)
-                    .actorType(ActorType.AGENT)
-                    .tenancyId(TENANCY_ID)
-                    .content(content)
-                    .createdAt(Instant.now())
-                    .build();
+                                 .channelId(channel.id())
+                                 .sender(sender)
+                                 .messageType(type)
+                                 .actorType(ActorType.AGENT)
+                                 .tenancyId(TENANCY_ID)
+                                 .content(content)
+                                 .correlationId(correlationId)
+                                 .createdAt(Instant.now())
+                                 .build();
             messageStore.put(msg);
         });
     }

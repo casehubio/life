@@ -22,7 +22,9 @@ import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.request.CreateLifeCaseRequest;
 import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.api.response.PagedResponse;
+import io.casehub.life.api.spi.LifeCaseVisibilityPolicy;
 import io.casehub.life.app.engine.LifeCaseService;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.life.app.service.LifeCaseQueryService;
 import io.casehub.life.app.service.LifeCbrQueryService;
 import io.casehub.life.app.service.LifeChannelQueryService;
@@ -62,6 +64,14 @@ public class LifeCaseResource {
     LifeCbrQueryService     cbrQueryService;
     @Inject
     LifeChannelQueryService channelQueryService;
+    @Inject
+    LifeCaseVisibilityPolicy visibilityPolicy;
+    @Inject
+    CurrentPrincipal         currentPrincipal;
+
+    private boolean isCaseVisible(UUID id) {
+        return queryService.findById(id).isPresent();
+    }
 
 
     @POST
@@ -113,28 +123,28 @@ public class LifeCaseResource {
     @Path("/{id}/routing")
     @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
     public Response listRouting(@PathParam("id") UUID id) {
+        if (!isCaseVisible(id)) {return Response.status(Response.Status.NOT_FOUND).build();}
         return routingQueryService.findRoutingByCase(id)
                                   .map(r -> Response.ok(r).build())
-                                  .orElse(Response.status(Response.Status.NOT_FOUND).build());
-    }
+                                  .orElse(Response.status(Response.Status.NOT_FOUND).build());}
 
     @GET
     @Path("/{id}/cbr")
     @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER, HouseholdGroups.JUNIOR})
     public Response listCbrPrecedents(@PathParam("id") UUID id) {
+        if (!isCaseVisible(id)) {return Response.status(Response.Status.NOT_FOUND).build();}
         return cbrQueryService.findPrecedentsByCase(id)
                               .map(r -> Response.ok(r).build())
-                              .orElse(Response.status(Response.Status.NOT_FOUND).build());
-    }
+                              .orElse(Response.status(Response.Status.NOT_FOUND).build());}
 
     @GET
     @Path("/{id}/channels")
     @RolesAllowed({HouseholdGroups.ADMIN, HouseholdGroups.MEMBER})
     public Response listChannels(@PathParam("id") UUID id) {
+        if (!isCaseVisible(id)) {return Response.status(Response.Status.NOT_FOUND).build();}
         return channelQueryService.findChannelMessagesByCase(id)
                                   .map(r -> Response.ok(r).build())
-                                  .orElse(Response.status(Response.Status.NOT_FOUND).build());
-    }
+                                  .orElse(Response.status(Response.Status.NOT_FOUND).build());}
 
 
 }
