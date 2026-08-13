@@ -9,7 +9,7 @@ import io.casehub.qhorus.api.message.Message;
 import io.casehub.qhorus.api.store.MessageStore;
 import io.casehub.qhorus.api.store.query.MessageQuery;
 import io.casehub.qhorus.runtime.channel.ChannelService;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -94,11 +94,11 @@ public class LifeChannelQueryService {
     }
 
     private Set<String> resolveActorChannels(UUID engineCaseId) {
-        String callerRefPrefix = "case:" + engineCaseId + "/";
-        List<WorkItem> workItems = WorkItem.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        String               callerRefPrefix = "case:" + engineCaseId + "/";
+        List<WorkItemEntity> workItems       = WorkItemEntity.list("callerRef LIKE ?1", callerRefPrefix + "%");
 
         Set<String> channels = new LinkedHashSet<>();
-        for (WorkItem wi : workItems) {
+        for (WorkItemEntity wi : workItems) {
             LifeTaskContext.findByIdOptional(wi.id)
                     .map(obj -> (LifeTaskContext) obj)
                     .filter(ctx -> ctx.externalActorId != null)
@@ -108,9 +108,9 @@ public class LifeChannelQueryService {
     }
 
     private Set<String> resolveCaseCorrelationIds(UUID engineCaseId) {
-        String         callerRefPrefix = "case:" + engineCaseId + "/";
-        List<WorkItem> workItems       = WorkItem.list("callerRef LIKE ?1", callerRefPrefix + "%");
-        List<UUID>     workItemIds     = workItems.stream().map(wi -> wi.id).toList();
+        String               callerRefPrefix = "case:" + engineCaseId + "/";
+        List<WorkItemEntity> workItems       = WorkItemEntity.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        List<UUID>           workItemIds     = workItems.stream().map(wi -> wi.id).toList();
         if (workItemIds.isEmpty()) {return Set.of();}
 
         List<LifeCommitmentRecord> records =

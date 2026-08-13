@@ -9,7 +9,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.ledger.HealthDecisionLedgerEntry;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.identity.ActorType;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -39,7 +39,7 @@ public class HealthDomainLedgerHandler implements DomainLedgerHandler {
     public LifeDomain domain() { return LifeDomain.HEALTH; }
 
     @Override
-    public void writeEntry(LifeDecisionEventType event, UUID workItemId, WorkItem workItem) {
+    public void writeEntry(LifeDecisionEventType event, UUID workItemId, WorkItemEntity workItem) {
         Optional<LifeTaskContext> ctxOpt = findContext(workItemId);
         if (ctxOpt.isEmpty()) {
             LOG.warnf("HealthDomainLedgerHandler: no LifeTaskContext for workItemId=%s — skipping ledger write", workItemId);

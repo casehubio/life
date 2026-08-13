@@ -8,7 +8,7 @@ import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.platform.api.identity.ActorType;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
@@ -39,7 +39,7 @@ class ExternalActorHistoryTest {
     void seed() {
         ExternalActor.deleteAll();
         LifeTaskContext.deleteAll();
-        WorkItem.deleteAll();
+        WorkItemEntity.deleteAll();
 
         ExternalActor actor = new ExternalActor();
         actor.id = ACTOR_ID;
@@ -196,7 +196,7 @@ class ExternalActorHistoryTest {
 
     @Transactional
     UUID seedWorkItemWithContext(UUID actorId, String title, LifeDomain domain, WorkItemStatus status) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.title = title;
         wi.status = status;
         wi.scope = "casehubio/life/" + domain.descriptor().templateCategory();

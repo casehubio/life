@@ -6,7 +6,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.work.runtime.event.SlaBreachEvent;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -34,7 +34,7 @@ public class LifeDecisionLedgerObserver {
         }
     }
 
-    private LifeDomain resolveDomain(UUID workItemId, WorkItem workItem) {
+    private LifeDomain resolveDomain(UUID workItemId, WorkItemEntity workItem) {
         LifeDomain domain = domainFromScope(workItem.scope);
         if (domain != null) return domain;
         return LifeTaskContext.<LifeTaskContext>findByIdOptional(workItemId)
@@ -54,7 +54,7 @@ public class LifeDecisionLedgerObserver {
     }
 
     private void resolveAndWrite(UUID workItemId, LifeDecisionEventType eventType) {
-        WorkItem workItem = WorkItem.<WorkItem>findByIdOptional(workItemId).orElse(null);
+        WorkItemEntity workItem = WorkItemEntity.<WorkItemEntity>findByIdOptional(workItemId).orElse(null);
         if (workItem == null) return;
         LifeDomain domain = resolveDomain(workItemId, workItem);
         if (domain == null) return; // unresolvable domain — deliberate no-op

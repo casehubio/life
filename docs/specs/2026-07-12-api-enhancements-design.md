@@ -64,7 +64,7 @@ Returns `PagedResponse<TrustHistoryEntry>`. Returns 404 if actor not found.
 
 ### Activity timeline — `GET /external-actors/{id}/activity`
 
-Joins `LifeTaskContext` (by `externalActorId`) → `WorkItem` (by `workItemId`). Most-recent-first.
+Joins `LifeTaskContext` (by `externalActorId`) → `WorkItemEntity` (by `workItemId`). Most-recent-first.
 
 | Param | Type | Description |
 |-------|------|-------------|

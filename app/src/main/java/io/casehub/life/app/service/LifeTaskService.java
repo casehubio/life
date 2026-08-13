@@ -10,7 +10,7 @@ import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.runtime.model.WorkItemTemplate;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -93,7 +93,7 @@ public class LifeTaskService {
                 .build();
 
         // Create WorkItem — joins this @Transactional boundary (REQUIRED semantics).
-        final WorkItem workItem = workItemService.create(workReq);
+        final WorkItemEntity workItem = workItemService.create(workReq);
 
         // Create LifeTaskContext supplement.
         final LifeTaskContext ctx = new LifeTaskContext();
@@ -122,9 +122,9 @@ public class LifeTaskService {
 
     @Transactional
     public LifeTaskResponse get(final java.util.UUID workItemId) {
-        final WorkItem workItem = WorkItem.findByIdOptional(workItemId)
-                .map(o -> (WorkItem) o)
-                .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
+        final WorkItemEntity workItem = WorkItemEntity.findByIdOptional(workItemId)
+                                                      .map(o -> (WorkItemEntity) o)
+                                                      .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
         final LifeTaskContext ctx = (LifeTaskContext) LifeTaskContext.findByIdOptional(workItemId)
                 .orElseThrow(() -> new WebApplicationException("LifeTaskContext not found: " + workItemId, 404));
         final LifeCommitmentRecord commitment = LifeCommitmentRecord

@@ -10,7 +10,7 @@ import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.message.MessageService;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -82,7 +82,7 @@ class LifeChannelContextProviderIntegrationTest {
                 .scope("casehubio/life/contractor_coordination")
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
-        WorkItem wi = workItemService.create(req);
+        WorkItemEntity wi = workItemService.create(req);
 
         var ctx = new LifeTaskContext();
         ctx.workItemId = wi.id;

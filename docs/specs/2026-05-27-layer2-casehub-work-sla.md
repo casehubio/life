@@ -27,7 +27,7 @@ interaction through existing tools (calendar, messaging, voice). Dedicated UI su
 details and trust dimensions. Cross-case; lifecycle independent of any single WorkItem or
 case.
 
-**`LifeTaskContext`** (new) — thin domain context entity linking a foundation `WorkItem`
+**`LifeTaskContext`** (new) — thin domain context entity linking a foundation `WorkItemEntity`
 to life-domain metadata that has no foundation home. Not a WorkItem wrapper: carries only
 fields the foundation cannot represent. Does NOT duplicate title, deadline, slaHours,
 status, or assignedTo — those remain in WorkItem.
@@ -54,7 +54,7 @@ with query requirements warrant a named entity rather than a supplement join tab
 
 | Removed entity | Foundation equivalent | Field mapping |
 |---|---|---|
-| `HouseholdTask` | `WorkItem` + `LifeTaskContext` | All fields mapped — see below |
+| `HouseholdTask` | `WorkItemEntity` + `LifeTaskContext` | All fields mapped — see below |
 | `LifeGoal` | `CaseInstance` | domain/title/description → context; targetDate → caseBudgetDeadline; status lifecycle maps directly (PAUSED→SUSPENDED, ABANDONED→CANCELLED) |
 | `LifeEvent` | completed `CaseInstance` + `CaseLedgerEntry` | occurredAt = case completion time |
 
@@ -220,7 +220,7 @@ standard. No dialect-specific types used.
 3. Resolve `candidateGroups` from template (`candidate_groups` column) — validate non-null
    before calling `WorkItemService.create()` (GE-20260522-4e806e)
 4. Compute `claimDeadline`: `deadline` if provided, else `now + template.default_expiry_hours`
-5. Create `WorkItem` via `WorkItemService.create()` with:
+5. Create `WorkItemEntity` via `WorkItemService.create()` with:
    - `callerRef: "life:task/{templateRef}"` (correlates WorkItem to life context without supplement join)
    - `scope: "life"` (fixed scope string avoids `Path.root()` — GE-20260522-9cd6d5)
    - `candidateGroups`: from template

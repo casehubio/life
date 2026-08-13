@@ -11,7 +11,7 @@ import io.casehub.life.app.service.ledger.LifeLedgerWriter;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryCapabilityException;
 import io.casehub.platform.api.identity.TenancyConstants;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -95,7 +95,7 @@ public class LifeGdprErasureService {
         return LifeTaskContext.<LifeTaskContext>list("externalActorId", externalActorId)
                 .stream()
                 .filter(ctx -> {
-                    var wi = WorkItem.<WorkItem>findByIdOptional(ctx.workItemId).orElse(null);
+                    var wi = WorkItemEntity.<WorkItemEntity>findByIdOptional(ctx.workItemId).orElse(null);
                     return wi != null && wi.status.isActive();
                 })
                 .count();

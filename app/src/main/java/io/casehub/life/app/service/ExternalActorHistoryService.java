@@ -1,13 +1,12 @@
 package io.casehub.life.app.service;
 
 import io.casehub.ledger.runtime.model.LedgerAttestation;
-import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.response.ActorActivityEntry;
 import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.api.response.TrustHistoryEntry;
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -62,11 +61,11 @@ public class ExternalActorHistoryService {
 
         long total = em.createQuery(
                         "SELECT COUNT(ctx) FROM LifeTaskContext ctx WHERE ctx.externalActorId = :actorId"
-                                + " AND ctx.workItemId IN (SELECT wi.id FROM WorkItem wi)", Long.class)
+                                + " AND ctx.workItemId IN (SELECT wi.id FROM WorkItemEntity wi)", Long.class)
                 .setParameter("actorId", actorId).getSingleResult();
 
         List<Object[]> rows = em.createQuery(
-                        "SELECT ctx, wi FROM LifeTaskContext ctx, WorkItem wi"
+                        "SELECT ctx, wi FROM LifeTaskContext ctx, WorkItemEntity wi"
                                 + " WHERE ctx.externalActorId = :actorId AND wi.id = ctx.workItemId"
                                 + " ORDER BY wi.createdAt DESC NULLS LAST")
                 .setParameter("actorId", actorId)
@@ -75,7 +74,7 @@ public class ExternalActorHistoryService {
         List<ActorActivityEntry> items = rows.stream()
                 .map(row -> {
                     LifeTaskContext ctx = (LifeTaskContext) row[0];
-                    WorkItem wi = (WorkItem) row[1];
+                    WorkItemEntity  wi  = (WorkItemEntity) row[1];
                     return new ActorActivityEntry(wi.id, wi.title, ctx.domain,
                             wi.status != null ? wi.status.name() : null,
                             wi.scope, wi.createdAt, wi.completedAt, wi.outcome);

@@ -2,10 +2,10 @@ package io.casehub.life.app.commitment;
 
 import io.casehub.life.api.request.CommitmentRequest;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 
 public record DelegationContext(
         CommitmentRequest request,
-        WorkItem workItem,
+        WorkItemEntity workItem,
         LifeTaskContext taskContext
 ) implements CommitmentContext {}

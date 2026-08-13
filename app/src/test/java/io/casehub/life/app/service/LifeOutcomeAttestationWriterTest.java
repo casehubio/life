@@ -12,7 +12,7 @@ import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.service.ledger.LifeOutcomeAttestationWriter;
 import io.casehub.platform.api.identity.ActorType;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +49,7 @@ class LifeOutcomeAttestationWriterTest {
         ctx.domain = LifeDomain.HEALTH;
         ctx.externalActorId = UUID.randomUUID();
 
-        var workItem = new WorkItem();
+        var workItem = new WorkItemEntity();
         workItem.scope = "casehubio/life/health";
 
         // When: attestOutcome is called
@@ -86,7 +85,7 @@ class LifeOutcomeAttestationWriterTest {
         ctx.domain = LifeDomain.CONTRACTOR_COORDINATION;
         ctx.externalActorId = UUID.randomUUID();
 
-        var workItem = new WorkItem();
+        var workItem = new WorkItemEntity();
 
         // When: attestOutcome is called
         attestationWriter.attestOutcome(entry, LifeDecisionEventType.SLA_BREACH, ctx, workItem);
@@ -117,7 +116,7 @@ class LifeOutcomeAttestationWriterTest {
         ctx.externalActorId = UUID.randomUUID();
 
         var now = Instant.now();
-        var workItem = new WorkItem();
+        var workItem = new WorkItemEntity();
         workItem.expiresAt = now.plus(3, ChronoUnit.DAYS); // deadline 3 days away
         workItem.completedAt = now; // completed now (3 days early)
 
@@ -150,7 +149,7 @@ class LifeOutcomeAttestationWriterTest {
         ctx.domain = LifeDomain.HOUSEHOLD;
         ctx.externalActorId = null; // no external actor
 
-        var workItem = new WorkItem();
+        var workItem = new WorkItemEntity();
 
         // When: attestOutcome is called
         attestationWriter.attestOutcome(entry, LifeDecisionEventType.COMPLETED, ctx, workItem);
@@ -167,7 +166,7 @@ class LifeOutcomeAttestationWriterTest {
         ctx.domain = LifeDomain.HEALTH;
         ctx.externalActorId = UUID.randomUUID();
 
-        var workItem = new WorkItem();
+        var workItem = new WorkItemEntity();
 
         attestationWriter.attestOutcome(entry, LifeDecisionEventType.CREATED, ctx, workItem);
 
@@ -183,7 +182,7 @@ class LifeOutcomeAttestationWriterTest {
         ctx.domain = null; // no domain
         ctx.externalActorId = UUID.randomUUID();
 
-        var workItem = new WorkItem();
+        var workItem = new WorkItemEntity();
         workItem.scope = null; // no scope
 
         // When: attestOutcome is called

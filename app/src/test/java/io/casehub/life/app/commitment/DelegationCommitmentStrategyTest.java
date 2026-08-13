@@ -6,7 +6,7 @@ import io.casehub.life.api.request.CommitmentRequest;
 import io.casehub.life.app.LifeTestFixtures;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -36,7 +36,7 @@ class DelegationCommitmentStrategyTest {
     @Test
     @Transactional
     void execute_setsDomainFromTaskContext() {
-        final WorkItem workItem = createWorkItem("Delegation domain test");
+        final WorkItemEntity  workItem    = createWorkItem("Delegation domain test");
         final LifeTaskContext taskContext = createTaskContext(workItem.id, LifeDomain.HOUSEHOLD);
 
         final CommitmentRequest request = new CommitmentRequest(
@@ -56,7 +56,7 @@ class DelegationCommitmentStrategyTest {
     @Test
     @Transactional
     void execute_setsDomainFromTaskContext_healthDomain() {
-        final WorkItem workItem = createWorkItem("Health delegation test");
+        final WorkItemEntity  workItem    = createWorkItem("Health delegation test");
         final LifeTaskContext taskContext = createTaskContext(workItem.id, LifeDomain.HEALTH);
 
         final CommitmentRequest request = new CommitmentRequest(
@@ -71,8 +71,8 @@ class DelegationCommitmentStrategyTest {
         assertThat(record.domain).isEqualTo(LifeDomain.HEALTH);
     }
 
-    private WorkItem createWorkItem(final String title) {
-        final WorkItem w = new WorkItem();
+    private WorkItemEntity createWorkItem(final String title) {
+        final WorkItemEntity w = new WorkItemEntity();
         w.id = UUID.randomUUID();
         w.title = title;
         w.status = io.casehub.work.api.WorkItemStatus.PENDING;

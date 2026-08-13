@@ -13,7 +13,7 @@ import io.casehub.work.api.BreachedTask;
 import io.casehub.work.api.SlaBreachContext;
 import io.casehub.work.runtime.event.SlaBreachEvent;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
 import io.casehub.work.api.WorkItemStatus;
@@ -162,8 +162,8 @@ class LifeDecisionLedgerObserverTest {
     }
 
     @Transactional
-    WorkItem completeWorkItem(UUID id, String outcome) {
-        var wi = WorkItem.<WorkItem>findByIdOptional(id).orElseThrow();
+    WorkItemEntity completeWorkItem(UUID id, String outcome) {
+        var wi = WorkItemEntity.<WorkItemEntity>findByIdOptional(id).orElseThrow();
         wi.outcome = outcome;
         wi.status = WorkItemStatus.COMPLETED;
         wi.persist();
@@ -171,8 +171,8 @@ class LifeDecisionLedgerObserverTest {
     }
 
     @Transactional
-    WorkItem loadWorkItem(UUID id) {
-        return WorkItem.<WorkItem>findByIdOptional(id).orElseThrow();
+    WorkItemEntity loadWorkItem(UUID id) {
+        return WorkItemEntity.<WorkItemEntity>findByIdOptional(id).orElseThrow();
     }
 
     private SlaBreachEvent breachEvent(UUID taskId) {

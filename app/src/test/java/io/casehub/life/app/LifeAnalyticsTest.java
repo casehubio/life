@@ -10,7 +10,7 @@ import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
@@ -43,7 +43,7 @@ class LifeAnalyticsTest {
     void seed() {
         LifeCaseTracker.deleteAll();
         LifeTaskContext.deleteAll();
-        WorkItem.deleteAll();
+        WorkItemEntity.deleteAll();
         ExternalActor.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
         qhorusEm.createQuery("DELETE FROM ActorTrustScore").executeUpdate();
@@ -258,7 +258,7 @@ class LifeAnalyticsTest {
     @Transactional
     void seedWorkItemWithSla(String title, String scope, WorkItemStatus status,
                              Instant createdAt, Instant expiresAt, Instant completedAt) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.title = title;
         wi.scope = scope;
         wi.status = status;

@@ -2,7 +2,7 @@ package io.casehub.life.app;
 
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.ExpiryLifecycleService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -44,7 +44,7 @@ class ShowcaseScenarioTest {
     void seedTemplates() {
         if (bobActorId == null) {
             LifeTaskContext.deleteAll();
-            WorkItem.deleteAll();
+            WorkItemEntity.deleteAll();
             ExternalActor.deleteAll();
         }
         LifeTestFixtures.seedStandardTemplates();

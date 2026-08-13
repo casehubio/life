@@ -5,7 +5,7 @@ import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.platform.testing.FixedCurrentPrincipal;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.model.WorkItemType;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -97,7 +97,7 @@ class LifeTaskVisibilityIntegrationTest {
     }
 
     private UUID seedWorkItem(String assigneeId, String candidateGroups) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.title = "Task for " + assigneeId;
         wi.types = java.util.Set.of(new WorkItemType("household"));
         wi.status = WorkItemStatus.PENDING;

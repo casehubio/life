@@ -8,7 +8,7 @@ import io.casehub.life.api.request.OversightGateRequest;
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
@@ -41,9 +41,9 @@ public class LifeCommitmentService {
         }
 
         // Load existing task.
-        final WorkItem workItem = WorkItem.findByIdOptional(workItemId)
-                .map(o -> (WorkItem) o)
-                .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
+        final WorkItemEntity workItem = WorkItemEntity.findByIdOptional(workItemId)
+                                                      .map(o -> (WorkItemEntity) o)
+                                                      .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
         final LifeTaskContext taskContext = (LifeTaskContext) LifeTaskContext
                 .findByIdOptional(workItemId)
                 .orElseThrow(() -> new WebApplicationException("LifeTaskContext not found: " + workItemId, 404));

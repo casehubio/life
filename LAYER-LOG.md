@@ -186,7 +186,7 @@ casehub-work WorkItems are created alongside `LifeTaskContext` supplements when 
 
 ### Pattern introduced
 
-**WorkItem-backed life task with domain supplement:** `LifeTaskService` creates a `WorkItem` from a named `WorkItemTemplate` and a `LifeTaskContext` supplement in a single `@Transactional` boundary. The template provides candidateGroups and SLA; the supplement carries life-domain context.
+**WorkItem-backed life task with domain supplement:** `LifeTaskService` creates a `WorkItemEntity` from a named `WorkItemTemplate` and a `LifeTaskContext` supplement in a single `@Transactional` boundary. The template provides candidateGroups and SLA; the supplement carries life-domain context.
 
 ### Pattern anchor
 
@@ -249,8 +249,8 @@ casehub-qhorus is adopted for formal COMMAND/RESPONSE commitment tracking across
 
 ### Architectural decisions
 
-- `LifeCommitmentStrategy` SPI lives in `app/` not `api/` — the sealed context types reference JPA entities (`WorkItem`, `LifeTaskContext`, `ExternalActor`). Placing them in `api/` creates a circular Maven dependency. This SPI has no external consumers; CDI `Instance<LifeCommitmentStrategy>` collects all three implementations.
-- `OversightContext` carries no `WorkItem` — the oversight gate is pre-approval; no WorkItem exists until `LifeOversightResponseObserver` creates it on RESPONSE. This is the correct domain semantics: work that hasn't been approved yet is not a WorkItem.
+- `LifeCommitmentStrategy` SPI lives in `app/` not `api/` — the sealed context types reference JPA entities (`WorkItemEntity`, `LifeTaskContext`, `ExternalActor`). Placing them in `api/` creates a circular Maven dependency. This SPI has no external consumers; CDI `Instance<LifeCommitmentStrategy>` collects all three implementations.
+- `OversightContext` carries no `WorkItemEntity` — the oversight gate is pre-approval; no WorkItem exists until `LifeOversightResponseObserver` creates it on RESPONSE. This is the correct domain semantics: work that hasn't been approved yet is not a WorkItem.
 - `delegateTo` column repurposed as dedup key for OVERSIGHT mode (value is `title:templateRef` hash). A partial unique index enforces it at the DB level. Acknowledged semantic overload — a dedicated `oversight_key` column would be cleaner but was not added to avoid schema complexity.
 - Life channels are NOT normative qhorus mesh channels. The normative layout (`/work`, `/observe`, `/oversight` suffix convention) governs agent orchestration channels managed by Claudony's `NormativeChannelLayout` SPI. Life household channels are domain coordination channels with their own naming.
 - `LifeOversightResponseObserver` uses `@Transactional(REQUIRES_NEW)` — `MessageService.dispatch()` calls observers synchronously inside the qhorus dispatch transaction; the observer needs its own transaction to persist the new WorkItem and update the commitment record independently.

@@ -11,7 +11,7 @@ import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.platform.api.identity.ActorType;
 import io.casehub.platform.api.identity.TenancyConstants;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -33,7 +33,7 @@ public class LifeOutcomeAttestationWriter {
     public void attestOutcome(final LedgerEntry entry,
                               final LifeDecisionEventType eventType,
                               final LifeTaskContext ctx,
-                              final WorkItem workItem) {
+                              final WorkItemEntity workItem) {
         if (ctx.externalActorId == null) {
             return;
         }
@@ -74,7 +74,7 @@ public class LifeOutcomeAttestationWriter {
 
     private void saveDeadlineReliabilityAttestation(final LedgerEntry entry,
                                                     final LifeTaskContext ctx,
-                                                    final WorkItem workItem,
+                                                    final WorkItemEntity workItem,
                                                     final AttestationVerdict verdict) {
         var completionTime = workItem.completedAt != null ? workItem.completedAt : Instant.now();
         var daysLate = Duration.between(workItem.expiresAt, completionTime).toDays();
@@ -93,7 +93,7 @@ public class LifeOutcomeAttestationWriter {
         ledgerRepository.saveAttestation(attestation, TenancyConstants.DEFAULT_TENANT_ID);
     }
 
-    private String resolveCapabilityTag(final LifeTaskContext ctx, final WorkItem workItem) {
+    private String resolveCapabilityTag(final LifeTaskContext ctx, final WorkItemEntity workItem) {
         if (ctx.domain != null) {
             return ctx.domain.descriptor().capability();
         }

@@ -8,7 +8,7 @@ import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.api.response.PendingActionResponse;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -51,7 +51,7 @@ public class PendingActionsService {
         }
 
         String whereClause = String.join(" AND ", conditions);
-        long total = WorkItem.count(whereClause, params);
+        long total = WorkItemEntity.count(whereClause, params);
 
         Instant now = Instant.now();
         var orderParams = new HashMap<>(params);
@@ -63,8 +63,8 @@ public class PendingActionsService {
                 + " WHEN expiresAt <= :dueSoonCutoff THEN 1 ELSE 2 END ASC,"
                 + " expiresAt ASC NULLS LAST, createdAt ASC NULLS LAST";
 
-        List<WorkItem> items = WorkItem.<WorkItem>find(query, orderParams)
-                .page(Page.of(page, size)).list();
+        List<WorkItemEntity> items = WorkItemEntity.<WorkItemEntity>find(query, orderParams)
+                                                   .page(Page.of(page, size)).list();
 
         List<PendingActionResponse> responses = items.stream()
                 .map(wi -> toPendingAction(wi, now, dueSoonHours))
@@ -73,7 +73,7 @@ public class PendingActionsService {
         return new PagedResponse<>(responses, page, size, total);
     }
 
-    private PendingActionResponse toPendingAction(WorkItem wi, Instant now, int dueSoonHours) {
+    private PendingActionResponse toPendingAction(WorkItemEntity wi, Instant now, int dueSoonHours) {
         LifeDomain domain      = resolveDomain(wi);
         Urgency    urgency     = Urgency.classify(wi.expiresAt, now, dueSoonHours);
         Long       daysOverdue = Urgency.daysOverdue(wi.expiresAt, now);
@@ -104,7 +104,7 @@ public class PendingActionsService {
     }
 
 
-    private LifeDomain resolveDomain(WorkItem wi) {
+    private LifeDomain resolveDomain(WorkItemEntity wi) {
         return LifeTaskContext.<LifeTaskContext>findByIdOptional(wi.id)
                 .map(ctx -> ctx.domain)
                 .orElseGet(() -> domainFromScope(wi.scope));

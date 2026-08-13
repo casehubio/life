@@ -4,7 +4,7 @@ import io.casehub.life.api.LifeCaseStatus;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -36,7 +36,7 @@ class CaseScopedTasksTest {
     @Transactional
     void seed() {
         fixedPrincipal.setGroups(java.util.Set.of("household-admin"));
-        WorkItem.deleteAll();
+        WorkItemEntity.deleteAll();
         LifeCaseTracker.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
 
@@ -127,7 +127,7 @@ class CaseScopedTasksTest {
 
     private void seedWorkItem(final String title, final String callerRef,
                                final String scope, final WorkItemStatus status) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.id = UUID.randomUUID();
         wi.title = title;
         wi.callerRef = callerRef;

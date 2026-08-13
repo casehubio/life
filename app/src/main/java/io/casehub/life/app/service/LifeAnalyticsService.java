@@ -14,7 +14,7 @@ import io.casehub.life.api.response.TrustAnalyticsResponse.ActorScoreSummary;
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -102,12 +102,12 @@ public class LifeAnalyticsService {
             params.put("domainScope", LIFE_SCOPE_PREFIX + domain.descriptor().templateCategory() + "%");
         }
 
-        String query = String.join(" AND ", conditions);
-        List<WorkItem> items = WorkItem.list(query, params);
+        String               query = String.join(" AND ", conditions);
+        List<WorkItemEntity> items = WorkItemEntity.list(query, params);
 
         Instant now = Instant.now();
-        Map<String, List<WorkItem>> byDomain = items.stream()
-                .collect(Collectors.groupingBy(
+        Map<String, List<WorkItemEntity>> byDomain = items.stream()
+                                                          .collect(Collectors.groupingBy(
                         wi -> extractDomainSegment(wi.scope),
                         LinkedHashMap::new, Collectors.toList()));
 
@@ -125,7 +125,7 @@ public class LifeAnalyticsService {
         return slash > 0 ? remainder.substring(0, slash) : remainder;
     }
 
-    private DomainSlaStats buildDomainSlaStats(String domain, List<WorkItem> items, Instant now) {
+    private DomainSlaStats buildDomainSlaStats(String domain, List<WorkItemEntity> items, Instant now) {
         long total = items.size();
         long breached = items.stream().filter(wi -> isSlaBreached(wi, now)).count();
         Double complianceRate = total > 0 ? (double) (total - breached) / total : null;
@@ -142,7 +142,7 @@ public class LifeAnalyticsService {
         return new DomainSlaStats(domain, total, breached, complianceRate, avgBreachLatency);
     }
 
-    private boolean isSlaBreached(WorkItem wi, Instant now) {
+    private boolean isSlaBreached(WorkItemEntity wi, Instant now) {
         if (wi.status == WorkItemStatus.ESCALATED || wi.status == WorkItemStatus.EXPIRED) return true;
         if (wi.completedAt != null && wi.expiresAt != null && wi.completedAt.isAfter(wi.expiresAt)) return true;
         if (wi.expiresAt != null && wi.expiresAt.isBefore(now) && wi.status != null && wi.status.isActive() && wi.status != WorkItemStatus.SUSPENDED) return true;

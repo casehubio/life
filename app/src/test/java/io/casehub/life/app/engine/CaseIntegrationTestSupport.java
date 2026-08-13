@@ -5,7 +5,7 @@ import io.casehub.api.engine.CaseHubRuntime;
 import io.casehub.api.model.CaseStatus;
 import io.casehub.api.model.event.CaseHubEventType;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -49,12 +49,12 @@ final class CaseIntegrationTestSupport {
                 scheduledWorkerNames(runtime, caseId).contains(workerName));
     }
 
-    static WorkItem findPendingHumanTask(UUID caseId) {
+    static WorkItemEntity findPendingHumanTask(UUID caseId) {
         String callerRefPrefix = "case:" + caseId;
-        var ref = new AtomicReference<WorkItem>();
+        var ref = new AtomicReference<WorkItemEntity>();
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() ->
                 QuarkusTransaction.requiringNew().call(() -> {
-                    WorkItem wi = WorkItem.find("callerRef like ?1 and status = ?2",
+                    WorkItemEntity wi = WorkItemEntity.find("callerRef like ?1 and status = ?2",
                             callerRefPrefix + "%", WorkItemStatus.PENDING).firstResult();
                     if (wi != null) {
                         ref.set(wi);
@@ -66,7 +66,7 @@ final class CaseIntegrationTestSupport {
     }
 
     static void completeHumanTask(WorkItemService workItemService, UUID caseId, String output) {
-        WorkItem wi = findPendingHumanTask(caseId);
+        WorkItemEntity wi = findPendingHumanTask(caseId);
         QuarkusTransaction.requiringNew().run(() ->
                 workItemService.completeFromSystem(wi.id, "test-actor", output));
     }

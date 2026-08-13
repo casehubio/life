@@ -15,7 +15,7 @@ import io.casehub.life.api.spi.LifeCaseVisibilityPolicy;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.platform.api.identity.CurrentPrincipal;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -98,7 +98,7 @@ public class LifeCaseQueryService {
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
         String callerRefPrefix = "case:" + tracker.engineCaseId + "/";
-        List<WorkItem> workItems = WorkItem.<WorkItem>list("callerRef LIKE ?1 ORDER BY createdAt ASC",
+        List<WorkItemEntity> workItems = WorkItemEntity.<WorkItemEntity>list("callerRef LIKE ?1 ORDER BY createdAt ASC",
                                                            callerRefPrefix + "%");
 
         List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
@@ -139,7 +139,7 @@ public class LifeCaseQueryService {
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
         String callerRefPrefix = "case:" + tracker.engineCaseId + "/";
-        List<WorkItem> workItems = WorkItem.<WorkItem>list("callerRef LIKE ?1",
+        List<WorkItemEntity> workItems = WorkItemEntity.<WorkItemEntity>list("callerRef LIKE ?1",
                                                            callerRefPrefix + "%");
         List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
         if (workItemIds.isEmpty()) {return Optional.of(List.of());}
@@ -207,7 +207,7 @@ public class LifeCaseQueryService {
         return new QueryParts(hql, params);
     }
 
-    private PendingActionResponse toPendingAction(WorkItem wi, Instant now, Map<UUID, LifeCommitmentRecord> commitments) {
+    private PendingActionResponse toPendingAction(WorkItemEntity wi, Instant now, Map<UUID, LifeCommitmentRecord> commitments) {
         LifeDomain domain      = domainFromScope(wi.scope);
         Urgency    urgency     = Urgency.classify(wi.expiresAt, now, 24);
         Long       daysOverdue = Urgency.daysOverdue(wi.expiresAt, now);

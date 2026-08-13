@@ -6,7 +6,7 @@ import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.ledger.HealthDecisionLedgerEntry;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,8 +41,8 @@ class HealthDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_nullContext_doesNotWrite() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
 
         handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter) {
@@ -55,8 +55,8 @@ class HealthDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_completed_savesHealthEntry() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.status = WorkItemStatus.COMPLETED;
         workItem.outcome = "appointment-attended";
@@ -85,8 +85,8 @@ class HealthDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_slaBreach_outcomeIsNull() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.outcome = "should-not-appear";
 
@@ -111,8 +111,8 @@ class HealthDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_completed_callsAttestation() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.outcome = "done";
 

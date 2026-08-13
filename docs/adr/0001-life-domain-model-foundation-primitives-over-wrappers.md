@@ -5,12 +5,12 @@ Status: Accepted
 
 ## Context and Problem Statement
 
-Layer 1 introduced `HouseholdTask`, `LifeGoal`, and `LifeEvent` as JPA entities. Brainstorming for Layer 2 revealed that these entities were thin wrappers over foundation primitives (`WorkItem`, `CaseInstance`, `LedgerEntry`) — duplicating fields that already live in the foundation and adding no domain-specific behaviour. At Layer 5, the engine's `CasePlanModel` would become the coordination record, making these wrappers redundant at that point.
+Layer 1 introduced `HouseholdTask`, `LifeGoal`, and `LifeEvent` as JPA entities. Brainstorming for Layer 2 revealed that these entities were thin wrappers over foundation primitives (`WorkItemEntity`, `CaseInstance`, `LedgerEntry`) — duplicating fields that already live in the foundation and adding no domain-specific behaviour. At Layer 5, the engine's `CasePlanModel` would become the coordination record, making these wrappers redundant at that point.
 
 ## Decision Drivers
 
 * Domain entities that duplicate foundation primitives become redundant as layers progress — the AGENTIC-HARNESS-GUIDE prohibits temporary scaffolding ("code that exists only for the tutorial is wrong code")
-* `HouseholdTask` had no fields that weren't either already in `WorkItem` or expressible through template configuration
+* `HouseholdTask` had no fields that weren't either already in `WorkItemEntity` or expressible through template configuration
 * `LifeGoal` maps cleanly to a `CaseInstance` with domain data in context; `targetDate` = `caseBudgetDeadline`
 * `LifeEvent` maps to a completed case outcome recorded in `CaseLedgerEntry`
 * AML and devtown have no domain wrapper entities — their domain concepts ARE cases and WorkItems
@@ -57,7 +57,7 @@ Chosen option: **Option B**, because the wrapper entities would become redundant
 ### Option C — Rename wrappers
 
 * ✅ Low disruption at Layer 2
-* ❌ Renaming doesn't fix the duplication — a `LifeTask` entity is still a wrapped `WorkItem`
+* ❌ Renaming doesn't fix the duplication — a `LifeTask` entity is still a wrapped `WorkItemEntity`
 
 ## Links
 

@@ -668,7 +668,7 @@ Not closed here: SLA enforcement (Layer 2), commitment tracking (Layer 3), tampe
 #### What it adds
 
 **Before:** `ExternalActor` entity and domain vocabulary exist (Layer 1), but tasks have no SLA, no deadline enforcement, no escalation.
-**After:** `LifeTaskService` creates a `WorkItem` from a named `WorkItemTemplate` and a `LifeTaskContext` supplement in a single `@Transactional` boundary. `LifeSlaBreachPolicy` enforces two-tier stateless SLA escalation.
+**After:** `LifeTaskService` creates a `WorkItemEntity` from a named `WorkItemTemplate` and a `LifeTaskContext` supplement in a single `@Transactional` boundary. `LifeSlaBreachPolicy` enforces two-tier stateless SLA escalation.
 
 - **WorkItem-backed life tasks** — `POST /life-tasks` creates WorkItem + LifeTaskContext atomically; template provides candidateGroups and SLA
 - **Two-tier SLA escalation** — first breach escalates to household-admin; second breach terminates terminally

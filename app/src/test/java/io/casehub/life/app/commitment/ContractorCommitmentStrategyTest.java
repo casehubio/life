@@ -7,7 +7,7 @@ import io.casehub.life.app.LifeTestFixtures;
 import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.entity.LifeTaskContext;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -37,8 +37,8 @@ class ContractorCommitmentStrategyTest {
     @Test
     @Transactional
     void execute_setsDomainFromTaskContext() {
-        final ExternalActor actor = createExternalActor("Test Contractor");
-        final WorkItem workItem = createWorkItem("Contractor domain test");
+        final ExternalActor   actor       = createExternalActor("Test Contractor");
+        final WorkItemEntity  workItem    = createWorkItem("Contractor domain test");
         final LifeTaskContext taskContext = createTaskContext(workItem.id, LifeDomain.CONTRACTOR_COORDINATION);
 
         final CommitmentRequest request = new CommitmentRequest(
@@ -57,8 +57,8 @@ class ContractorCommitmentStrategyTest {
     @Test
     @Transactional
     void execute_setsDomainFromTaskContext_householdDomain() {
-        final ExternalActor actor = createExternalActor("Plumber");
-        final WorkItem workItem = createWorkItem("Household contractor test");
+        final ExternalActor   actor       = createExternalActor("Plumber");
+        final WorkItemEntity  workItem    = createWorkItem("Household contractor test");
         final LifeTaskContext taskContext = createTaskContext(workItem.id, LifeDomain.HOUSEHOLD);
 
         final CommitmentRequest request = new CommitmentRequest(
@@ -84,8 +84,8 @@ class ContractorCommitmentStrategyTest {
         return actor;
     }
 
-    private WorkItem createWorkItem(final String title) {
-        final WorkItem w = new WorkItem();
+    private WorkItemEntity createWorkItem(final String title) {
+        final WorkItemEntity w = new WorkItemEntity();
         w.id = UUID.randomUUID();
         w.title = title;
         w.status = io.casehub.work.api.WorkItemStatus.PENDING;

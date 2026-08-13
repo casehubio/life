@@ -42,7 +42,7 @@ The tutorial structure follows the natural adoption sequence. Each layer adds on
 - **`LifeDomain` enum** (8 values): `HEALTH`, `FINANCE`, `FAMILY_SCHEDULING`, `TRAVEL`, `LEGAL`, `CONTRACTOR_COORDINATION`, `ELDER_CARE`, `HOUSEHOLD`. Each carries a `LifeDomainDescriptor` that defines the domain's capability tag, template category, routing policy, SLA policy, and worker capabilities.
 - **`LifeActorType` enum**: `AI_AGENT`, `HOUSEHOLD_PRINCIPAL`, `EXTERNAL_HUMAN`
 - **`ExternalActor` entity**: contractors, carers, GPs -- contact details, actor type, GDPR-erasable
-- **`LifeTaskContext` entity**: domain supplement persisted alongside each `WorkItem` -- `domain`, `priority`, `externalActorId`, `jurisdiction` (ISO 3166-1/2), deadline context
+- **`LifeTaskContext` entity**: domain supplement persisted alongside each `WorkItemEntity` -- `domain`, `priority`, `externalActorId`, `jurisdiction` (ISO 3166-1/2), deadline context
 - **`LifeCaseTracker` entity**: tracks engine case lifecycle -- `caseType`, `domain`, `status`, `engineCaseId`, `completedAt`
 - **`LifeCommitmentRecord` entity**: persists commitment context -- task id, actor, channel, message correlation, domain, oversight key
 
@@ -148,7 +148,7 @@ Two migration streams using separate datasources:
 
 ## Layer 2 -- casehub-work Integration
 
-- `POST /life-tasks` -- creates `WorkItem` + `LifeTaskContext` atomically via `WorkItemTemplate` lookup
+- `POST /life-tasks` -- creates `WorkItemEntity` + `LifeTaskContext` atomically via `WorkItemTemplate` lookup
 - `GET /life-tasks/{id}` -- returns task with visibility policy enforcement
 - `LifeSlaBreachPolicy` -- implements `casehub-work` `SlaBreachPolicy` SPI; domain-aware escalation: resolves `LifeDomain` from `LifeTaskContext`, delegates to `LifeDomainDescriptor.slaPolicy()` for escalation group and deadline. If the escalation group is already in candidateGroups (tier 2), fails with `life-sla-exhausted`.
 - Activated via `casehub.work.sla.breach-policy=life-sla-breach` in application.properties.
@@ -272,7 +272,7 @@ Dual-path architecture in `LifeCaseService.startCase()`: calls `cbrSuggestionSer
 
 ### Tasks (`LifeTaskResource`, `/life-tasks`)
 
-- `POST /life-tasks` -- creates `WorkItem` + `LifeTaskContext` atomically. Admin or member only.
+- `POST /life-tasks` -- creates `WorkItemEntity` + `LifeTaskContext` atomically. Admin or member only.
 - `GET /life-tasks/{id}` -- returns task with `LifeTaskVisibilityPolicy` enforcement.
 
 ### Commitment (`LifeCommitmentResource`, `/life-tasks/{id}/commit`)

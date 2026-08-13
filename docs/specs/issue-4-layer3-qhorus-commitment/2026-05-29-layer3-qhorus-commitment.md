@@ -39,7 +39,7 @@ Layer 3 adds casehub-qhorus to casehub-life, introducing formal commitment track
 
 ## Qhorus Commitment Auto-Creation
 
-`MessageService.dispatch()` auto-creates a native qhorus `Commitment` when `type=COMMAND && correlationId != null`. The `Commitment.expiresAt` is populated from `MessageDispatch.deadline`. `LifeCommitmentRecord.correlationId` is the supplement link to this native Commitment — the same pattern as `LifeTaskContext.workItemId` linking to the foundation `WorkItem`.
+`MessageService.dispatch()` auto-creates a native qhorus `Commitment` when `type=COMMAND && correlationId != null`. The `Commitment.expiresAt` is populated from `MessageDispatch.deadline`. `LifeCommitmentRecord.correlationId` is the supplement link to this native Commitment — the same pattern as `LifeTaskContext.workItemId` linking to the foundation `WorkItemEntity`.
 
 This means: the life layer generates a `correlationId` (`UUID.randomUUID().toString()`) before dispatch, sets it on the `MessageDispatch`, and uses it as the linking key for everything downstream (Commitment lookup, Watchdog evaluation, observer matching).
 
@@ -67,7 +67,7 @@ Workflow:
 
 `LifeCommitmentStrategy` and its context types live in `app/` (not `api/`), because:
 - `LifeTaskContext` is a JPA entity defined in `app/` — placing it in `api/` creates a circular Maven dependency
-- `WorkItem` carries JPA annotations — it cannot be in the zero-framework `api/` module
+- `WorkItemEntity` carries JPA annotations — it cannot be in the zero-framework `api/` module
 
 These are internal app-layer strategy classes with no external consumers. CDI `Instance<LifeCommitmentStrategy>` collects all registered implementations.
 
@@ -536,7 +536,7 @@ REST integration with qhorus-testing in-memory stores:
 Verifies the bridge:
 1. Insert `LifeCommitmentRecord{mode=OVERSIGHT, PENDING_RESPONSE, pendingTaskJson=...}`
 2. Dispatch a RESPONSE with matching `correlationId` via `MessageService`
-3. Assert `WorkItem` created (via casehub-work store)
+3. Assert `WorkItemEntity` created (via casehub-work store)
 4. Assert `LifeCommitmentRecord.status == FULFILLED`
 5. Assert `LifeCommitmentRecord.workItemId` populated
 

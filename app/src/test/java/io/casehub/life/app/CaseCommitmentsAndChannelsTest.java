@@ -8,7 +8,7 @@ import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -45,7 +45,7 @@ class CaseCommitmentsAndChannelsTest {
         fixedPrincipal.setGroups(java.util.Set.of(HouseholdGroups.ADMIN));
         LifeCommitmentRecord.deleteAll();
         LifeTaskContext.deleteAll();
-        WorkItem.deleteAll();
+        WorkItemEntity.deleteAll();
         LifeCaseTracker.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
 
@@ -119,7 +119,7 @@ class CaseCommitmentsAndChannelsTest {
 
     private UUID seedWorkItem(final String title, final String callerRef,
                                final WorkItemStatus status) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.id = UUID.randomUUID();
         wi.title = title;
         wi.callerRef = callerRef;

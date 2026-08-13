@@ -8,7 +8,7 @@ import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.ledger.FinancialDecisionLedgerEntry;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.identity.ActorType;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -30,7 +30,7 @@ public class FinanceDomainLedgerHandler implements DomainLedgerHandler {
     @Override public LifeDomain domain() { return LifeDomain.FINANCE; }
 
     @Override
-    public void writeEntry(LifeDecisionEventType event, UUID workItemId, WorkItem workItem) {
+    public void writeEntry(LifeDecisionEventType event, UUID workItemId, WorkItemEntity workItem) {
         // CREATED events are commitment-initiated — use writeEntry(event, record) instead
         if (event == LifeDecisionEventType.CREATED) return;
 

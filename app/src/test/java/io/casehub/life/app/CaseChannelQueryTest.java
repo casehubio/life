@@ -9,6 +9,7 @@ import io.casehub.qhorus.api.message.Message;
 import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.api.store.MessageStore;
 import io.casehub.qhorus.runtime.channel.ChannelService;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -46,7 +47,7 @@ class CaseChannelQueryTest {
         LifeCaseTracker.deleteAll();
         io.casehub.life.app.entity.LifeCommitmentRecord.deleteAll();
         io.casehub.life.app.entity.LifeTaskContext.deleteAll();
-        io.casehub.work.runtime.model.WorkItem.deleteAll();
+        WorkItemEntity.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
 
         UUID            engineCaseId = UUID.randomUUID();
@@ -59,8 +60,8 @@ class CaseChannelQueryTest {
         tracker.persist();
         caseTrackerId = tracker.id;
 
-        UUID                                   wiId = UUID.randomUUID();
-        io.casehub.work.runtime.model.WorkItem wi   = new io.casehub.work.runtime.model.WorkItem();
+        UUID           wiId = UUID.randomUUID();
+        WorkItemEntity wi   = new WorkItemEntity();
         wi.id              = wiId;
         wi.title           = "Request Quote";
         wi.callerRef       = "case:" + engineCaseId + "/pi:request-quote";

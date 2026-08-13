@@ -7,7 +7,7 @@ import io.casehub.life.app.observer.LifeWatchdogAlertObserver;
 import io.casehub.qhorus.api.watchdog.ApprovalPendingContext;
 import io.casehub.qhorus.api.watchdog.ChannelIdleContext;
 import io.casehub.qhorus.api.watchdog.WatchdogAlertEvent;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -54,7 +54,7 @@ class LifeWatchdogAlertObserverTest {
     void onAlert_delegation_createsEscalationTaskWithDelegateTitleAndMarksExpired() {
         final String correlationId = insertRecord("life/del-obs-happy", CommitmentMode.DELEGATION,
                 r -> r.delegateTo = "alice");
-        final long workItemsBefore = WorkItem.count();
+        final long workItemsBefore = WorkItemEntity.count();
 
         observer.onAlert(approvalPendingEvent("life/del-obs-happy"));
 
@@ -62,7 +62,7 @@ class LifeWatchdogAlertObserverTest {
                 .findByCorrelationId(correlationId)
                 .orElseThrow();
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
-        assertThat(WorkItem.count()).isEqualTo(workItemsBefore + 1);
+        assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("alice has not confirmed — action required");
     }
 
@@ -70,7 +70,7 @@ class LifeWatchdogAlertObserverTest {
     void onAlert_contractor_createsEscalationTaskAndMarksExpired() {
         final String correlationId = insertRecord("life/del-obs-contractor", CommitmentMode.CONTRACTOR,
                 r -> r.externalActorId = UUID.randomUUID());
-        final long workItemsBefore = WorkItem.count();
+        final long workItemsBefore = WorkItemEntity.count();
 
         observer.onAlert(approvalPendingEvent("life/del-obs-contractor"));
 
@@ -78,7 +78,7 @@ class LifeWatchdogAlertObserverTest {
                 .findByCorrelationId(correlationId)
                 .orElseThrow();
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
-        assertThat(WorkItem.count()).isEqualTo(workItemsBefore + 1);
+        assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("Contractor has not confirmed by deadline");
     }
 
@@ -91,7 +91,7 @@ class LifeWatchdogAlertObserverTest {
                     r.amountThreshold = java.math.BigDecimal.valueOf(5000);
                     r.purchaseCategory = "vehicle";
                 });
-        final long workItemsBefore = WorkItem.count();
+        final long workItemsBefore = WorkItemEntity.count();
 
         observer.onAlert(approvalPendingEvent("life/del-obs-oversight"));
 
@@ -99,7 +99,7 @@ class LifeWatchdogAlertObserverTest {
                 .findByCorrelationId(correlationId)
                 .orElseThrow();
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
-        assertThat(WorkItem.count()).isEqualTo(workItemsBefore + 1);
+        assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("Oversight gate expired — request not approved");
     }
 
@@ -111,11 +111,11 @@ class LifeWatchdogAlertObserverTest {
         // Colon no longer triggers oversight template — it is treated as a regular delegate name.
         final String correlationId = insertRecord("life/del-obs-colon", CommitmentMode.DELEGATION,
                 r -> r.delegateTo = "life:system-key");
-        final long workItemsBefore = WorkItem.count();
+        final long workItemsBefore = WorkItemEntity.count();
 
         observer.onAlert(approvalPendingEvent("life/del-obs-colon"));
 
-        assertThat(WorkItem.count()).isEqualTo(workItemsBefore + 1);
+        assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("life:system-key has not confirmed — action required");
     }
 
@@ -123,7 +123,7 @@ class LifeWatchdogAlertObserverTest {
     void onAlert_delegation_nullDelegateTo_createsEscalationWithFallbackTitle() {
         final String correlationId = insertRecord("life/del-obs-null-delegate", CommitmentMode.DELEGATION,
                 r -> r.delegateTo = null);
-        final long workItemsBefore = WorkItem.count();
+        final long workItemsBefore = WorkItemEntity.count();
 
         observer.onAlert(approvalPendingEvent("life/del-obs-null-delegate"));
 
@@ -131,7 +131,7 @@ class LifeWatchdogAlertObserverTest {
                 .findByCorrelationId(correlationId)
                 .orElseThrow();
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
-        assertThat(WorkItem.count()).isEqualTo(workItemsBefore + 1);
+        assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("Unknown has not confirmed — action required");
     }
 
@@ -141,7 +141,7 @@ class LifeWatchdogAlertObserverTest {
     void onAlert_nonApprovalPendingCondition_doesNotProcessCommitments() {
         final String correlationId = insertRecord("life/del-obs-idle", CommitmentMode.DELEGATION,
                 r -> r.delegateTo = "bob");
-        final long workItemsBefore = WorkItem.count();
+        final long workItemsBefore = WorkItemEntity.count();
 
         observer.onAlert(new WatchdogAlertEvent(
                 UUID.randomUUID(), "life-watchdog", "life/del-obs-idle",
@@ -153,7 +153,7 @@ class LifeWatchdogAlertObserverTest {
                 .findByCorrelationId(correlationId)
                 .orElseThrow();
         assertThat(unchanged.status).isEqualTo(CommitmentStatus.PENDING_RESPONSE);
-        assertThat(WorkItem.count()).isEqualTo(workItemsBefore);
+        assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore);
     }
 
     // --- Robustness: future deadline records are not processed ---
@@ -212,9 +212,9 @@ class LifeWatchdogAlertObserverTest {
     }
 
     private String latestWorkItemTitle() {
-        return WorkItem.<WorkItem>listAll().stream()
-                .max(java.util.Comparator.comparing(w -> w.createdAt))
-                .map(w -> w.title)
-                .orElse(null);
+        return WorkItemEntity.<WorkItemEntity>listAll().stream()
+                             .max(java.util.Comparator.comparing(w -> w.createdAt))
+                             .map(w -> w.title)
+                             .orElse(null);
     }
 }

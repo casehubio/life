@@ -6,7 +6,7 @@ import io.casehub.life.api.response.BriefingResponse;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -28,20 +28,20 @@ public class DashboardService {
         List<BriefingItem> items     = new ArrayList<>();
         String             tenancyId = principal.tenancyId();
 
-        List<WorkItem> overdue = WorkItem.list(
+        List<WorkItemEntity> overdue = WorkItemEntity.list(
                 "tenancyId = ?1 and status in (?2, ?3) and expiresAt < ?4",
                 tenancyId, WorkItemStatus.PENDING, WorkItemStatus.IN_PROGRESS, Instant.now());
-        for (WorkItem wi : overdue) {
+        for (WorkItemEntity wi : overdue) {
             LifeDomain domain = resolveDomain(wi);
             items.add(new BriefingItem(wi.title + " — overdue", domain, "sla-breach"));
         }
 
         Instant endOfDay = Instant.now().plusSeconds(
                 LocalTime.of(23, 59).toSecondOfDay() - LocalTime.now().toSecondOfDay());
-        List<WorkItem> dueToday = WorkItem.list(
+        List<WorkItemEntity> dueToday = WorkItemEntity.list(
                 "tenancyId = ?1 and status in (?2, ?3) and expiresAt >= ?4 and expiresAt <= ?5",
                 tenancyId, WorkItemStatus.PENDING, WorkItemStatus.IN_PROGRESS, Instant.now(), endOfDay);
-        for (WorkItem wi : dueToday) {
+        for (WorkItemEntity wi : dueToday) {
             LifeDomain domain = resolveDomain(wi);
             items.add(new BriefingItem(wi.title + " — due today", domain, "action"));
         }
@@ -54,7 +54,7 @@ public class DashboardService {
         return "Good " + timeOfDay;
     }
 
-    private LifeDomain resolveDomain(WorkItem wi) {
+    private LifeDomain resolveDomain(WorkItemEntity wi) {
         return LifeTaskContext.findByIdOptional(wi.id)
                 .map(ctx -> ((LifeTaskContext) ctx).domain)
                 .orElse(LifeDomain.HOUSEHOLD);

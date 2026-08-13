@@ -3,7 +3,7 @@ package io.casehub.life.app;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
@@ -25,7 +25,7 @@ class PendingActionsTest {
     @Transactional
     void seed() {
         LifeTaskContext.deleteAll();
-        WorkItem.deleteAll();
+        WorkItemEntity.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
     }
 
@@ -227,7 +227,7 @@ class PendingActionsTest {
     @Transactional
     void seedWorkItem(String title, WorkItemStatus status, String scope,
                       String candidateGroups, Instant expiresAt, LifeDomain domain) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.title = title;
         wi.status = status;
         wi.scope = scope;

@@ -91,7 +91,7 @@ The `caseId` (engine case ID) links to WorkItems via `callerRef`. Engine-created
 WorkItems have `callerRef` in the format `case:{caseId}/pi:{planItemId}` (generated
 by `PlanItemCallerRef.encode()`). The resolution path:
 
-1. Query `WorkItem` entities where `callerRef LIKE 'case:{caseId}/%'`
+1. Query `WorkItemEntity` entities where `callerRef LIKE 'case:{caseId}/%'`
 2. For each matching WorkItem, look up `LifeTaskContext.findByIdOptional(workItem.id)`
 3. Collect non-null `externalActorId` values
 4. Resolve channel IDs via `LifeChannelInitializer.channelIdFor("life/actor/ext-" + externalActorId)`
@@ -172,7 +172,7 @@ Mock `ChannelService` and `MessageStore`. Verify:
 - Call `gatherContext(caseId)` and assert messages appear in returned map
 
 **Actor channel resolution path:**
-- Create a `WorkItem` with `callerRef` in `case:{caseId}/pi:...` format
+- Create a `WorkItemEntity` with `callerRef` in `case:{caseId}/pi:...` format
 - Persist a `LifeTaskContext` for that WorkItem with non-null `externalActorId`
 - Ensure the actor channel exists via `LifeChannelInitializer.ensureActorChannel(externalActorId)`
 - Dispatch a message to the actor channel

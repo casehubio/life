@@ -9,7 +9,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.ledger.LegalActionLedgerEntry;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.identity.ActorType;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -42,7 +42,7 @@ public class LegalDomainLedgerHandler implements DomainLedgerHandler {
     @Override public LifeDomain domain() { return LifeDomain.LEGAL; }
 
     @Override
-    public void writeEntry(LifeDecisionEventType event, UUID workItemId, WorkItem workItem) {
+    public void writeEntry(LifeDecisionEventType event, UUID workItemId, WorkItemEntity workItem) {
         Optional<LifeTaskContext> ctxOpt = findContext(workItemId);
         if (ctxOpt.isEmpty()) {
             LOG.warnf("LegalDomainLedgerHandler: no LifeTaskContext for workItemId=%s — skipping ledger write", workItemId);

@@ -6,7 +6,7 @@ import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.life.app.ledger.FinancialDecisionLedgerEntry;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +40,7 @@ class FinanceDomainLedgerHandlerTest {
 
     @Test void writeEntry_task_created_isNoOp() {
         UUID taskId = UUID.randomUUID();
-        handler.writeEntry(LifeDecisionEventType.CREATED, taskId, new WorkItem());
+        handler.writeEntry(LifeDecisionEventType.CREATED, taskId, new WorkItemEntity());
         verify(ledgerRepository, never()).save(any(), any());
     }
 
@@ -51,7 +51,7 @@ class FinanceDomainLedgerHandlerTest {
         record.amountThreshold = BigDecimal.valueOf(500);
         record.purchaseCategory = "appliance";
 
-        WorkItem workItem = new WorkItem();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
 
         handler = new FinanceDomainLedgerHandler(ledgerRepository) {
@@ -90,7 +90,7 @@ class FinanceDomainLedgerHandlerTest {
         when(ledgerRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
         when(ledgerRepository.save(any(), any())).thenAnswer(i -> i.getArgument(0));
 
-        handler.writeEntry(LifeDecisionEventType.COMPLETED, taskId, new WorkItem());
+        handler.writeEntry(LifeDecisionEventType.COMPLETED, taskId, new WorkItemEntity());
 
         ArgumentCaptor<LedgerEntry> captor = ArgumentCaptor.forClass(LedgerEntry.class);
         verify(ledgerRepository).save(captor.capture(), any());
@@ -106,7 +106,7 @@ class FinanceDomainLedgerHandlerTest {
             }
         };
 
-        handler.writeEntry(LifeDecisionEventType.SLA_BREACH, UUID.randomUUID(), new WorkItem());
+        handler.writeEntry(LifeDecisionEventType.SLA_BREACH, UUID.randomUUID(), new WorkItemEntity());
         verify(ledgerRepository, never()).save(any(), any());
     }
 

@@ -71,7 +71,7 @@ Keep all non-CurrentPrincipal exclusions unchanged.
 
 ### appointmentDate — REMOVE
 
-`HealthDecisionLedgerEntry.appointmentDate` has no data source. `BookingResult` (health agent response schema) has `appointmentId`, `provider`, `confirmed` — no date/time. `WorkItem`, `LifeTaskContext`, and `CreateLifeTaskRequest` have no appointment-specific date field. The field was premature — added to the schema before a population path existed.
+`HealthDecisionLedgerEntry.appointmentDate` has no data source. `BookingResult` (health agent response schema) has `appointmentId`, `provider`, `confirmed` — no date/time. `WorkItemEntity`, `LifeTaskContext`, and `CreateLifeTaskRequest` have no appointment-specific date field. The field was premature — added to the schema before a population path existed.
 
 Changes:
 - Remove `appointmentDate` field and `@Column` from `HealthDecisionLedgerEntry`
@@ -257,7 +257,7 @@ public class JuniorLifeTaskVisibilityPolicy implements LifeTaskVisibilityPolicy 
 - `String assigneeId` (nullable — null if unassigned)
 - `List<String> candidateGroups`
 
-These fields are populated by `LifeTaskService.get()` from the already-loaded `WorkItem`. No additional database fetch required — the service already loads `WorkItem` to build the response.
+These fields are populated by `LifeTaskService.get()` from the already-loaded `WorkItemEntity`. No additional database fetch required — the service already loads `WorkItemEntity` to build the response.
 
 **`LifeTaskResource.get()`** — inject `LifeTaskVisibilityPolicy` and `CurrentPrincipal`:
 - After `lifeTaskService.get(id)` returns, call `policy.isVisible(response, principal.actorId(), principal.groups())`

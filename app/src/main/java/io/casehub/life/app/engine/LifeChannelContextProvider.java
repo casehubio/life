@@ -6,7 +6,7 @@ import io.casehub.qhorus.api.message.Message;
 import io.casehub.qhorus.api.store.MessageStore;
 import io.casehub.qhorus.api.store.query.MessageQuery;
 import io.casehub.qhorus.runtime.channel.ChannelService;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -83,11 +83,11 @@ public class LifeChannelContextProvider {
     }
 
     protected Map<String, String> resolveActorChannels(UUID caseId) {
-        String callerRefPrefix = "case:" + caseId + "/";
-        List<WorkItem> workItems = WorkItem.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        String               callerRefPrefix = "case:" + caseId + "/";
+        List<WorkItemEntity> workItems       = WorkItemEntity.list("callerRef LIKE ?1", callerRefPrefix + "%");
 
         Map<String, String> actorChannels = new LinkedHashMap<>();
-        for (WorkItem wi : workItems) {
+        for (WorkItemEntity wi : workItems) {
             LifeTaskContext.findByIdOptional(wi.id)
                     .map(obj -> (LifeTaskContext) obj)
                     .filter(ctx -> ctx.externalActorId != null)

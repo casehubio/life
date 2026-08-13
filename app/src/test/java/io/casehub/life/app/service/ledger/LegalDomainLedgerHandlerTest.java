@@ -6,7 +6,7 @@ import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.ledger.LegalActionLedgerEntry;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,8 +40,8 @@ class LegalDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_nullContext_doesNotWrite() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
 
         handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter) {
@@ -54,8 +54,8 @@ class LegalDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_slaBreach_savesLegalEntry() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.title = "File tax return";
         workItem.status = WorkItemStatus.EXPIRED;
@@ -84,8 +84,8 @@ class LegalDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_populatesJurisdictionFromConfig() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.title = "File tax return";
 
@@ -111,8 +111,8 @@ class LegalDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_usesContextJurisdiction_whenPresent() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.title = "File immigration paperwork";
 
@@ -139,8 +139,8 @@ class LegalDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_fallsBackToConfig_whenContextJurisdictionNull() {
-        UUID taskId = UUID.randomUUID();
-        WorkItem workItem = new WorkItem();
+        UUID           taskId   = UUID.randomUUID();
+        WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
         workItem.title = "File tax return";
 
