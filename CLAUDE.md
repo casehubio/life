@@ -2,15 +2,15 @@
 
 **Name:** casehub-life
 
-**Physical path:** /Users/mdproctor/claude/casehub/life/CLAUDE.md
-**Symlinked at:** /Users/mdproctor/claude/public/casehub/life/CLAUDE.md
-**Project repo:** /Users/mdproctor/claude/casehub/life
-**Workspace:** /Users/mdproctor/claude/public/casehub/life
+**Physical path:** /Users/mdproctor/claude/casehub/slots/194/life/CLAUDE.md
+**Symlinked at:** /Users/mdproctor/claude/casehub/slots/194/wsp-casehub-life/CLAUDE.md
+**Project repo:** /Users/mdproctor/claude/casehub/slots/194/life
+**Workspace:** /Users/mdproctor/claude/casehub/slots/194/wsp-casehub-life
 **Workspace type:** public
 
 ## Session Start
 
-Run `add-dir /Users/mdproctor/claude/casehub/life` before any other work.
+Run `add-dir /Users/mdproctor/claude/casehub/slots/194/life` before any other work.
 
 ## Artifact Locations
 
@@ -39,8 +39,8 @@ Run `add-dir /Users/mdproctor/claude/casehub/life` before any other work.
 ## Git Discipline
 
 Two git repositories are active in every session:
-- **Workspace** (`/Users/mdproctor/claude/public/casehub/life`) — methodology artifacts: handover, blog, specs, plans, ADRs
-- **Project repo** (`/Users/mdproctor/claude/casehub/life`) — source code
+- **Workspace** (`/Users/mdproctor/claude/casehub/slots/194/wsp-casehub-life`) — methodology artifacts: handover, blog, specs, plans, ADRs
+- **Project repo** (`/Users/mdproctor/claude/casehub/slots/194/life`) — source code
 
 Before any git operation, run `git rev-parse --show-toplevel` to confirm which repo is currently active. Do not assume — the session may have opened in either. cd to the correct repo before staging:
 - Source code commits → project repo
@@ -60,15 +60,15 @@ Every other casehubio repo is a peer repo with its own Claude session.
 
 Peer repos (never commit or push to these from this session):
 - `/Users/mdproctor/claude/casehub/parent` and all paths under it
-- `/Users/mdproctor/claude/casehub/engine`
-- `/Users/mdproctor/claude/casehub/ledger`
-- `/Users/mdproctor/claude/casehub/work`
+- `/Users/mdproctor/claude/casehub/slots/194/engine`
+- `/Users/mdproctor/claude/casehub/slots/194/ledger`
+- `/Users/mdproctor/claude/casehub/slots/194/work`
 - `/Users/mdproctor/claude/casehub/qhorus`
-- `/Users/mdproctor/claude/casehub/connectors`
-- `/Users/mdproctor/claude/casehub/devtown`
-- `/Users/mdproctor/claude/casehub/aml`
-- `/Users/mdproctor/claude/casehub/clinical`
-- `/Users/mdproctor/claude/casehub/openclaw` (casehub-openclaw)
+- `/Users/mdproctor/claude/casehub/slots/194/connectors`
+- `/Users/mdproctor/claude/casehub/slots/194/devtown`
+- `/Users/mdproctor/claude/casehub/slots/194/aml`
+- `/Users/mdproctor/claude/casehub/slots/194/clinical`
+- `/Users/mdproctor/claude/casehub/slots/194/openclaw` (casehub-openclaw)
 - Any other sibling directory under `/Users/mdproctor/claude/casehub/`
 
 **When a cross-repo doc change is needed** (e.g. `docs/PLATFORM.md`,
