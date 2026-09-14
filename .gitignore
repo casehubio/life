@@ -10,3 +10,8 @@ proj
 .playwright-mcp
 packages
 .mvn
+.mvn/maven.config
+.mvn/slot-settings.xml
+.worktrees
+.worktrees/
+.claude/
