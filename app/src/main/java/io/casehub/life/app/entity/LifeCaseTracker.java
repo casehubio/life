@@ -2,7 +2,6 @@ package io.casehub.life.app.entity;
 
 import io.casehub.life.api.LifeCaseStatus;
 import io.casehub.life.api.LifeDomain;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,7 +17,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "life_case_tracker")
-public class LifeCaseTracker extends PanacheEntityBase {
+public class LifeCaseTracker  {
 
     @Id
     public UUID id;

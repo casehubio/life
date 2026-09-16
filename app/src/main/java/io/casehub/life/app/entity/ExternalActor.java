@@ -1,7 +1,6 @@
 package io.casehub.life.app.entity;
 
 import io.casehub.life.api.LifeActorType;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "external_actor")
-public class ExternalActor extends PanacheEntityBase {
+public class ExternalActor {
 
     @Id
     public UUID id;
