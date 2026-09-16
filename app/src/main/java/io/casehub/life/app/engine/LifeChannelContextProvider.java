@@ -9,6 +9,7 @@ import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -29,15 +30,18 @@ public class LifeChannelContextProvider {
     private final ChannelService channelService;
     private final MessageStore messageStore;
     private final int messageLimit;
+    private final EntityManager em;
 
     @Inject
     public LifeChannelContextProvider(
             ChannelService channelService,
             MessageStore messageStore,
+            EntityManager em,
             @ConfigProperty(name = "casehub.life.channel-context.message-limit", defaultValue = "10")
             int messageLimit) {
         this.channelService = channelService;
         this.messageStore = messageStore;
+        this.em = em;
         this.messageLimit = messageLimit;
     }
 
@@ -88,8 +92,7 @@ public class LifeChannelContextProvider {
 
         Map<String, String> actorChannels = new LinkedHashMap<>();
         for (WorkItemEntity wi : workItems) {
-            LifeTaskContext.findByIdOptional(wi.id)
-                    .map(obj -> (LifeTaskContext) obj)
+            Optional.ofNullable(em.find(LifeTaskContext.class, wi.id))
                     .filter(ctx -> ctx.externalActorId != null)
                     .ifPresent(ctx -> {
                         String channelName = "life/actor/ext-" + ctx.externalActorId;

@@ -7,10 +7,13 @@ import io.casehub.life.api.Urgency;
 import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.api.response.PendingActionResponse;
 import io.casehub.life.app.entity.LifeTaskContext;
+import io.casehub.life.api.commitment.CommitmentStatus;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
@@ -22,6 +25,9 @@ import java.util.List;
 
 @ApplicationScoped
 public class PendingActionsService {
+
+    @Inject
+    EntityManager em;
 
     private static final String LIFE_SCOPE_PREFIX = "casehubio/life/";
     private static final List<WorkItemStatus> ACTIONABLE_STATUSES = List.of(
@@ -89,7 +95,10 @@ public class PendingActionsService {
     static final String ESCALATION_CALLER_REF = "life:task/life-escalation";
 
     private ActionType resolveActionType(final UUID workItemId) {
-        return LifeCommitmentRecord.findByWorkItemId(workItemId)
+        return em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                                   .setParameter("workItemId", workItemId)
+                                   .setParameter("excludedStatus", CommitmentStatus.EXPIRED)
+                                   .getResultStream().findFirst()
                                    .map(rec -> switch (rec.mode) {
                                        case OVERSIGHT -> ActionType.OVERSIGHT_GATE;
                                        case DELEGATION -> ActionType.DELEGATION;
@@ -105,7 +114,7 @@ public class PendingActionsService {
 
 
     private LifeDomain resolveDomain(WorkItemEntity wi) {
-        return LifeTaskContext.<LifeTaskContext>findByIdOptional(wi.id)
+        return java.util.Optional.ofNullable(em.find(LifeTaskContext.class, wi.id))
                 .map(ctx -> ctx.domain)
                 .orElseGet(() -> domainFromScope(wi.scope));
     }

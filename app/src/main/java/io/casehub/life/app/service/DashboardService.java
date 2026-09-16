@@ -9,18 +9,23 @@ import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class DashboardService {
 
     @Inject
     CurrentPrincipal principal;
+
+    @Inject
+    EntityManager em;
 
     @Transactional
     public BriefingResponse buildBriefing() {
@@ -55,8 +60,8 @@ public class DashboardService {
     }
 
     private LifeDomain resolveDomain(WorkItemEntity wi) {
-        return LifeTaskContext.findByIdOptional(wi.id)
-                .map(ctx -> ((LifeTaskContext) ctx).domain)
+        return Optional.ofNullable(em.find(LifeTaskContext.class, wi.id))
+                .map(ctx -> ctx.domain)
                 .orElse(LifeDomain.HOUSEHOLD);
     }
 }

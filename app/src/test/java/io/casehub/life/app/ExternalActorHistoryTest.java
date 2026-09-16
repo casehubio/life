@@ -30,6 +30,8 @@ class ExternalActorHistoryTest {
 
     private static final UUID ACTOR_ID = UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001");
 
+    @Inject EntityManager em;
+
     @Inject
     @io.quarkus.hibernate.orm.PersistenceUnit("qhorus")
     EntityManager qhorusEm;
@@ -37,8 +39,8 @@ class ExternalActorHistoryTest {
     @BeforeEach
     @Transactional
     void seed() {
-        ExternalActor.deleteAll();
-        LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM ExternalActor").executeUpdate();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
 
         ExternalActor actor = new ExternalActor();
@@ -47,7 +49,7 @@ class ExternalActorHistoryTest {
         actor.actorType = LifeActorType.EXTERNAL_HUMAN;
         actor.contactMethod = "phone";
         actor.contactValue = "07700900001";
-        actor.persist();
+        em.persist(actor);
 
         LifeTestFixtures.seedStandardTemplates();
         qhorusEm.createQuery("DELETE FROM LedgerAttestation").executeUpdate();
@@ -208,7 +210,7 @@ class ExternalActorHistoryTest {
         ctx.workItemId = wi.id;
         ctx.domain = domain;
         ctx.externalActorId = actorId;
-        ctx.persist();
+        em.persist(ctx);
 
         return wi.id;
     }
@@ -219,6 +221,6 @@ class ExternalActorHistoryTest {
         ctx.workItemId = UUID.randomUUID();
         ctx.domain = domain;
         ctx.externalActorId = actorId;
-        ctx.persist();
+        em.persist(ctx);
     }
 }

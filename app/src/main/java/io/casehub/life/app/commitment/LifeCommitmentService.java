@@ -13,10 +13,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -25,6 +27,9 @@ public class LifeCommitmentService {
     @Inject
     @Any
     Instance<LifeCommitmentStrategy> strategies;
+
+    @Inject
+    EntityManager em;
 
     /**
      * Applies a delegation or contractor commitment to an existing task.
@@ -44,20 +49,21 @@ public class LifeCommitmentService {
         final WorkItemEntity workItem = WorkItemEntity.findByIdOptional(workItemId)
                                                       .map(o -> (WorkItemEntity) o)
                                                       .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
-        final LifeTaskContext taskContext = (LifeTaskContext) LifeTaskContext
-                .findByIdOptional(workItemId)
+        final LifeTaskContext taskContext = Optional.ofNullable(em.find(LifeTaskContext.class, workItemId))
                 .orElseThrow(() -> new WebApplicationException("LifeTaskContext not found: " + workItemId, 404));
 
         // Duplicate guard: reject if a non-expired commitment already exists for this task.
-        if (LifeCommitmentRecord.findByWorkItemId(workItemId).isPresent()) {
+        if (em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", workItemId)
+                .setParameter("excludedStatus", CommitmentStatus.EXPIRED)
+                .getResultStream().findFirst().isPresent()) {
             throw new CommitmentConflictException("A commitment already exists for task: " + workItemId);
         }
 
         // Load ExternalActor if needed, validate it exists.
         ExternalActor externalActor = null;
         if (hasExternalActor) {
-            externalActor = ExternalActor.findByIdOptional(request.externalActorId())
-                    .map(o -> (ExternalActor) o)
+            externalActor = Optional.ofNullable(em.find(ExternalActor.class, request.externalActorId()))
                     .orElseThrow(() -> new WebApplicationException(
                             "ExternalActor not found: " + request.externalActorId(), 422));
         }
@@ -94,7 +100,10 @@ public class LifeCommitmentService {
      * Returns the active commitment status for a task, or null if none.
      */
     public CommitmentStatus getStatusForTask(final UUID workItemId) {
-        return LifeCommitmentRecord.findByWorkItemId(workItemId)
+        return em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", workItemId)
+                .setParameter("excludedStatus", CommitmentStatus.EXPIRED)
+                .getResultStream().findFirst()
                 .map(r -> r.status)
                 .orElse(null);
     }
@@ -103,7 +112,10 @@ public class LifeCommitmentService {
      * Returns the active commitment mode for a task, or null if none.
      */
     public CommitmentMode getModeForTask(final UUID workItemId) {
-        return LifeCommitmentRecord.findByWorkItemId(workItemId)
+        return em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", workItemId)
+                .setParameter("excludedStatus", CommitmentStatus.EXPIRED)
+                .getResultStream().findFirst()
                 .map(r -> r.mode)
                 .orElse(null);
     }

@@ -7,9 +7,17 @@ import io.casehub.work.api.BreachDecision;
 import io.casehub.work.api.SlaBreachContext;
 import io.casehub.work.api.spi.SlaBreachPolicy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+
+import java.util.Optional;
 
 @ApplicationScoped
 public class LifeSlaBreachPolicy implements SlaBreachPolicy {
+
+    @Inject
+    EntityManager em;
+
     @Override
     public String id() {
         return "life-sla-breach";
@@ -32,7 +40,7 @@ public class LifeSlaBreachPolicy implements SlaBreachPolicy {
     // Protected for unit-test override — BreachedTask only exposes taskId/callerRef/title/candidateGroups,
     // so the domain must be looked up via LifeTaskContext.
     protected LifeDomain resolveDomain(SlaBreachContext ctx) {
-        return LifeTaskContext.<LifeTaskContext>findByIdOptional(ctx.task().taskId())
+        return Optional.ofNullable(em.find(LifeTaskContext.class, ctx.task().taskId()))
                 .map(tc -> tc.domain)
                 .orElse(LifeDomain.HOUSEHOLD);
     }

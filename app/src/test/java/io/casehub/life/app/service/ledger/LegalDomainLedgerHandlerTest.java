@@ -27,12 +27,13 @@ class LegalDomainLedgerHandlerTest {
 
     @Mock LedgerEntryRepository ledgerRepository;
     @Mock LifeOutcomeAttestationWriter attestationWriter;
+    @Mock jakarta.persistence.EntityManager em;
 
     LegalDomainLedgerHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter);
+        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter, em);
     }
 
     @Test void domain_isLegal() {
@@ -44,7 +45,7 @@ class LegalDomainLedgerHandlerTest {
         WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
 
-        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.empty();
             }
@@ -64,7 +65,7 @@ class LegalDomainLedgerHandlerTest {
         ctx.workItemId = taskId;
         ctx.domain = LifeDomain.LEGAL;
 
-        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }
@@ -93,7 +94,7 @@ class LegalDomainLedgerHandlerTest {
         ctx.workItemId = taskId;
         ctx.domain = LifeDomain.LEGAL;
 
-        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }
@@ -121,7 +122,7 @@ class LegalDomainLedgerHandlerTest {
         ctx.domain = LifeDomain.LEGAL;
         ctx.jurisdiction = "US-CA";
 
-        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }
@@ -149,7 +150,7 @@ class LegalDomainLedgerHandlerTest {
         ctx.domain = LifeDomain.LEGAL;
         ctx.jurisdiction = null;
 
-        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new LegalDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }

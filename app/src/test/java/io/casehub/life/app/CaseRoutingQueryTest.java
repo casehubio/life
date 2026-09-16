@@ -10,6 +10,7 @@ import io.casehub.platform.api.identity.ActorType;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ class CaseRoutingQueryTest {
 
     @Inject LedgerEntryRepository ledgerEntryRepository;
     @Inject io.casehub.platform.testing.FixedCurrentPrincipal fixedPrincipal;
+    @Inject EntityManager em;
 
     private UUID caseTrackerId;
     private UUID engineCaseId;
@@ -42,7 +44,7 @@ class CaseRoutingQueryTest {
     @Transactional
     void seed() {
         fixedPrincipal.setGroups(Set.of("household-admin"));
-        LifeCaseTracker.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
         engineCaseId = UUID.randomUUID();
@@ -52,7 +54,7 @@ class CaseRoutingQueryTest {
         tracker.status = LifeCaseStatus.ACTIVE;
         tracker.engineCaseId = engineCaseId;
         tracker.createdAt = Instant.now();
-        tracker.persist();
+        em.persist(tracker);
         caseTrackerId = tracker.id;
 
         seedWorkerDecision(engineCaseId, "quote-worker", "contractor-coordination", 0.85, 0.7, 1);
@@ -64,7 +66,7 @@ class CaseRoutingQueryTest {
         emptyCase.status = LifeCaseStatus.ACTIVE;
         emptyCase.engineCaseId = UUID.randomUUID();
         emptyCase.createdAt = Instant.now();
-        emptyCase.persist();
+        em.persist(emptyCase);
         emptyCaseTrackerId = emptyCase.id;
     }
 

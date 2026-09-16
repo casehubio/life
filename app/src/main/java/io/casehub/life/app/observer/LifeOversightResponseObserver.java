@@ -14,6 +14,7 @@ import io.casehub.qhorus.api.gateway.MessageReceivedEvent;
 import io.casehub.qhorus.api.message.MessageType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
@@ -40,6 +41,9 @@ public class LifeOversightResponseObserver implements MessageObserver {
     @Inject
     ObjectMapper objectMapper;
 
+    @Inject
+    EntityManager em;
+
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onMessage(final MessageReceivedEvent event) {
@@ -48,7 +52,9 @@ public class LifeOversightResponseObserver implements MessageObserver {
         if (!LifeChannelInitializer.OVERSIGHT_CHANNEL.equals(event.channelName())) return;
         if (event.correlationId() == null) return;
 
-        LifeCommitmentRecord.findByCorrelationId(event.correlationId())
+        em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", event.correlationId())
+                .getResultStream().findFirst()
                 .filter(r -> r.mode == CommitmentMode.OVERSIGHT
                         && r.status == CommitmentStatus.PENDING_RESPONSE)
                 .ifPresent(record -> {
@@ -60,7 +66,6 @@ public class LifeOversightResponseObserver implements MessageObserver {
                         record.workItemId = created.workItemId();
                         record.status = CommitmentStatus.FULFILLED;
                         record.updatedAt = Instant.now();
-                        record.persist();
                     } catch (JsonProcessingException e) {
                         LOG.errorf(e,
                                 "Failed to deserialize pendingTaskJson for oversight correlationId %s — gate remains PENDING_RESPONSE",

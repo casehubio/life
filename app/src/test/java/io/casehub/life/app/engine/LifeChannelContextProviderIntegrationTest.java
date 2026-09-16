@@ -14,6 +14,7 @@ import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class LifeChannelContextProviderIntegrationTest {
     @Inject LifeChannelInitializer channelInitializer;
     @Inject MessageService messageService;
     @Inject WorkItemService workItemService;
+    @Inject EntityManager em;
 
     @BeforeEach
     @Transactional
@@ -88,7 +90,7 @@ class LifeChannelContextProviderIntegrationTest {
         ctx.workItemId = wi.id;
         ctx.domain = LifeDomain.CONTRACTOR_COORDINATION;
         ctx.externalActorId = externalActorId;
-        ctx.persist();
+        em.persist(ctx);
 
         UUID actorChannelId = channelInitializer.ensureActorChannel(externalActorId);
         messageService.dispatch(MessageDispatch.builder()

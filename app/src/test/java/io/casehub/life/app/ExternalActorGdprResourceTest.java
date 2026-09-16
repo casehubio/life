@@ -13,6 +13,7 @@ import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ class ExternalActorGdprResourceTest {
     @Inject LedgerEntryRepository ledgerRepository;
     @Inject WorkItemService workItemService;
     @Inject FixedCurrentPrincipal fixedPrincipal;
+    @Inject EntityManager em;
 
     @BeforeEach
     @Transactional
@@ -61,7 +63,7 @@ class ExternalActorGdprResourceTest {
                 .body("ledgerEntriesAffected", notNullValue())
                 .body("tokenisationEnabled", equalTo(true));
 
-        final ExternalActor persisted = ExternalActor.findById(actorId);
+        final ExternalActor persisted = em.find(ExternalActor.class, actorId);
         assertThat(persisted.name).isEqualTo("[ERASED]");
         assertThat(persisted.contactValue).isEqualTo("[ERASED]");
         assertThat(persisted.gdprErasedAt).isNotNull();
@@ -153,7 +155,7 @@ class ExternalActorGdprResourceTest {
         actor.actorType = LifeActorType.EXTERNAL_HUMAN;
         actor.contactMethod = "phone";
         actor.contactValue = "+44-7700-900999";
-        actor.persist();
+        em.persist(actor);
         return actor.id;
     }
 
@@ -177,7 +179,7 @@ class ExternalActorGdprResourceTest {
         ctx.workItemId = wi.id;
         ctx.domain = LifeDomain.HOUSEHOLD;
         ctx.externalActorId = actorId;
-        ctx.persist();
+        em.persist(ctx);
     }
 
     @Transactional
@@ -198,6 +200,6 @@ class ExternalActorGdprResourceTest {
         ctx.workItemId = wi.id;
         ctx.domain = LifeDomain.HOUSEHOLD;
         ctx.externalActorId = actorId;
-        ctx.persist();
+        em.persist(ctx);
     }
 }

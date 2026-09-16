@@ -6,6 +6,7 @@ import io.casehub.qhorus.runtime.watchdog.WatchdogEvaluationService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -37,6 +38,8 @@ class CommitmentLifecycleScenarioTest {
     @Inject
     WatchdogEvaluationService watchdogEvaluationService;
 
+    @Inject EntityManager em;
+
     static String bobActorId;
     static String boilerTaskId;
     static String boilerCommitmentCorrelationId;
@@ -50,7 +53,10 @@ class CommitmentLifecycleScenarioTest {
 
     @Transactional
     boolean commitmentExpiredByWorkItem(final UUID workItemId) {
-        return LifeCommitmentRecord.findByWorkItemId(workItemId).isEmpty();
+        return em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", workItemId)
+                .setParameter("excludedStatus", CommitmentStatus.EXPIRED)
+                .getResultStream().findFirst().isEmpty();
     }
 
     @Test

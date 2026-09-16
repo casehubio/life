@@ -6,6 +6,7 @@ import io.casehub.life.api.response.CbrPrecedentResponse;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
@@ -21,10 +22,11 @@ public class LifeCbrQueryService {
             new TypeReference<>() {};
 
     @Inject ObjectMapper objectMapper;
+    @Inject EntityManager em;
 
     @Transactional
     public Optional<List<CbrPrecedentResponse>> findPrecedentsByCase(UUID caseTrackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, caseTrackerId);
         if (tracker == null) return Optional.empty();
         if (tracker.cbrPrecedentsJson == null) return Optional.of(List.of());
 

@@ -12,6 +12,7 @@ import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 import java.util.ArrayList;
@@ -29,10 +30,11 @@ public class LifeChannelQueryService {
 
     @Inject ChannelService channelService;
     @Inject MessageStore messageStore;
+    @Inject EntityManager em;
 
     @Transactional
     public Optional<List<ChannelMessageResponse>> findChannelMessagesByCase(UUID caseTrackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, caseTrackerId);
         if (tracker == null) {return Optional.empty();}
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
@@ -99,8 +101,7 @@ public class LifeChannelQueryService {
 
         Set<String> channels = new LinkedHashSet<>();
         for (WorkItemEntity wi : workItems) {
-            LifeTaskContext.findByIdOptional(wi.id)
-                    .map(obj -> (LifeTaskContext) obj)
+            Optional.ofNullable(em.find(LifeTaskContext.class, wi.id))
                     .filter(ctx -> ctx.externalActorId != null)
                     .ifPresent(ctx -> channels.add("life/actor/ext-" + ctx.externalActorId));
         }
@@ -114,7 +115,9 @@ public class LifeChannelQueryService {
         if (workItemIds.isEmpty()) {return Set.of();}
 
         List<LifeCommitmentRecord> records =
-                LifeCommitmentRecord.<LifeCommitmentRecord>list("workItemId IN ?1", workItemIds);
+                em.createNamedQuery("LifeCommitmentRecord.findByWorkItemIds", LifeCommitmentRecord.class)
+                        .setParameter("workItemIds", workItemIds)
+                        .getResultList();
         Set<String> ids = new LinkedHashSet<>();
         for (LifeCommitmentRecord rec : records) {
             if (rec.correlationId != null) {ids.add(rec.correlationId);}

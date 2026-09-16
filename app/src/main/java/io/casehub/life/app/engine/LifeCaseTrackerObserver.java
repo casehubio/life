@@ -20,6 +20,8 @@ import io.casehub.life.api.LifeCaseStatus;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
@@ -39,11 +41,16 @@ public class LifeCaseTrackerObserver {
 
     private static final Logger LOG = Logger.getLogger(LifeCaseTrackerObserver.class);
 
+    @Inject
+    EntityManager em;
+
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onCaseCompleted(@ObservesAsync CaseLifecycleEvent event) {
         if (!"CaseCompleted".equals(event.eventType())) return;
 
-        LifeCaseTracker.findByEngineCaseId(event.caseId()).ifPresentOrElse(
+        em.createNamedQuery("LifeCaseTracker.findByEngineCaseId", LifeCaseTracker.class)
+                .setParameter("engineCaseId", event.caseId())
+                .getResultStream().findFirst().ifPresentOrElse(
                 tracker -> {
                     tracker.status = LifeCaseStatus.COMPLETED;
                     tracker.completedAt = Instant.now();

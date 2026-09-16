@@ -4,6 +4,8 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,10 +23,12 @@ import static org.hamcrest.Matchers.*;
 @TestSecurity(user = "household-admin", roles = {"household-admin"})
 class LifeTaskResourceTest {
 
+    @Inject EntityManager em;
+
     @BeforeEach
     @Transactional
     void seedTemplates() {
-        LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
     }

@@ -26,12 +26,13 @@ import static org.mockito.Mockito.*;
 class FinanceDomainLedgerHandlerTest {
 
     @Mock LedgerEntryRepository ledgerRepository;
+    @Mock jakarta.persistence.EntityManager em;
 
     FinanceDomainLedgerHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new FinanceDomainLedgerHandler(ledgerRepository);
+        handler = new FinanceDomainLedgerHandler(ledgerRepository, em);
     }
 
     @Test void domain_isFinance() {
@@ -54,7 +55,7 @@ class FinanceDomainLedgerHandlerTest {
         WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
 
-        handler = new FinanceDomainLedgerHandler(ledgerRepository) {
+        handler = new FinanceDomainLedgerHandler(ledgerRepository, em) {
             @Override protected Optional<LifeCommitmentRecord> findRecord(UUID id) {
                 return Optional.of(record);
             }
@@ -81,7 +82,7 @@ class FinanceDomainLedgerHandlerTest {
         record.id = UUID.randomUUID();
         record.approvedBy = approver.toString();
 
-        handler = new FinanceDomainLedgerHandler(ledgerRepository) {
+        handler = new FinanceDomainLedgerHandler(ledgerRepository, em) {
             @Override protected Optional<LifeCommitmentRecord> findRecord(UUID id) {
                 return Optional.of(record);
             }
@@ -100,7 +101,7 @@ class FinanceDomainLedgerHandlerTest {
     }
 
     @Test void writeEntry_task_noRecord_isNoOp() {
-        handler = new FinanceDomainLedgerHandler(ledgerRepository) {
+        handler = new FinanceDomainLedgerHandler(ledgerRepository, em) {
             @Override protected Optional<LifeCommitmentRecord> findRecord(UUID id) {
                 return Optional.empty();
             }

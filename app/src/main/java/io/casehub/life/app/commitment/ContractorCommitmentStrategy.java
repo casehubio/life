@@ -11,6 +11,7 @@ import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.message.MessageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -23,6 +24,9 @@ public class ContractorCommitmentStrategy implements LifeCommitmentStrategy {
 
     @Inject
     LifeChannelInitializer channelInitializer;
+
+    @Inject
+    EntityManager em;
 
     @Override
     public boolean applies(final CommitmentContext context) {
@@ -58,7 +62,7 @@ public class ContractorCommitmentStrategy implements LifeCommitmentStrategy {
         record.channelId = actorChannelName;
         record.deadline = cc.request().deadline();
         record.createdAt = record.updatedAt = Instant.now();
-        record.persist();
+        em.persist(record);
 
         return new CommitmentOutcome(record.id, correlationId,
                 CommitmentMode.CONTRACTOR, CommitmentStatus.PENDING_RESPONSE);

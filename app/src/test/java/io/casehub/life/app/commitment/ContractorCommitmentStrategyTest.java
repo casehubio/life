@@ -10,6 +10,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,8 @@ class ContractorCommitmentStrategyTest {
 
     @Inject
     ContractorCommitmentStrategy strategy;
+
+    @Inject EntityManager em;
 
     @BeforeEach
     @Transactional
@@ -47,9 +50,9 @@ class ContractorCommitmentStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(ctx);
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", outcome.correlationId())
+                .getResultStream().findFirst().orElseThrow();
         assertThat(record.domain).isEqualTo(LifeDomain.CONTRACTOR_COORDINATION);
         assertThat(record.oversightKey).isNull();
     }
@@ -67,9 +70,9 @@ class ContractorCommitmentStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(ctx);
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", outcome.correlationId())
+                .getResultStream().findFirst().orElseThrow();
         assertThat(record.domain).isEqualTo(LifeDomain.HOUSEHOLD);
     }
 
@@ -80,7 +83,7 @@ class ContractorCommitmentStrategyTest {
         actor.actorType = io.casehub.life.api.LifeActorType.EXTERNAL_HUMAN;
         actor.contactMethod = "EMAIL";
         actor.contactValue = name.toLowerCase().replace(" ", "") + "@test.com";
-        actor.persist();
+        em.persist(actor);
         return actor;
     }
 
@@ -100,7 +103,7 @@ class ContractorCommitmentStrategyTest {
         final LifeTaskContext ctx = new LifeTaskContext();
         ctx.workItemId = workItemId;
         ctx.domain = domain;
-        ctx.persist();
+        em.persist(ctx);
         return ctx;
     }
 }

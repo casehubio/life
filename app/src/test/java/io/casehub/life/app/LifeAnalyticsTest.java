@@ -34,6 +34,8 @@ import static org.hamcrest.Matchers.nullValue;
 @TestSecurity(user = "household-admin", roles = {"household-admin"})
 class LifeAnalyticsTest {
 
+    @Inject EntityManager em;
+
     @Inject
     @io.quarkus.hibernate.orm.PersistenceUnit("qhorus")
     EntityManager qhorusEm;
@@ -41,10 +43,10 @@ class LifeAnalyticsTest {
     @BeforeEach
     @Transactional
     void seed() {
-        LifeCaseTracker.deleteAll();
-        LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
-        ExternalActor.deleteAll();
+        em.createQuery("DELETE FROM ExternalActor").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
         qhorusEm.createQuery("DELETE FROM ActorTrustScore").executeUpdate();
     }
@@ -252,7 +254,7 @@ class LifeAnalyticsTest {
                 t.completedAt = Instant.now();
             }
         }
-        t.persist();
+        em.persist(t);
     }
 
     @Transactional
@@ -276,7 +278,7 @@ class LifeAnalyticsTest {
         a.actorType = LifeActorType.EXTERNAL_HUMAN;
         a.contactMethod = "phone";
         a.contactValue = "07700900001";
-        a.persist();
+        em.persist(a);
         return a.id;
     }
 
@@ -288,7 +290,7 @@ class LifeAnalyticsTest {
         a.contactMethod = "[ERASED]";
         a.contactValue = "[ERASED]";
         a.gdprErasedAt = Instant.now();
-        a.persist();
+        em.persist(a);
         return a.id;
     }
 

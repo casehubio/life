@@ -5,6 +5,8 @@ import io.casehub.life.app.entity.ExternalActor;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,10 +18,12 @@ import static org.hamcrest.Matchers.*;
 @TestSecurity(user = "household-admin", roles = {"household-admin"})
 class ExternalActorSearchTest {
 
+    @Inject EntityManager em;
+
     @BeforeEach
     @Transactional
     void seedActors() {
-        ExternalActor.deleteAll();
+        em.createQuery("DELETE FROM ExternalActor").executeUpdate();
         createActor("Alice Plumbing", LifeActorType.EXTERNAL_HUMAN, "phone", "07700900001", false);
         createActor("Bob Electric", LifeActorType.EXTERNAL_HUMAN, "email", "bob@electric.co.uk", false);
         createActor("Dr Carol Smith", LifeActorType.HOUSEHOLD_PRINCIPAL, "email", "carol@nhs.uk", false);
@@ -138,6 +142,6 @@ class ExternalActorSearchTest {
         a.contactMethod = method;
         a.contactValue = value;
         if (erased) a.gdprErasedAt = java.time.Instant.now();
-        a.persist();
+        em.persist(a);
     }
 }

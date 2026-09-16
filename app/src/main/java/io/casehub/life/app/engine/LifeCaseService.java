@@ -34,6 +34,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
@@ -74,6 +75,8 @@ public class LifeCaseService {
     jakarta.enterprise.event.Event<io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded> adaptationEvent;
     @Inject
     io.casehub.life.app.cbr.LifeTrustFeatureEnricher                                      trustFeatureEnricher;
+    @Inject
+    EntityManager                                                                          em;
 
 
     public LifeCaseResponse startCase(CreateLifeCaseRequest request) {
@@ -142,7 +145,7 @@ public class LifeCaseService {
         tracker.caseType = request.caseType().caseName();
         tracker.domain   = request.caseType().domain();
         tracker.status   = LifeCaseStatus.ACTIVE;
-        tracker.persist();
+        em.persist(tracker);
 
         Map<String, Object> ctx = new HashMap<>(request.context());
         ctx.put("lifeCaseType", request.caseType().caseName());
@@ -151,7 +154,7 @@ public class LifeCaseService {
 
     @Transactional
     void persistCaseId(UUID trackerId, UUID caseId, String cbrPrecedentsJson) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(trackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, trackerId);
         if (tracker != null) {
             tracker.engineCaseId = caseId;
             tracker.cbrPrecedentsJson = cbrPrecedentsJson;
@@ -160,7 +163,7 @@ public class LifeCaseService {
 
     @Transactional
     void markFailed(UUID trackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(trackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, trackerId);
         if (tracker != null) {
             tracker.status      = LifeCaseStatus.FAILED;
             tracker.completedAt = Instant.now();

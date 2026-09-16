@@ -7,6 +7,8 @@ import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,10 +23,12 @@ import static org.hamcrest.Matchers.*;
 @TestSecurity(user = "household-admin", roles = {"household-admin"})
 class PendingActionsTest {
 
+    @Inject EntityManager em;
+
     @BeforeEach
     @Transactional
     void seed() {
-        LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
     }
@@ -240,7 +244,7 @@ class PendingActionsTest {
             LifeTaskContext ctx = new LifeTaskContext();
             ctx.workItemId = wi.id;
             ctx.domain = domain;
-            ctx.persist();
+            em.persist(ctx);
         }
     }
 }

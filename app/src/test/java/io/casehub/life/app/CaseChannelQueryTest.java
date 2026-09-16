@@ -13,6 +13,7 @@ import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,7 @@ class CaseChannelQueryTest {
     @Inject io.casehub.platform.testing.FixedCurrentPrincipal fixedPrincipal;
     @Inject ChannelService channelService;
     @Inject MessageStore messageStore;
+    @Inject EntityManager em;
 
     private UUID caseTrackerId;
     private UUID emptyCaseTrackerId;
@@ -44,9 +46,9 @@ class CaseChannelQueryTest {
     @Transactional
     void seed() {
         fixedPrincipal.setGroups(Set.of("household-admin"));
-        LifeCaseTracker.deleteAll();
-        io.casehub.life.app.entity.LifeCommitmentRecord.deleteAll();
-        io.casehub.life.app.entity.LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
+        em.createQuery("DELETE FROM LifeCommitmentRecord").executeUpdate();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
 
@@ -57,7 +59,7 @@ class CaseChannelQueryTest {
         tracker.status       = LifeCaseStatus.ACTIVE;
         tracker.engineCaseId = engineCaseId;
         tracker.createdAt    = Instant.now();
-        tracker.persist();
+        em.persist(tracker);
         caseTrackerId = tracker.id;
 
         UUID           wiId = UUID.randomUUID();
@@ -83,7 +85,7 @@ class CaseChannelQueryTest {
         rec.channelId     = LifeChannelInitializer.DELEGATION_CHANNEL;
         rec.createdAt     = Instant.now();
         rec.updatedAt     = Instant.now();
-        rec.persist();
+        em.persist(rec);
 
         seedMessage(LifeChannelInitializer.DELEGATION_CHANNEL, "home-agent",
                     MessageType.COMMAND, "Schedule plumber visit", correlationId);
@@ -96,7 +98,7 @@ class CaseChannelQueryTest {
         emptyCase.status       = LifeCaseStatus.ACTIVE;
         emptyCase.engineCaseId = UUID.randomUUID();
         emptyCase.createdAt    = Instant.now();
-        emptyCase.persist();
+        em.persist(emptyCase);
         emptyCaseTrackerId = emptyCase.id;}
 
     @AfterEach

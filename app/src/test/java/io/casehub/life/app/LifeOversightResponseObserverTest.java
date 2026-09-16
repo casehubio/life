@@ -10,6 +10,7 @@ import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.message.MessageService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,8 @@ class LifeOversightResponseObserverTest {
 
     @Inject
     LifeChannelInitializer channelInitializer;
+
+    @Inject EntityManager em;
 
     @BeforeEach
     @Transactional
@@ -104,7 +107,9 @@ class LifeOversightResponseObserverTest {
                 .build());
 
         // No LifeCommitmentRecord should exist for the unknown correlationId.
-        assertThat(LifeCommitmentRecord.findByCorrelationId(unknownCorrelationId)).isEmpty();
+        assertThat(em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", unknownCorrelationId)
+                .getResultStream().findFirst()).isEmpty();
     }
 
     @Transactional
@@ -121,7 +126,7 @@ class LifeOversightResponseObserverTest {
                 {"templateRef":"household-task","title":"Buy new car","externalActorId":null,"deadline":null}
                 """;
         record.createdAt = record.updatedAt = Instant.now();
-        record.persist();
+        em.persist(record);
         return correlationId;
     }
 }

@@ -84,6 +84,6 @@ public class ExternalActorHistoryService {
     }
 
     public boolean actorExists(UUID id) {
-        return ExternalActor.findByIdOptional(id).isPresent();
+        return em.find(ExternalActor.class, id) != null;
     }
 }

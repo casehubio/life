@@ -3,22 +3,30 @@ package io.casehub.life.app.entity;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.commitment.CommitmentMode;
 import io.casehub.life.api.commitment.CommitmentStatus;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Entity
 @Table(name = "life_commitment_record")
-public class LifeCommitmentRecord extends PanacheEntityBase {
+@NamedQuery(name = "LifeCommitmentRecord.findByCorrelationId",
+        query = "SELECT r FROM LifeCommitmentRecord r WHERE r.correlationId = :correlationId")
+@NamedQuery(name = "LifeCommitmentRecord.findByWorkItemId",
+        query = "SELECT r FROM LifeCommitmentRecord r WHERE r.workItemId = :workItemId AND r.status <> :excludedStatus")
+@NamedQuery(name = "LifeCommitmentRecord.findExpiredPendingByChannel",
+        query = "SELECT r FROM LifeCommitmentRecord r WHERE r.channelId = :channelId AND r.status = :status AND r.deadline <= :now")
+@NamedQuery(name = "LifeCommitmentRecord.findByWorkItemIds",
+        query = "SELECT r FROM LifeCommitmentRecord r WHERE r.workItemId IN :workItemIds")
+@NamedQuery(name = "LifeCommitmentRecord.countByModeStatusKey",
+        query = "SELECT COUNT(r) FROM LifeCommitmentRecord r WHERE r.mode = :mode AND r.status = :status AND r.oversightKey = :oversightKey")
+public class LifeCommitmentRecord {
 
     @Id
     public UUID id;
@@ -73,22 +81,5 @@ public class LifeCommitmentRecord extends PanacheEntityBase {
     @Column(name = "purchase_category", length = 100)
     public String purchaseCategory;
 
-    public static Optional<LifeCommitmentRecord> findByCorrelationId(final String correlationId) {
-        return find("correlationId", correlationId).firstResultOptional();
-    }
 
-    public static Optional<LifeCommitmentRecord> findByWorkItemId(final UUID workItemId) {
-        return find("workItemId = ?1 and status != ?2",
-                workItemId, CommitmentStatus.EXPIRED).firstResultOptional();
-    }
-
-    /**
-     * Returns all PENDING_RESPONSE records on the channel whose deadline has passed.
-     * Used by LifeWatchdogAlertObserver — WatchdogAlertEvent carries notificationChannel, not correlationId.
-     */
-    public static List<LifeCommitmentRecord> findExpiredPendingByChannel(
-            final String channelId, final Instant now) {
-        return find("channelId = ?1 and status = ?2 and deadline <= ?3",
-                channelId, CommitmentStatus.PENDING_RESPONSE, now).list();
-    }
 }

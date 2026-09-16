@@ -9,6 +9,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ class DelegationCommitmentStrategyTest {
 
     @Inject
     DelegationCommitmentStrategy strategy;
+
+    @Inject EntityManager em;
 
     @BeforeEach
     @Transactional
@@ -45,9 +48,9 @@ class DelegationCommitmentStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(ctx);
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", outcome.correlationId())
+                .getResultStream().findFirst().orElseThrow();
         assertThat(record.domain).isEqualTo(LifeDomain.HOUSEHOLD);
         assertThat(record.delegateTo).isEqualTo("alice");
         assertThat(record.oversightKey).isNull();
@@ -65,9 +68,9 @@ class DelegationCommitmentStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(ctx);
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", outcome.correlationId())
+                .getResultStream().findFirst().orElseThrow();
         assertThat(record.domain).isEqualTo(LifeDomain.HEALTH);
     }
 
@@ -87,7 +90,7 @@ class DelegationCommitmentStrategyTest {
         final LifeTaskContext ctx = new LifeTaskContext();
         ctx.workItemId = workItemId;
         ctx.domain = domain;
-        ctx.persist();
+        em.persist(ctx);
         return ctx;
     }
 }

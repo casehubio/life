@@ -12,6 +12,7 @@ import io.casehub.platform.api.identity.ActorType;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import org.jboss.logging.Logger;
 
 import java.util.Optional;
@@ -24,12 +25,15 @@ public class HealthDomainLedgerHandler implements DomainLedgerHandler {
 
     @Inject LedgerEntryRepository ledgerRepository;
     @Inject LifeOutcomeAttestationWriter attestationWriter;
+    @Inject EntityManager em;
 
     // Package-visible constructor for testing with injected deps
     HealthDomainLedgerHandler(LedgerEntryRepository ledgerRepository,
-                               LifeOutcomeAttestationWriter attestationWriter) {
+                               LifeOutcomeAttestationWriter attestationWriter,
+                               EntityManager em) {
         this.ledgerRepository = ledgerRepository;
         this.attestationWriter = attestationWriter;
+        this.em = em;
     }
 
     // CDI no-arg constructor
@@ -71,7 +75,7 @@ public class HealthDomainLedgerHandler implements DomainLedgerHandler {
     }
 
     protected Optional<LifeTaskContext> findContext(UUID workItemId) {
-        return LifeTaskContext.findByIdOptional(workItemId);
+        return Optional.ofNullable(em.find(LifeTaskContext.class, workItemId));
     }
 
 }

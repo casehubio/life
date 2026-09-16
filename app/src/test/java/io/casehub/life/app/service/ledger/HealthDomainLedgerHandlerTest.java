@@ -28,12 +28,13 @@ class HealthDomainLedgerHandlerTest {
 
     @Mock LedgerEntryRepository ledgerRepository;
     @Mock LifeOutcomeAttestationWriter attestationWriter;
+    @Mock jakarta.persistence.EntityManager em;
 
     HealthDomainLedgerHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter);
+        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter, em);
     }
 
     @Test void domain_isHealth() {
@@ -45,7 +46,7 @@ class HealthDomainLedgerHandlerTest {
         WorkItemEntity workItem = new WorkItemEntity();
         workItem.id = taskId;
 
-        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.empty();
             }
@@ -65,7 +66,7 @@ class HealthDomainLedgerHandlerTest {
         ctx.workItemId = taskId;
         ctx.domain = LifeDomain.HEALTH;
 
-        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }
@@ -94,7 +95,7 @@ class HealthDomainLedgerHandlerTest {
         ctx.workItemId = taskId;
         ctx.domain = LifeDomain.HEALTH;
 
-        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }
@@ -120,7 +121,7 @@ class HealthDomainLedgerHandlerTest {
         ctx.workItemId = taskId;
         ctx.domain = LifeDomain.HEALTH;
 
-        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter) {
+        handler = new HealthDomainLedgerHandler(ledgerRepository, attestationWriter, em) {
             @Override protected Optional<LifeTaskContext> findContext(UUID id) {
                 return Optional.of(ctx);
             }

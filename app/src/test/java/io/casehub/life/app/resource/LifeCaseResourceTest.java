@@ -25,6 +25,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,10 +52,12 @@ class LifeCaseResourceTest {
     @Inject
     FixedCurrentPrincipal currentPrincipal;
 
+    @Inject EntityManager em;
+
     @BeforeEach
     @Transactional
     void setup() {
-        LifeCaseTracker.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         currentPrincipal.setGroups(Set.of(HouseholdGroups.ADMIN));
         LifeTestFixtures.seedStandardTemplates();
         LifeTestFixtures.seedEscalationTemplate();
@@ -67,7 +70,7 @@ class LifeCaseResourceTest {
     @Transactional
     void cleanup() {
         currentPrincipal.reset();
-        LifeCaseTracker.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
     }
 
     @Test
@@ -146,8 +149,8 @@ class LifeCaseResourceTest {
                 .body("totalCount", is(0));
     }
 
-    private static void seedTracker(UUID id, String caseType, LifeDomain domain, LifeCaseStatus status) {
-        if (LifeCaseTracker.findById(id) != null) {return;}
+    private void seedTracker(UUID id, String caseType, LifeDomain domain, LifeCaseStatus status) {
+        if (em.find(LifeCaseTracker.class, id) != null) {return;}
         LifeCaseTracker t = new LifeCaseTracker();
         t.id        = id;
         t.caseType  = caseType;
@@ -155,6 +158,6 @@ class LifeCaseResourceTest {
         t.status    = status;
         t.createdAt = Instant.now();
         if (status == LifeCaseStatus.COMPLETED) {t.completedAt = Instant.now();}
-        t.persist();
+        em.persist(t);
     }
 }

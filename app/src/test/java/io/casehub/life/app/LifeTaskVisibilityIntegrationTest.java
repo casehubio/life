@@ -10,6 +10,7 @@ import io.casehub.work.runtime.model.WorkItemType;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +39,8 @@ class LifeTaskVisibilityIntegrationTest {
 
     @Inject
     FixedCurrentPrincipal fixedPrincipal;
+
+    @Inject EntityManager em;
 
     private UUID adminTaskId;
     private UUID juniorTaskId;
@@ -112,7 +115,7 @@ class LifeTaskVisibilityIntegrationTest {
         LifeTaskContext ctx = new LifeTaskContext();
         ctx.workItemId = wi.id;
         ctx.domain = LifeDomain.HOUSEHOLD;
-        ctx.persist();
+        em.persist(ctx);
 
         return wi.id;
     }

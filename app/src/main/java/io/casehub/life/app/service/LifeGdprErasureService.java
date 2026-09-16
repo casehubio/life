@@ -14,12 +14,14 @@ import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -31,17 +33,20 @@ public class LifeGdprErasureService {
     @Inject CaseMemoryStore memoryStore;
     @Inject LifeLedgerWriter lifeLedgerWriter;
     @Inject LedgerConfig ledgerConfig;
+    @Inject EntityManager em;
 
     LifeGdprErasureService() {}
 
     LifeGdprErasureService(LedgerErasureService ledgerErasureService,
                             CaseMemoryStore memoryStore,
                             LifeLedgerWriter lifeLedgerWriter,
-                            LedgerConfig ledgerConfig) {
+                            LedgerConfig ledgerConfig,
+                            EntityManager em) {
         this.ledgerErasureService = ledgerErasureService;
         this.memoryStore = memoryStore;
         this.lifeLedgerWriter = lifeLedgerWriter;
         this.ledgerConfig = ledgerConfig;
+        this.em = em;
     }
 
     @Transactional
@@ -87,13 +92,15 @@ public class LifeGdprErasureService {
     }
 
     protected ExternalActor findActor(UUID id) {
-        return ExternalActor.<ExternalActor>findByIdOptional(id)
-                .orElseThrow(NotFoundException::new);
+        ExternalActor actor = em.find(ExternalActor.class, id);
+        if (actor == null) throw new NotFoundException();
+        return actor;
     }
 
     protected long findActiveTaskCount(UUID externalActorId) {
-        return LifeTaskContext.<LifeTaskContext>list("externalActorId", externalActorId)
-                .stream()
+        return em.createNamedQuery("LifeTaskContext.findByExternalActorId", LifeTaskContext.class)
+                .setParameter("externalActorId", externalActorId)
+                .getResultList().stream()
                 .filter(ctx -> {
                     var wi = WorkItemEntity.<WorkItemEntity>findByIdOptional(ctx.workItemId).orElse(null);
                     return wi != null && wi.status.isActive();

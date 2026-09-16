@@ -15,6 +15,7 @@ import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import org.jboss.logging.Logger;
 
 import java.time.Duration;
@@ -94,8 +95,13 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
 
     @ApplicationScoped
     public static class CaseTypeLookup {
+        @Inject
+        EntityManager em;
+
         public Optional<String> findCaseType(UUID engineCaseId) {
-            return LifeCaseTracker.findByEngineCaseId(engineCaseId)
+            return em.createNamedQuery("LifeCaseTracker.findByEngineCaseId", LifeCaseTracker.class)
+                    .setParameter("engineCaseId", engineCaseId)
+                    .getResultStream().findFirst()
                     .map(t -> t.caseType);
         }
     }

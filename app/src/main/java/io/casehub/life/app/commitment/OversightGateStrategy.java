@@ -17,6 +17,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.WebApplicationException;
 
 import java.time.Instant;
@@ -37,6 +38,9 @@ public class OversightGateStrategy implements LifeCommitmentStrategy {
     @Inject @Any
     Instance<DomainLedgerHandler> ledgerHandlers;
 
+    @Inject
+    EntityManager em;
+
     @Override
     public boolean applies(final CommitmentContext context) {
         return context instanceof OversightContext;
@@ -49,10 +53,11 @@ public class OversightGateStrategy implements LifeCommitmentStrategy {
         // Duplicate gate guard: best-effort dedup by title+templateRef key.
         final String taskKey = oc.request().pendingTask().title()
                 + ":" + oc.request().pendingTask().templateRef();
-        final boolean duplicate = LifeCommitmentRecord
-                .find("mode = ?1 and status = ?2 and oversightKey = ?3",
-                        CommitmentMode.OVERSIGHT, CommitmentStatus.PENDING_RESPONSE, taskKey)
-                .count() > 0;
+        final boolean duplicate = em.createNamedQuery("LifeCommitmentRecord.countByModeStatusKey", Long.class)
+                .setParameter("mode", CommitmentMode.OVERSIGHT)
+                .setParameter("status", CommitmentStatus.PENDING_RESPONSE)
+                .setParameter("oversightKey", taskKey)
+                .getSingleResult() > 0;
         if (duplicate) {
             throw new CommitmentConflictException(
                     "Oversight gate already pending for: " + oc.request().pendingTask().title());
@@ -93,7 +98,7 @@ public class OversightGateStrategy implements LifeCommitmentStrategy {
         record.purchaseCategory = oc.request().purchaseCategory();
         record.pendingTaskJson = pendingTaskJson;
         record.createdAt = record.updatedAt = Instant.now();
-        record.persist();
+        em.persist(record);
 
         ledgerHandlers.stream()
                 .filter(h -> h.domain() == oc.request().domain())

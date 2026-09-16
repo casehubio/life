@@ -11,13 +11,14 @@ import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 
 import io.casehub.life.api.response.PagedResponse;
-import io.quarkus.panache.common.Page;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,9 @@ public class ExternalActorService {
     @Inject
     TrustGateService trustGateService;
 
+    @Inject
+    EntityManager em;
+
     @Transactional
     public ExternalActorResponse create(final CreateExternalActorRequest req) {
         final ExternalActor actor = new ExternalActor();
@@ -38,12 +42,12 @@ public class ExternalActorService {
         actor.actorType = req.actorType();
         actor.contactMethod = req.contactMethod();
         actor.contactValue = req.contactValue();
-        actor.persist();
+        em.persist(actor);
         return toResponse(actor);
     }
 
     public Optional<ExternalActorResponse> findById(final UUID id) {
-        return ExternalActor.<ExternalActor>findByIdOptional(id).map(this::toResponse);
+        return Optional.ofNullable(em.find(ExternalActor.class, id)).map(this::toResponse);
     }
 
     @Transactional
@@ -71,20 +75,22 @@ public class ExternalActorService {
             conditions.add("gdprErasedAt IS NOT NULL");
         }
 
-        String query = conditions.isEmpty() ? "" : String.join(" AND ", conditions);
-        var panacheQuery = query.isEmpty()
-                           ? ExternalActor.<ExternalActor>findAll()
-                           : ExternalActor.<ExternalActor>find(query, params);
+        String where = conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
 
-        long                        total  = panacheQuery.count();
-        List<ExternalActor>         actors = panacheQuery.page(Page.of(page, size)).list();
+        TypedQuery<Long> countQuery = em.createQuery("SELECT COUNT(e) FROM ExternalActor e" + where, Long.class);
+        params.forEach(countQuery::setParameter);
+        long total = countQuery.getSingleResult();
+
+        TypedQuery<ExternalActor> selectQuery = em.createQuery("SELECT e FROM ExternalActor e" + where, ExternalActor.class);
+        params.forEach(selectQuery::setParameter);
+        List<ExternalActor> actors = selectQuery.setFirstResult(page * size).setMaxResults(size).getResultList();
         List<ExternalActorResponse> items  = actors.stream().map(this::toResponse).toList();
         return new PagedResponse<>(items, page, size, total);
     }
 
     @Transactional
     public Optional<ExternalActorResponse> update(final UUID id, final UpdateExternalActorRequest req) {
-        return ExternalActor.<ExternalActor>findByIdOptional(id).map(existing -> {
+        return Optional.ofNullable(em.find(ExternalActor.class, id)).map(existing -> {
             existing.name = req.name();
             existing.actorType = req.actorType();
             existing.contactMethod = req.contactMethod();
@@ -95,21 +101,23 @@ public class ExternalActorService {
 
     @Transactional
     public void delete(final UUID id) {
-        final ExternalActor actor = ExternalActor.<ExternalActor>findByIdOptional(id)
+        final ExternalActor actor = Optional.ofNullable(em.find(ExternalActor.class, id))
                 .orElseThrow(NotFoundException::new);
-        final long referencingTasks = LifeTaskContext.count("externalActorId", id);
+        final long referencingTasks = em.createNamedQuery("LifeTaskContext.countByExternalActorId", Long.class)
+                .setParameter("externalActorId", id).getSingleResult();
         if (referencingTasks > 0) {
             throw new ClientErrorException(
                     "ExternalActor is referenced by " + referencingTasks + " task(s)",
                     Response.Status.CONFLICT);
         }
-        actor.delete();
+        em.remove(actor);
     }
 
 
     public List<LifeTaskContextResponse> listTasks(final UUID actorId) {
-        return LifeTaskContext.<LifeTaskContext>list("externalActorId", actorId)
-                .stream()
+        return em.createNamedQuery("LifeTaskContext.findByExternalActorId", LifeTaskContext.class)
+                .setParameter("externalActorId", actorId)
+                .getResultList().stream()
                 .map(c -> new LifeTaskContextResponse(c.workItemId, c.domain, c.externalActorId, c.recurrence, c.jurisdiction))
                 .toList();
     }

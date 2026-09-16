@@ -6,13 +6,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "life_task_context")
-public class LifeTaskContext  {
+@NamedQuery(name = "LifeTaskContext.findByExternalActorId",
+        query = "SELECT c FROM LifeTaskContext c WHERE c.externalActorId = :externalActorId")
+@NamedQuery(name = "LifeTaskContext.countByExternalActorId",
+        query = "SELECT COUNT(c) FROM LifeTaskContext c WHERE c.externalActorId = :externalActorId")
+public class LifeTaskContext {
 
     @Id
     @Column(name = "work_item_id")

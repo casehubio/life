@@ -6,6 +6,7 @@ import io.casehub.life.app.entity.LifeCaseTracker;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import static org.hamcrest.Matchers.hasSize;
 class CaseCbrQueryTest {
 
     @Inject io.casehub.platform.testing.FixedCurrentPrincipal fixedPrincipal;
+    @Inject EntityManager em;
 
     private UUID caseWithCbr;
     private UUID caseWithoutCbr;
@@ -33,7 +35,7 @@ class CaseCbrQueryTest {
     @Transactional
     void seed() {
         fixedPrincipal.setGroups(Set.of("household-admin"));
-        LifeCaseTracker.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
         LifeCaseTracker withCbr = new LifeCaseTracker();
@@ -49,7 +51,7 @@ class CaseCbrQueryTest {
                   {"caseId":"prev-case-003","similarity":0.65,"outcome":"FAILED","resolutionTime":null}
                 ]
                 """;
-        withCbr.persist();
+        em.persist(withCbr);
         caseWithCbr = withCbr.id;
 
         LifeCaseTracker withoutCbr = new LifeCaseTracker();
@@ -58,7 +60,7 @@ class CaseCbrQueryTest {
         withoutCbr.status = LifeCaseStatus.ACTIVE;
         withoutCbr.engineCaseId = UUID.randomUUID();
         withoutCbr.createdAt = Instant.now();
-        withoutCbr.persist();
+        em.persist(withoutCbr);
         caseWithoutCbr = withoutCbr.id;
     }
 

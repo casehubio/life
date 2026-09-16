@@ -20,6 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 
@@ -27,6 +28,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class LifeTaskService {
@@ -43,6 +45,9 @@ public class LifeTaskService {
     @Inject
     CurrentPrincipal currentPrincipal;
 
+    @Inject
+    EntityManager em;
+
     @Transactional
     public LifeTaskResponse create(final CreateLifeTaskRequest req) {
         // Resolve template — 422 if unknown.
@@ -53,7 +58,7 @@ public class LifeTaskService {
 
         // Validate externalActorId exists if provided — 422 if not found.
         if (req.externalActorId() != null) {
-            ExternalActor.findByIdOptional(req.externalActorId())
+            Optional.ofNullable(em.find(ExternalActor.class, req.externalActorId()))
                     .orElseThrow(() -> new WebApplicationException(
                             "ExternalActor not found: " + req.externalActorId(),
                             422));
@@ -101,7 +106,7 @@ public class LifeTaskService {
         ctx.domain = domain;
         ctx.externalActorId = req.externalActorId();
         ctx.jurisdiction = req.jurisdiction();
-        ctx.persist();
+        em.persist(ctx);
 
         ledgerHandlers.stream()
                 .filter(h -> h.domain() == domain)
@@ -125,10 +130,12 @@ public class LifeTaskService {
         final WorkItemEntity workItem = WorkItemEntity.findByIdOptional(workItemId)
                                                       .map(o -> (WorkItemEntity) o)
                                                       .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
-        final LifeTaskContext ctx = (LifeTaskContext) LifeTaskContext.findByIdOptional(workItemId)
+        final LifeTaskContext ctx = Optional.ofNullable(em.find(LifeTaskContext.class, workItemId))
                 .orElseThrow(() -> new WebApplicationException("LifeTaskContext not found: " + workItemId, 404));
-        final LifeCommitmentRecord commitment = LifeCommitmentRecord
-                .findByWorkItemId(workItemId).orElse(null);
+        final LifeCommitmentRecord commitment = em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", workItemId)
+                .setParameter("excludedStatus", io.casehub.life.api.commitment.CommitmentStatus.EXPIRED)
+                .getResultStream().findFirst().orElse(null);
         final CommitmentMode mode = commitment != null ? commitment.mode : null;
         final CommitmentStatus status = commitment != null ? commitment.status : null;
         return new LifeTaskResponse(

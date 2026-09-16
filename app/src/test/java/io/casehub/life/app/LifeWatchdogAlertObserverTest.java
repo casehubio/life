@@ -10,6 +10,7 @@ import io.casehub.qhorus.api.watchdog.WatchdogAlertEvent;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ class LifeWatchdogAlertObserverTest {
 
     @Inject
     LifeWatchdogAlertObserver observer;
+
+    @Inject EntityManager em;
 
     @BeforeEach
     @Transactional
@@ -199,7 +202,7 @@ class LifeWatchdogAlertObserverTest {
         record.deadline = deadline;
         record.createdAt = record.updatedAt = Instant.now();
         customizer.customize(record);
-        record.persist();
+        em.persist(record);
         return correlationId;
     }
 

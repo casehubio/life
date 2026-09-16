@@ -20,6 +20,7 @@ import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ class LifeDecisionLedgerObserverTest {
     @Inject LifeDecisionLedgerObserver observer;
     @Inject LedgerEntryRepository ledgerRepository;
     @Inject WorkItemService workItemService;
+    @Inject EntityManager em;
 
     private UUID healthWorkItemId;
     private UUID legalWorkItemId;
@@ -141,7 +143,7 @@ class LifeDecisionLedgerObserverTest {
         var ctx = new LifeTaskContext();
         ctx.workItemId = workItem.id;
         ctx.domain = domain;
-        ctx.persist();
+        em.persist(ctx);
 
         return workItem.id;
     }

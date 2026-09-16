@@ -10,6 +10,7 @@ import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.life.app.routing.LifeTrustRoutingPolicyProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -22,10 +23,11 @@ public class LifeRoutingQueryService {
 
     @Inject CaseLedgerEntryRepository caseLedgerEntryRepository;
     @Inject LifeTrustRoutingPolicyProvider routingPolicyProvider;
+    @Inject EntityManager em;
 
     @Transactional
     public Optional<List<RoutingDecisionResponse>> findRoutingByCase(UUID caseTrackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, caseTrackerId);
         if (tracker == null) return Optional.empty();
         if (tracker.engineCaseId == null) return Optional.of(List.of());
 

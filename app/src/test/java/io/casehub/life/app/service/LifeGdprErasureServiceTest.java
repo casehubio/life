@@ -148,7 +148,7 @@ class LifeGdprErasureServiceTest {
      * (GE-20260629-74fc65). Same pattern as LegalDomainLedgerHandler.findContext().
      */
     private LifeGdprErasureService createServiceWithActor(ExternalActor actor) {
-        return new LifeGdprErasureService(ledgerErasureService, memoryStore, lifeLedgerWriter, ledgerConfig) {
+        return new LifeGdprErasureService(ledgerErasureService, memoryStore, lifeLedgerWriter, ledgerConfig, null) {
             @Override
             protected ExternalActor findActor(UUID id) {
                 if (actor == null || !actor.id.equals(id)) {

@@ -18,6 +18,7 @@ import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 
 import java.time.Duration;
@@ -37,14 +38,21 @@ public class LifeAnalyticsService {
     private static final String LIFE_SCOPE_PREFIX = "casehubio/life/";
 
     @Inject
+    EntityManager em;
+
+    @Inject
     @io.quarkus.hibernate.orm.PersistenceUnit("qhorus")
     EntityManager qhorusEm;
 
     @Transactional
     public CaseStatisticsResponse caseStatistics(String caseType) {
-        List<LifeCaseTracker> trackers = caseType != null
-                ? LifeCaseTracker.list("caseType", caseType)
-                : LifeCaseTracker.listAll();
+        List<LifeCaseTracker> trackers;
+        if (caseType != null) {
+            trackers = em.createNamedQuery("LifeCaseTracker.findByCaseType", LifeCaseTracker.class)
+                    .setParameter("caseType", caseType).getResultList();
+        } else {
+            trackers = em.createNamedQuery("LifeCaseTracker.findAll", LifeCaseTracker.class).getResultList();
+        }
 
         Map<String, List<LifeCaseTracker>> grouped = trackers.stream()
                 .collect(Collectors.groupingBy(t -> t.caseType, LinkedHashMap::new, Collectors.toList()));
@@ -151,7 +159,7 @@ public class LifeAnalyticsService {
 
     @Transactional
     public TrustAnalyticsResponse trustAnalytics() {
-        List<ExternalActor> actors = ExternalActor.list("gdprErasedAt IS NULL");
+        List<ExternalActor> actors = em.createNamedQuery("ExternalActor.findNotErased", ExternalActor.class).getResultList();
         if (actors.isEmpty()) {
             return new TrustAnalyticsResponse(0, null, Map.of(), List.of());
         }

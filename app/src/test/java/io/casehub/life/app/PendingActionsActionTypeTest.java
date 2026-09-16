@@ -9,6 +9,8 @@ import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,8 @@ import static org.hamcrest.Matchers.equalTo;
 @TestSecurity(user = "household-admin", roles = {"household-admin"})
 class PendingActionsActionTypeTest {
 
+    @Inject EntityManager em;
+
     private static final String TENANCY_ID = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
 
     private UUID standardWiId;
@@ -33,8 +37,8 @@ class PendingActionsActionTypeTest {
     @BeforeEach
     @Transactional
     void seed() {
-        LifeCommitmentRecord.deleteAll();
-        LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM LifeCommitmentRecord").executeUpdate();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
         LifeTestFixtures.seedStandardTemplates();
 
@@ -125,6 +129,6 @@ class PendingActionsActionTypeTest {
         rec.channelId = "life/oversight";
         rec.createdAt = Instant.now();
         rec.updatedAt = Instant.now();
-        rec.persist();
+        em.persist(rec);
     }
 }

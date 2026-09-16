@@ -7,6 +7,7 @@ import io.casehub.work.runtime.service.ExpiryLifecycleService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -36,6 +37,8 @@ class ShowcaseScenarioTest {
     @Inject
     ExpiryLifecycleService expiryLifecycleService;
 
+    @Inject EntityManager em;
+
     static String bobActorId;
     static String boilerWorkItemId;
 
@@ -43,9 +46,9 @@ class ShowcaseScenarioTest {
     @Transactional
     void seedTemplates() {
         if (bobActorId == null) {
-            LifeTaskContext.deleteAll();
+            em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
             WorkItemEntity.deleteAll();
-            ExternalActor.deleteAll();
+            em.createQuery("DELETE FROM ExternalActor").executeUpdate();
         }
         LifeTestFixtures.seedStandardTemplates();
     }

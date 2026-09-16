@@ -15,6 +15,7 @@ import jakarta.enterprise.event.ObservesAsync;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
@@ -47,12 +48,18 @@ public class LifeWatchdogAlertObserver {
     @Inject @Any
     Instance<DomainLedgerHandler> ledgerHandlers;
 
+    @Inject
+    EntityManager em;
+
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onAlert(@ObservesAsync final WatchdogAlertEvent event) {
         if (event.conditionType() != WatchdogConditionType.APPROVAL_PENDING) return;
 
-        final List<LifeCommitmentRecord> expired = LifeCommitmentRecord
-                .findExpiredPendingByChannel(event.notificationChannel(), Instant.now());
+        final List<LifeCommitmentRecord> expired = em.createNamedQuery("LifeCommitmentRecord.findExpiredPendingByChannel", LifeCommitmentRecord.class)
+                .setParameter("channelId", event.notificationChannel())
+                .setParameter("status", CommitmentStatus.PENDING_RESPONSE)
+                .setParameter("now", Instant.now())
+                .getResultList();
 
         for (final LifeCommitmentRecord record : expired) {
             if (record.mode == CommitmentMode.OVERSIGHT && record.domain != null) {
@@ -64,7 +71,6 @@ public class LifeWatchdogAlertObserver {
             createEscalationTask(record);
             record.status = CommitmentStatus.EXPIRED;
             record.updatedAt = Instant.now();
-            record.persist();
         }
     }
 

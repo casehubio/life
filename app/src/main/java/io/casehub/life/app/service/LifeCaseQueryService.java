@@ -16,9 +16,10 @@ import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
@@ -39,6 +40,7 @@ public class LifeCaseQueryService {
 
     @Inject CurrentPrincipal currentPrincipal;
     @Inject LifeCaseVisibilityPolicy visibilityPolicy;
+    @Inject EntityManager em;
 
     @Transactional
     public PagedResponse<LifeCaseResponse> listCases(LifeDomain domain,
@@ -46,9 +48,12 @@ public class LifeCaseQueryService {
                                                      LifeCaseType caseType,
                                                      int page, int size) {
         QueryParts query = buildListQuery(domain, status, caseType);
-        List<LifeCaseTracker> allTrackers = LifeCaseTracker.find(query.hql(),
-                                                                 Sort.by("createdAt", Sort.Direction.Descending), query.params())
-                                                           .list();
+        String jpql = "SELECT t FROM LifeCaseTracker t"
+                + (query.hql().isEmpty() ? "" : " WHERE " + query.hql())
+                + " ORDER BY t.createdAt DESC";
+        TypedQuery<LifeCaseTracker> tq = em.createQuery(jpql, LifeCaseTracker.class);
+        query.params().forEach(tq::setParameter);
+        List<LifeCaseTracker> allTrackers = tq.getResultList();
 
         String      actorId = currentPrincipal.actorId();
         Set<String> groups  = currentPrincipal.groups();
@@ -68,7 +73,7 @@ public class LifeCaseQueryService {
 
     @Transactional
     public Optional<LifeCaseDetailResponse> findById(UUID id) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(id);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, id);
         if (tracker == null) return Optional.empty();
 
         LifeCaseResponse response = toResponse(tracker);
@@ -83,7 +88,7 @@ public class LifeCaseQueryService {
     }
 
     private boolean isCaseVisible(UUID caseTrackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, caseTrackerId);
         if (tracker == null) {return false;}
         LifeCaseResponse response = toResponse(tracker);
         return visibilityPolicy.isVisible(response, currentPrincipal.actorId(), currentPrincipal.groups());
@@ -92,7 +97,7 @@ public class LifeCaseQueryService {
 
     @Transactional
     public Optional<List<PendingActionResponse>> findTasksByCase(UUID caseTrackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, caseTrackerId);
         if (tracker == null) {return Optional.empty();}
         if (!isCaseVisible(caseTrackerId)) {return Optional.empty();}
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
@@ -104,9 +109,10 @@ public class LifeCaseQueryService {
         List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
         Map<UUID, LifeCommitmentRecord> commitmentsByWorkItem = workItemIds.isEmpty()
                                                                 ? Map.of()
-                                                                : LifeCommitmentRecord.<LifeCommitmentRecord>list("workItemId IN ?1", workItemIds)
-                                                                                      .stream()
-                                                                                      .collect(Collectors.toMap(rec -> rec.workItemId, rec -> rec, (a, b) -> a));
+                                                                : em.createNamedQuery("LifeCommitmentRecord.findByWorkItemIds", LifeCommitmentRecord.class)
+                                                                    .setParameter("workItemIds", workItemIds).getResultList()
+                                                                    .stream()
+                                                                    .collect(Collectors.toMap(rec -> rec.workItemId, rec -> rec, (a, b) -> a));
 
         Set<String> groups = currentPrincipal.groups();
 
@@ -133,7 +139,7 @@ public class LifeCaseQueryService {
 
     @Transactional
     public Optional<List<LifeCommitmentResponse>> findCommitmentsByCase(UUID caseTrackerId) {
-        LifeCaseTracker tracker = LifeCaseTracker.findById(caseTrackerId);
+        LifeCaseTracker tracker = em.find(LifeCaseTracker.class, caseTrackerId);
         if (tracker == null) {return Optional.empty();}
         if (!isCaseVisible(caseTrackerId)) {return Optional.empty();}
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
@@ -144,8 +150,8 @@ public class LifeCaseQueryService {
         List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
         if (workItemIds.isEmpty()) {return Optional.of(List.of());}
 
-        List<LifeCommitmentRecord> records = LifeCommitmentRecord
-                                                     .<LifeCommitmentRecord>list("workItemId IN ?1", workItemIds);
+        List<LifeCommitmentRecord> records = em.createNamedQuery("LifeCommitmentRecord.findByWorkItemIds", LifeCommitmentRecord.class)
+                .setParameter("workItemIds", workItemIds).getResultList();
         return Optional.of(records.stream().map(this::toCommitmentResponse).toList());}
 
     private LifeCommitmentResponse toCommitmentResponse(LifeCommitmentRecord rec) {

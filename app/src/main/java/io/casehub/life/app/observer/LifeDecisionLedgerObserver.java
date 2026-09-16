@@ -13,8 +13,10 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -22,6 +24,9 @@ public class LifeDecisionLedgerObserver {
 
     @Inject @Any
     Instance<DomainLedgerHandler> handlers;
+
+    @Inject
+    EntityManager em;
 
     static LifeDomain domainFromScope(String scope) {
         if (scope == null || scope.isEmpty()) return null;
@@ -37,7 +42,7 @@ public class LifeDecisionLedgerObserver {
     private LifeDomain resolveDomain(UUID workItemId, WorkItemEntity workItem) {
         LifeDomain domain = domainFromScope(workItem.scope);
         if (domain != null) return domain;
-        return LifeTaskContext.<LifeTaskContext>findByIdOptional(workItemId)
+        return Optional.ofNullable(em.find(LifeTaskContext.class, workItemId))
                 .map(ctx -> ctx.domain)
                 .orElse(null);
     }

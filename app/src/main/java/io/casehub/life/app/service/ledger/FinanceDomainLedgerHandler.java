@@ -5,12 +5,14 @@ import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
+import io.casehub.life.api.commitment.CommitmentStatus;
 import io.casehub.life.app.ledger.FinancialDecisionLedgerEntry;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.identity.ActorType;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -19,10 +21,12 @@ import java.util.UUID;
 public class FinanceDomainLedgerHandler implements DomainLedgerHandler {
 
     @Inject LedgerEntryRepository ledgerRepository;
+    @Inject EntityManager em;
 
     // Package-visible constructor for testing with injected deps
-    FinanceDomainLedgerHandler(LedgerEntryRepository ledgerRepository) {
+    FinanceDomainLedgerHandler(LedgerEntryRepository ledgerRepository, EntityManager em) {
         this.ledgerRepository = ledgerRepository;
+        this.em = em;
     }
 
     FinanceDomainLedgerHandler() {}
@@ -62,6 +66,9 @@ public class FinanceDomainLedgerHandler implements DomainLedgerHandler {
     }
 
     protected Optional<LifeCommitmentRecord> findRecord(UUID workItemId) {
-        return LifeCommitmentRecord.findByWorkItemId(workItemId);
+        return em.createNamedQuery("LifeCommitmentRecord.findByWorkItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", workItemId)
+                .setParameter("excludedStatus", CommitmentStatus.EXPIRED)
+                .getResultStream().findFirst();
     }
 }

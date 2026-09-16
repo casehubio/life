@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -14,6 +15,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "external_actor")
+@NamedQuery(name = "ExternalActor.findNotErased",
+        query = "SELECT a FROM ExternalActor a WHERE a.gdprErasedAt IS NULL")
+@NamedQuery(name = "ExternalActor.findAll",
+        query = "SELECT a FROM ExternalActor a")
 public class ExternalActor {
 
     @Id

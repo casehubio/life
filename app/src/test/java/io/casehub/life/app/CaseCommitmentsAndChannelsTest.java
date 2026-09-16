@@ -12,6 +12,7 @@ import io.casehub.work.runtime.model.WorkItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ class CaseCommitmentsAndChannelsTest {
     private static final String TENANCY_ID = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
 
     @Inject FixedCurrentPrincipal fixedPrincipal;
+    @Inject EntityManager em;
 
     private UUID caseTrackerId;
     private UUID engineCaseId;
@@ -43,10 +45,10 @@ class CaseCommitmentsAndChannelsTest {
     @Transactional
     void seed() {
         fixedPrincipal.setGroups(java.util.Set.of(HouseholdGroups.ADMIN));
-        LifeCommitmentRecord.deleteAll();
-        LifeTaskContext.deleteAll();
+        em.createQuery("DELETE FROM LifeCommitmentRecord").executeUpdate();
+        em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
         WorkItemEntity.deleteAll();
-        LifeCaseTracker.deleteAll();
+        em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
         engineCaseId = UUID.randomUUID();
@@ -56,7 +58,7 @@ class CaseCommitmentsAndChannelsTest {
         tracker.status = LifeCaseStatus.ACTIVE;
         tracker.engineCaseId = engineCaseId;
         tracker.createdAt = Instant.now();
-        tracker.persist();
+        em.persist(tracker);
         caseTrackerId = tracker.id;
 
         UUID wiId = seedWorkItem("Request Quote",
@@ -74,7 +76,7 @@ class CaseCommitmentsAndChannelsTest {
         rec.amountThreshold = new BigDecimal("450.00");
         rec.createdAt = Instant.now();
         rec.updatedAt = Instant.now();
-        rec.persist();
+        em.persist(rec);
 
         LifeCaseTracker emptyCase = new LifeCaseTracker();
         emptyCase.caseType = "travel-plan";
@@ -82,7 +84,7 @@ class CaseCommitmentsAndChannelsTest {
         emptyCase.status = LifeCaseStatus.ACTIVE;
         emptyCase.engineCaseId = UUID.randomUUID();
         emptyCase.createdAt = Instant.now();
-        emptyCase.persist();
+        em.persist(emptyCase);
         emptyCaseTrackerId = emptyCase.id;
     }
 
