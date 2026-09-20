@@ -298,6 +298,23 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.casehub</groupId>
+              <artifactId>casehub-platform-graphql-generator</artifactId>
+              <version>${casehub.version}</version>
+            </path>
+          </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-AdomainFilter=life/cases,life/tasks,life/actors,life/analytics,life/actions,life/dashboard,life/commitments,life/oversight</arg>
+            <arg>-AgenerateGraphQL=false</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>3.2.5</version>
         <executions>
