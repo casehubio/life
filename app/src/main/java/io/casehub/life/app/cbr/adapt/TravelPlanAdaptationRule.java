@@ -36,7 +36,7 @@ public class TravelPlanAdaptationRule implements LifeAdaptationRule {
     @Override
     public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        CbrPlanRecord past = retrieved.cbrCase();
+        CbrPlanRecord past = retrieved.cbrRecord();
         double currentBudget = numericFeature(currentFeatures, "budget");
         double pastBudget = numericFeature(past.features(), "budget");
         String currentSeason = stringFeature(currentFeatures, "season");

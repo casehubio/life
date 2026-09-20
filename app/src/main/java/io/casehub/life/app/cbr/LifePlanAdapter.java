@@ -53,7 +53,7 @@ public class LifePlanAdapter implements CbrPlanAdapter {
 
     public AdaptedPlan adapt(CbrMatch<CbrPlanRecord> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
-        String inferred = inferCaseType(retrieved.cbrCase().cbrPlanStep());
+        String inferred = inferCaseType(retrieved.cbrRecord().cbrPlanStep());
         return adapt(inferred, retrieved, currentFeatures);
     }
 
@@ -61,7 +61,7 @@ public class LifePlanAdapter implements CbrPlanAdapter {
     public AdaptedPlan adapt(String caseType,
                              CbrMatch<CbrPlanRecord> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
-        if (retrieved.cbrCase().cbrPlanStep().isEmpty()) {
+        if (retrieved.cbrRecord().cbrPlanStep().isEmpty()) {
             return new AdaptedPlan(List.of());
         }
         LifeAdaptationRule rule = rulesByType.get(caseType);
@@ -84,7 +84,7 @@ public class LifePlanAdapter implements CbrPlanAdapter {
 
     private AdaptedPlan retainAll(CbrMatch<CbrPlanRecord> retrieved) {
         return new AdaptedPlan(
-                retrieved.cbrCase().cbrPlanStep().stream()
+                retrieved.cbrRecord().cbrPlanStep().stream()
                         .map(t -> new AdaptedStep(t.bindingName(), t.capabilityName(),
                                 t.workerName(), t.stepOutcome(), t.priority(),
                                 t.parameters(), AdaptationAction.RETAINED, null))

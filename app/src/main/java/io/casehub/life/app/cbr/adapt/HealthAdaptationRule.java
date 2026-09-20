@@ -35,7 +35,7 @@ public class HealthAdaptationRule implements LifeAdaptationRule {
     @Override
     public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        CbrPlanRecord past            = retrieved.cbrCase();
+        CbrPlanRecord past            = retrieved.cbrRecord();
         double      currentRisk     = numericFeature(currentFeatures, "patientRiskLevel");
         double      pastRisk        = numericFeature(past.features(), "patientRiskLevel");
         String      currentCareType = stringFeature(currentFeatures, "careType");

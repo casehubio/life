@@ -35,7 +35,7 @@ public class AppointmentCycleAdaptationRule implements LifeAdaptationRule {
     @Override
     public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        CbrPlanRecord past             = retrieved.cbrCase();
+        CbrPlanRecord past             = retrieved.cbrRecord();
         double      currentFollowUp  = numericFeature(currentFeatures, "followUpIntervalDays");
         double      pastFollowUp     = numericFeature(past.features(), "followUpIntervalDays");
         String      currentProvider  = stringFeature(currentFeatures, "providerType");

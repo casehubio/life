@@ -187,7 +187,7 @@ public class LifeCaseService {
                                                          .map(s -> new CbrPrecedentResponse(
                                                                  s.caseId(),
                                                                  s.score(),
-                                                                 s.cbrCase().outcome(),
+                                                                 s.cbrRecord().outcome(),
                                                                  s.storedAt() != null ? s.storedAt().toString() : null))
                                                          .toList();
             return objectMapper.writeValueAsString(precedents);

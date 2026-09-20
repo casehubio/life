@@ -35,7 +35,7 @@ public class FinancialAdaptationRule implements LifeAdaptationRule {
     @Override
     public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        CbrPlanRecord past = retrieved.cbrCase();
+        CbrPlanRecord past = retrieved.cbrRecord();
         double currentAmount = numericFeature(currentFeatures, "amount");
         double pastAmount = numericFeature(past.features(), "amount");
         boolean pastHadEscalation = past.cbrPlanStep().stream()

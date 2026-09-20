@@ -116,7 +116,7 @@ public class LifeCbrSuggestionService {
     private Map<String, FeatureStatistics> computeFeatureStats(List<CbrMatch<CbrPlanRecord>> cases) {
         Map<String, List<Double>> numericValues = new LinkedHashMap<>();
         for (var scored : cases) {
-            for (var entry : scored.cbrCase().features().entrySet()) {
+            for (var entry : scored.cbrRecord().features().entrySet()) {
                 if (entry.getValue() instanceof FeatureValue.NumberVal num) {
                     numericValues.computeIfAbsent(entry.getKey(), k -> new ArrayList<>())
                             .add(num.value());
@@ -134,7 +134,7 @@ public class LifeCbrSuggestionService {
 
     private double computeSuccessRate(List<CbrMatch<CbrPlanRecord>> cases) {
         long completed = cases.stream()
-                .filter(c -> "COMPLETED".equals(c.cbrCase().outcome()))
+                .filter(c -> "COMPLETED".equals(c.cbrRecord().outcome()))
                 .count();
         return (double) completed / cases.size();
     }

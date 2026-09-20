@@ -38,7 +38,7 @@ public class ContractorAdaptationRule implements LifeAdaptationRule {
     @Override
     public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        CbrPlanRecord past                = retrieved.cbrCase();
+        CbrPlanRecord past                = retrieved.cbrRecord();
         String      currentSeason       = stringFeature(currentFeatures, "season");
         String      currentProblemType  = stringFeature(currentFeatures, "problemType");
         double      currentBudget       = numericFeature(currentFeatures, "budget");
