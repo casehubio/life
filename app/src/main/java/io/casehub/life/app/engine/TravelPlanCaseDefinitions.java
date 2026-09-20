@@ -133,7 +133,7 @@ public final class TravelPlanCaseDefinitions {
                                 .name("approval-gate")
                                 .on(new ContextChangeTrigger("."))
                                 .when(".budgetAssessment != null and .budgetAssessment.requiresApproval == true and .budgetAssessment.isHighValue == false and .approval == null")
-                                .humanTask(HumanTaskTarget.inline()
+                                .target(HumanTaskTarget.inline()
                                         .title("Approve travel booking")
                                         .expiresIn(Duration.ofHours(24))
                                         .candidateGroups(Set.of("household-admin"))

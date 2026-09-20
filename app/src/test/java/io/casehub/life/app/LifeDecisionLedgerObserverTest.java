@@ -12,7 +12,7 @@ import io.casehub.work.api.BreachType;
 import io.casehub.work.api.BreachedTask;
 import io.casehub.work.api.SlaBreachContext;
 import io.casehub.work.runtime.event.SlaBreachEvent;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItemLifecycleEvent;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;

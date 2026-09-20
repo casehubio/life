@@ -111,7 +111,7 @@ public final class AppointmentCycleCaseDefinitions {
                                 .name("attend-and-record")
                                 .on(new ContextChangeTrigger("."))
                                 .when(".prep != null and .visitNotes == null")
-                                .humanTask(HumanTaskTarget.inline()
+                                .target(HumanTaskTarget.inline()
                                         .title("Record post-visit notes")
                                         .expiresIn(Duration.ofHours(48))
                                         .candidateGroups(Set.of("household-member"))

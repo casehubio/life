@@ -25,7 +25,7 @@ import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.app.cbr.LifeCbrRetrievalResult;
 import io.casehub.life.app.cbr.LifeCbrSuggestionService;
 import io.casehub.life.app.entity.LifeCaseTracker;
-import io.casehub.neocortex.memory.cbr.AdaptationTrace;
+import io.casehub.neocortex.memory.cbr.CbrAdaptationTrace;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
@@ -102,7 +102,7 @@ public class LifeCaseService {
                     initialContext.put("adaptedPlan",
                                        objectMapper.convertValue(adaptedPlan, Map.class));
                 }
-                adaptationEvent.fire(new CbrAdaptationRecorded(new AdaptationTrace(
+                adaptationEvent.fire(new CbrAdaptationRecorded(new CbrAdaptationTrace(
                         UUID.randomUUID().toString(),
                         null,
                         request.caseType().caseName(),

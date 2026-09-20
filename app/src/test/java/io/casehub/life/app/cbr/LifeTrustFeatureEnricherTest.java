@@ -1,6 +1,6 @@
 package io.casehub.life.app.cbr;
 
-import io.casehub.ledger.runtime.service.TrustGateService;
+import io.casehub.ledger.core.trust.TrustGateService;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

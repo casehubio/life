@@ -1,6 +1,6 @@
 package io.casehub.life.app.cbr;
 
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
@@ -15,7 +15,7 @@ public class LifeCbrFeatureSchemaRegistrar {
     private final CbrRecordStore cbrStore;
 
     @Inject
-    public LifeCbrFeatureSchemaRegistrar(CbrRecordStore cbrStore) {
+    public LifeCbrRecordSchemaRegistrar(CbrRecordStore cbrStore) {
         this.cbrStore = cbrStore;
     }
 
@@ -49,8 +49,8 @@ public class LifeCbrFeatureSchemaRegistrar {
     private static final SimilaritySpec COST_DECAY = new SimilaritySpec.GaussianDecay(0.3);
     private static final SimilaritySpec TIME_DECAY = new SimilaritySpec.GaussianDecay(0.25);
 
-    private static CbrFeatureSchema contractorCoordination() {
-        return CbrFeatureSchema.of("contractor-coordination",
+    private static CbrRecordSchema contractorCoordination() {
+        return CbrRecordSchema.of("contractor-coordination",
                 FeatureField.categorical("problemType"),
                 FeatureField.categorical("season", SEASON_TABLE),
                 FeatureField.categorical("propertyArea"),
@@ -59,8 +59,8 @@ public class LifeCbrFeatureSchemaRegistrar {
                 FeatureField.numeric("slaHours", 1, 720, TIME_DECAY));
     }
 
-    private static CbrFeatureSchema homeMaintenance() {
-        return CbrFeatureSchema.of("home-maintenance",
+    private static CbrRecordSchema homeMaintenance() {
+        return CbrRecordSchema.of("home-maintenance",
                 FeatureField.categorical("issueType"),
                 FeatureField.categorical("severity", SEVERITY_TABLE),
                 FeatureField.categorical("season", SEASON_TABLE),
@@ -68,30 +68,30 @@ public class LifeCbrFeatureSchemaRegistrar {
                 FeatureField.numeric("resolutionDays", 1, 90, TIME_DECAY));
     }
 
-    private static CbrFeatureSchema appointmentCycle() {
-        return CbrFeatureSchema.of("appointment-cycle",
+    private static CbrRecordSchema appointmentCycle() {
+        return CbrRecordSchema.of("appointment-cycle",
                 FeatureField.categorical("conditionCategory"),
                 FeatureField.categorical("providerType"),
                 FeatureField.numeric("followUpIntervalDays", 1, 365, TIME_DECAY));
     }
 
-    private static CbrFeatureSchema careCoordination() {
-        return CbrFeatureSchema.of("care-coordination",
+    private static CbrRecordSchema careCoordination() {
+        return CbrRecordSchema.of("care-coordination",
                 FeatureField.categorical("careType"),
                 FeatureField.categorical("patientRiskLevel", SEVERITY_TABLE),
                 FeatureField.numeric("hoursPerWeek", 1, 168, TIME_DECAY));
     }
 
-    private static CbrFeatureSchema financialReview() {
-        return CbrFeatureSchema.of("financial-review",
+    private static CbrRecordSchema financialReview() {
+        return CbrRecordSchema.of("financial-review",
                 FeatureField.categorical("category"),
                 FeatureField.categorical("amountRange"),
                 FeatureField.numeric("amount", 0, 10_000, COST_DECAY),
                 FeatureField.numeric("approvalThreshold", 0, 10_000, COST_DECAY));
     }
 
-    private static CbrFeatureSchema travelPlan() {
-        return CbrFeatureSchema.of("travel-plan",
+    private static CbrRecordSchema travelPlan() {
+        return CbrRecordSchema.of("travel-plan",
                 FeatureField.categorical("destination"),
                 FeatureField.categorical("travelType"),
                 FeatureField.categorical("season", SEASON_TABLE),

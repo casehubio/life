@@ -98,11 +98,11 @@ public class LifeTaskService {
                 .build();
 
         // Create WorkItem — joins this @Transactional boundary (REQUIRED semantics).
-        final WorkItemEntity workItem = workItemService.create(workReq);
+        final io.casehub.work.api.WorkItem workItem = workItemService.create(workReq);
 
         // Create LifeTaskContext supplement.
         final LifeTaskContext ctx = new LifeTaskContext();
-        ctx.workItemId = workItem.id;
+        ctx.workItemId = workItem.id();
         ctx.domain = domain;
         ctx.externalActorId = req.externalActorId();
         ctx.jurisdiction = req.jurisdiction();
