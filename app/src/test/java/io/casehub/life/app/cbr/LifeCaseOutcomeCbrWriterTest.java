@@ -85,7 +85,7 @@ class LifeCaseOutcomeCbrWriterTest {
         assertThat(stored.outcome()).isEqualTo("COMPLETED");
         assertThat(stored.features()).containsEntry("problemType", FeatureValue.string("boiler-repair"));
         assertThat(stored.features()).containsEntry("budget", FeatureValue.number(500));
-        assertThat(stored.planTrace()).isEmpty();
+        assertThat(stored.resolutionStep()).isEmpty();
         assertThat(stored.problem()).contains("boiler-repair");
     }
 

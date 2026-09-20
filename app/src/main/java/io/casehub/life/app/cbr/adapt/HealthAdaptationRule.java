@@ -4,7 +4,7 @@ import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,13 +40,13 @@ public class HealthAdaptationRule implements LifeAdaptationRule {
         double      pastRisk        = numericFeature(past.features(), "patientRiskLevel");
         String      currentCareType = stringFeature(currentFeatures, "careType");
         String      pastCareType    = stringFeature(past.features(), "careType");
-        boolean pastHadSlaBreach = past.planTrace().stream()
+        boolean pastHadSlaBreach = past.resolutionStep().stream()
                                        .anyMatch(t -> t.stepOutcome() != null && t.stepOutcome().contains("breach"));
         double trustScore      = numericFeature(currentFeatures, "actorTrustScore");
         double factualAccuracy = numericFeature(currentFeatures, "actorFactualAccuracy");
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (PlanTrace trace : past.planTrace()) {
+        for (ResolutionStep trace : past.resolutionStep()) {
             Map<String, Object> params   = new LinkedHashMap<>(trace.parameters());
             int                 priority = trace.priority();
             AdaptationAction    action   = AdaptationAction.RETAINED;

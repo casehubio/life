@@ -1,98 +1,25 @@
-# casehub-life Workspace
+# CLAUDE.md
 
 **Name:** casehub-life
 
-**Physical path:** /Users/mdproctor/claude/casehub/slots/194/life/CLAUDE.md
-**Symlinked at:** /Users/mdproctor/claude/casehub/slots/194/wsp-casehub-life/CLAUDE.md
-**Project repo:** /Users/mdproctor/claude/casehub/slots/194/life
-**Workspace:** /Users/mdproctor/claude/casehub/slots/194/wsp-casehub-life
-**Workspace type:** public
+## Project Type
 
-## Session Start
+type: java
 
-Run `add-dir /Users/mdproctor/claude/casehub/slots/194/life` before any other work.
+**Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2
 
-## Artifact Locations
+## Work Tracking
 
-| Skill | Writes to |
-|-------|-----------|
-| brainstorming (specs) | `specs/` |
-| writing-plans (plans) | `plans/` |
-| handover | `HANDOFF.md` |
-| idea-log | `IDEAS.md` |
-| design-snapshot | `snapshots/` |
-| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic`) |
-| adr | `adr/` |
-| write-blog | `blog/` |
+**Issue tracking:** enabled
+**GitHub repo:** casehubio/life
 
-## Structure
-
-- `HANDOFF.md` — session handover (single file, overwritten each session)
-- `IDEAS.md` — idea log (single file)
-- `specs/` — brainstorming / design specs (superpowers output)
-- `plans/` — implementation plans (superpowers output)
-- `snapshots/` — design snapshots with INDEX.md (auto-pruned, max 10)
-- `adr/` — architecture decision records with INDEX.md
-- `blog/` — project diary entries with INDEX.md
-- `design/` — epic journal (created by `epic` at branch start)
-
-## Git Discipline
-
-Two git repositories are active in every session:
-- **Workspace** (`/Users/mdproctor/claude/casehub/slots/194/wsp-casehub-life`) — methodology artifacts: handover, blog, specs, plans, ADRs
-- **Project repo** (`/Users/mdproctor/claude/casehub/slots/194/life`) — source code
-
-Before any git operation, run `git rev-parse --show-toplevel` to confirm which repo is currently active. Do not assume — the session may have opened in either. cd to the correct repo before staging:
-- Source code commits → project repo
-- Methodology artifacts → workspace
-
-
-## Rules
-
-- All methodology artifacts go here, not in the project repo
-- Promotion to project repo is always explicit — never automatic
-- Workspace branches mirror project branches — switch both together
-
-## Peer Repos — Hard Boundary
-
-**This session owns exactly two repos: the workspace and the project repo.**
-Every other casehubio repo is a peer repo with its own Claude session.
-
-Peer repos (never commit or push to these from this session):
-- `/Users/mdproctor/claude/casehub/parent` and all paths under it
-- `/Users/mdproctor/claude/casehub/slots/194/engine`
-- `/Users/mdproctor/claude/casehub/slots/194/ledger`
-- `/Users/mdproctor/claude/casehub/slots/194/work`
-- `/Users/mdproctor/claude/casehub/qhorus`
-- `/Users/mdproctor/claude/casehub/slots/194/connectors`
-- `/Users/mdproctor/claude/casehub/slots/194/devtown`
-- `/Users/mdproctor/claude/casehub/slots/194/aml`
-- `/Users/mdproctor/claude/casehub/slots/194/clinical`
-- `/Users/mdproctor/claude/casehub/slots/194/openclaw` (casehub-openclaw)
-- Any other sibling directory under `/Users/mdproctor/claude/casehub/`
-
-**When a cross-repo doc change is needed** (e.g. `docs/PLATFORM.md`,
-`docs/repos/casehub-life.md` in the parent): file a GitHub issue on
-`casehubio/parent` describing the change — never edit or commit directly.
-
-Skills that check this (implementation-doc-sync, work-end, handover) must
-read this section before deciding where to commit doc changes.
-
-## Routing
-
-| Artifact   | Destination | Notes |
-|------------|-------------|-------|
-| adr        | project     | lands in `docs/adr/` — promoted at epic close |
-| specs      | project     | lands in `docs/specs/` — promoted at epic close |
-| blog       | project     | lands in `docs/blog/` — promoted at work end |
-| plans      | workspace   | stay in workspace permanently |
-| design     | workspace   | epic journal stays in workspace |
-| snapshots  | workspace   | stay in workspace permanently |
-| handover   | workspace   | |
+**Automatic behaviours:**
+- Before implementation begins — check for an active issue. If none, run issue-workflow Phase 1 before writing any code.
+- Every issue must be linked to its parent epic — no orphan issues.
+- Before any commit — confirm issue linkage.
+- All commits reference an issue — `Refs #N` or `Closes #N`. No commit may be made without an issue reference.
 
 ---
-
-# casehub-life — Claude Code Project Guide
 
 ## Platform Context
 
@@ -115,14 +42,6 @@ This repo owns its own documentation, synced to parent via CI:
 Update the relevant guide in the same session when implementation changes modules, SPIs, or public APIs. Do not defer — drift compounds.
 
 Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/contributor-guide.md` when modifying this repo's internals or extension points.
-
----
-
-## Project Type
-
-type: java
-
-**Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2
 
 ---
 
@@ -792,19 +711,6 @@ npm run build --prefix life-ui
 **Important:** `mvn test -pl app` requires `api` to be installed in the local Maven repo first. Run `mvn install -pl api` if you get ClassNotFound errors for `io.casehub.life.api.*`.
 
 **Frontend:** life-ui uses Vite aliases to resolve `@casehubio/blocks-ui-*` and `@casehubio/pages-*` from Maven SNAPSHOT artifacts (extracted to `.casehub-packages/`). Run `mvn initialize -pl app` to unpack packages before the Vite build. See ADR-0001 in casehub-pages.
-
----
-
-## Work Tracking
-
-**Issue tracking:** enabled
-**GitHub repo:** casehubio/life
-
-**Automatic behaviours:**
-- Before implementation begins — check for an active issue. If none, run issue-workflow Phase 1 before writing any code.
-- Every issue must be linked to its parent epic — no orphan issues.
-- Before any commit — confirm issue linkage.
-- All commits reference an issue — `Refs #N` or `Closes #N`. No commit may be made without an issue reference.
 
 ---
 

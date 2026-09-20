@@ -4,7 +4,7 @@ import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,13 +41,13 @@ public class TravelPlanAdaptationRule implements LifeAdaptationRule {
         double pastBudget = numericFeature(past.features(), "budget");
         String currentSeason = stringFeature(currentFeatures, "season");
         String pastSeason = stringFeature(past.features(), "season");
-        boolean pastHadRejectedBooking = past.planTrace().stream()
+        boolean pastHadRejectedBooking = past.resolutionStep().stream()
                 .anyMatch(t -> "booking".equals(t.capabilityName())
                         && t.stepOutcome() != null
                         && t.stepOutcome().toLowerCase().contains("reject"));
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (PlanTrace trace : past.planTrace()) {
+        for (ResolutionStep trace : past.resolutionStep()) {
             Map<String, Object> params = new LinkedHashMap<>(trace.parameters());
             int priority = trace.priority();
             AdaptationAction action = AdaptationAction.RETAINED;

@@ -4,7 +4,7 @@ import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -48,7 +48,7 @@ public class ContractorAdaptationRule implements LifeAdaptationRule {
         double      deadlineReliability = numericFeature(currentFeatures, "actorDeadlineReliability");
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (PlanTrace trace : past.planTrace()) {
+        for (ResolutionStep trace : past.resolutionStep()) {
             if (pastFailed && !"contractor-sentinel".equals(trace.capabilityName())) {
                 steps.add(new AdaptedStep(trace.bindingName(), trace.capabilityName(),
                                           trace.workerName(), trace.stepOutcome(), trace.priority(),
@@ -106,7 +106,7 @@ public class ContractorAdaptationRule implements LifeAdaptationRule {
         return steps;
     }
 
-    private Map<String, Object> adjustCostParams(PlanTrace trace,
+    private Map<String, Object> adjustCostParams(ResolutionStep trace,
                                                   double currentBudget, double pastBudget) {
         if (currentBudget <= 0 || pastBudget <= 0) return null;
         double ratio = currentBudget / pastBudget;

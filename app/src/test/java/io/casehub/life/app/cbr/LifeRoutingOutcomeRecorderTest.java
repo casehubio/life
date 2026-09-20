@@ -90,11 +90,11 @@ class LifeRoutingOutcomeRecorderTest {
         ResolvedCase stored = caseCaptor.getValue();
         assertThat(stored.outcome()).isEqualTo("SUCCESS");
         assertThat(stored.features()).containsEntry("problemType", FeatureValue.string("boiler-repair"));
-        assertThat(stored.planTrace()).hasSize(1);
-        assertThat(stored.planTrace().get(0).bindingName()).isEqualTo("request-quote");
-        assertThat(stored.planTrace().get(0).capabilityName()).isEqualTo("request-quote");
-        assertThat(stored.planTrace().get(0).workerName()).isEqualTo("request-quote-agent");
-        assertThat(stored.planTrace().get(0).stepOutcome()).isEqualTo("SUCCESS");
+        assertThat(stored.resolutionStep()).hasSize(1);
+        assertThat(stored.resolutionStep().get(0).bindingName()).isEqualTo("request-quote");
+        assertThat(stored.resolutionStep().get(0).capabilityName()).isEqualTo("request-quote");
+        assertThat(stored.resolutionStep().get(0).workerName()).isEqualTo("request-quote-agent");
+        assertThat(stored.resolutionStep().get(0).stepOutcome()).isEqualTo("SUCCESS");
     }
 
     @Test
@@ -174,6 +174,6 @@ class LifeRoutingOutcomeRecorderTest {
 
         var captor = ArgumentCaptor.forClass(ResolvedCase.class);
         verify(cbrStore).store(captor.capture(), any(), any(), any(), any(), any(), any());
-        assertThat(captor.getValue().planTrace().get(0).stepOutcome()).isEqualTo("GATE_REJECTED");
+        assertThat(captor.getValue().resolutionStep().get(0).stepOutcome()).isEqualTo("GATE_REJECTED");
     }
 }

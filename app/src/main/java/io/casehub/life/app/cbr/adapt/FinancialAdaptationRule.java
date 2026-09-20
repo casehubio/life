@@ -4,7 +4,7 @@ import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,12 +38,12 @@ public class FinancialAdaptationRule implements LifeAdaptationRule {
         ResolvedCase past = retrieved.cbrCase();
         double currentAmount = numericFeature(currentFeatures, "amount");
         double pastAmount = numericFeature(past.features(), "amount");
-        boolean pastHadEscalation = past.planTrace().stream()
+        boolean pastHadEscalation = past.resolutionStep().stream()
                 .anyMatch(t -> t.stepOutcome() != null
                         && t.stepOutcome().toLowerCase().contains("escalat"));
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (PlanTrace trace : past.planTrace()) {
+        for (ResolutionStep trace : past.resolutionStep()) {
             Map<String, Object> params = new LinkedHashMap<>(trace.parameters());
             int priority = trace.priority();
             AdaptationAction action = AdaptationAction.RETAINED;

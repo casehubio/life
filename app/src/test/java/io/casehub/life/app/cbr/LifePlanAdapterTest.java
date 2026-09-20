@@ -133,7 +133,7 @@ class LifePlanAdapterTest {
         return new ScoredCbrCase<>(
                 new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(0.9),
                         Map.of("budget", FeatureValue.number(1000)),
-                        List.of(new PlanTrace("b1", capabilityName, "w1", "ok", 5, Map.of(), null)), null, null),
+                        List.of(new ResolutionStep("b1", capabilityName, "w1", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 

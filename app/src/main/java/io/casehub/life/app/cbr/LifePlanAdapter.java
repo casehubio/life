@@ -5,7 +5,7 @@ import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.PlanAdapter;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.All;
@@ -53,7 +53,7 @@ public class LifePlanAdapter implements PlanAdapter {
 
     public AdaptedPlan adapt(ScoredCbrCase<ResolvedCase> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
-        String inferred = inferCaseType(retrieved.cbrCase().planTrace());
+        String inferred = inferCaseType(retrieved.cbrCase().resolutionStep());
         return adapt(inferred, retrieved, currentFeatures);
     }
 
@@ -61,7 +61,7 @@ public class LifePlanAdapter implements PlanAdapter {
     public AdaptedPlan adapt(String caseType,
                              ScoredCbrCase<ResolvedCase> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
-        if (retrieved.cbrCase().planTrace().isEmpty()) {
+        if (retrieved.cbrCase().resolutionStep().isEmpty()) {
             return new AdaptedPlan(List.of());
         }
         LifeAdaptationRule rule = rulesByType.get(caseType);
@@ -72,7 +72,7 @@ public class LifePlanAdapter implements PlanAdapter {
         return new AdaptedPlan(steps);
     }
 
-    private String inferCaseType(List<PlanTrace> traces) {
+    private String inferCaseType(List<ResolutionStep> traces) {
         for (var trace : traces) {
             LifeAdaptationRule rule = rulesByCapability.get(trace.capabilityName());
             if (rule != null) {
@@ -84,7 +84,7 @@ public class LifePlanAdapter implements PlanAdapter {
 
     private AdaptedPlan retainAll(ScoredCbrCase<ResolvedCase> retrieved) {
         return new AdaptedPlan(
-                retrieved.cbrCase().planTrace().stream()
+                retrieved.cbrCase().resolutionStep().stream()
                         .map(t -> new AdaptedStep(t.bindingName(), t.capabilityName(),
                                 t.workerName(), t.stepOutcome(), t.priority(),
                                 t.parameters(), AdaptationAction.RETAINED, null))

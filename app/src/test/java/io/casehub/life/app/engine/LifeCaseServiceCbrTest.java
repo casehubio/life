@@ -16,7 +16,7 @@ import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Instance;
@@ -33,7 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -235,7 +234,7 @@ class LifeCaseServiceCbrTest {
     private ScoredCbrCase<PlanCbrCase> scoredCase(Map<String, FeatureValue> features) {
         return new ScoredCbrCase<>(
                 new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new PlanTrace("b1", "request-quote", "w1", "ok", 5, Map.of(), null)), null, null),
+                        List.of(new ResolutionStep("b1", "request-quote", "w1", "ok", 5, Map.of(), null)), null, null),
                 "source-case-1", 0.85);
     }
 
