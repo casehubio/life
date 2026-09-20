@@ -1,22 +1,23 @@
 package io.casehub.life.app.cbr;
 
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
     void registersAllSixSchemas() {
-        var store = mock(CbrCaseMemoryStore.class);
+        var store = mock(CbrRecordStore.class);
         var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
@@ -33,7 +34,7 @@ class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
     void contractorSchema_hasCorrectFields() {
-        var store = mock(CbrCaseMemoryStore.class);
+        var store = mock(CbrRecordStore.class);
         var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
@@ -53,7 +54,7 @@ class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
     void seasonField_hasCategoricalTable() {
-        var store = mock(CbrCaseMemoryStore.class);
+        var store = mock(CbrRecordStore.class);
         var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
@@ -74,7 +75,7 @@ class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
     void budgetField_hasGaussianDecay() {
-        var store = mock(CbrCaseMemoryStore.class);
+        var store = mock(CbrRecordStore.class);
         var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
@@ -97,7 +98,7 @@ class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
     void travelSchema_hasPartySize() {
-        var store = mock(CbrCaseMemoryStore.class);
+        var store = mock(CbrRecordStore.class);
         var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 

@@ -3,10 +3,10 @@ package io.casehub.life.app.cbr.adapt;
 import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.ArrayList;
@@ -36,9 +36,9 @@ public class HomeMaintenanceAdaptationRule implements LifeAdaptationRule {
     }
 
     @Override
-    public List<AdaptedStep> adapt(ScoredCbrCase<ResolvedCase> retrieved,
+    public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        ResolvedCase past                = retrieved.cbrCase();
+        CbrPlanRecord past                = retrieved.cbrCase();
         String      currentSeason       = stringFeature(currentFeatures, "season");
         String      currentIssueType    = stringFeature(currentFeatures, "issueType");
         double      currentCost         = numericFeature(currentFeatures, "estimatedCost");
@@ -52,7 +52,7 @@ public class HomeMaintenanceAdaptationRule implements LifeAdaptationRule {
                                  && WINTER_URGENT_TYPES.contains(currentIssueType.toLowerCase());
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (ResolutionStep trace : past.resolutionStep()) {
+        for (CbrPlanStep trace : past.cbrPlanStep()) {
             if (pastFailed && !"maintenance-sentinel".equals(trace.capabilityName())) {
                 steps.add(new AdaptedStep(trace.bindingName(), trace.capabilityName(),
                                           trace.workerName(), trace.stepOutcome(), trace.priority(),

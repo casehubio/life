@@ -7,9 +7,9 @@ import io.casehub.api.spi.routing.RoutingOutcome;
 import io.casehub.api.spi.routing.RoutingOutcomeRecorder;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.path.Path;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,13 +32,13 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
-    private final CbrCaseMemoryStore cbrStore;
+    private final CbrRecordStore cbrStore;
     private final LifeCbrFeatureExtractor featureExtractor;
     private final CaseTypeLookup caseTypeLookup;
     private final Map<String, LifeCbrDescriptionProvider> providers;
 
     @Inject
-    public LifeRoutingOutcomeRecorder(CbrCaseMemoryStore cbrStore,
+    public LifeRoutingOutcomeRecorder(CbrRecordStore cbrStore,
                                        LifeCbrFeatureExtractor featureExtractor,
                                        CaseTypeLookup caseTypeLookup,
                                        Instance<LifeCbrDescriptionProvider> providers) {
@@ -66,11 +66,11 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
             var                 result   = extraction.get();
             Map<String, Object> caseData = MAPPER.convertValue(context.caseContext(), MAP_TYPE);
 
-            ResolutionStep trace = new ResolutionStep(
+            CbrPlanStep trace = new CbrPlanStep(
                     bindingName, context.capabilityName(),
                     workerId, outcome.name(), 0, Map.of(), null);
 
-            ResolvedCase cbrCase = new ResolvedCase(
+            CbrPlanRecord cbrCase = new CbrPlanRecord(
                     descProvider.describeProblem(caseData),
                     descProvider.describeSolution(caseData),
                     outcome.name(),

@@ -1,7 +1,7 @@
 package io.casehub.life.app.cbr;
 
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 import io.quarkus.runtime.StartupEvent;
@@ -9,15 +9,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import java.util.List;
-
 @ApplicationScoped
 public class LifeCbrFeatureSchemaRegistrar {
 
-    private final CbrCaseMemoryStore cbrStore;
+    private final CbrRecordStore cbrStore;
 
     @Inject
-    public LifeCbrFeatureSchemaRegistrar(CbrCaseMemoryStore cbrStore) {
+    public LifeCbrFeatureSchemaRegistrar(CbrRecordStore cbrStore) {
         this.cbrStore = cbrStore;
     }
 

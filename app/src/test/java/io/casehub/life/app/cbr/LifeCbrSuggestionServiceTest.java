@@ -3,10 +3,10 @@ package io.casehub.life.app.cbr;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.api.model.cbr.CbrConfig;
 import io.casehub.life.api.LifeCaseType;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.when;
 class LifeCbrSuggestionServiceTest {
 
     private LifeCbrFeatureExtractor featureExtractor;
-    private CbrCaseMemoryStore cbrStore;
+    private CbrRecordStore cbrStore;
     private LifeCbrSuggestionService service;
 
     @BeforeEach
     void setup() {
         featureExtractor = mock(LifeCbrFeatureExtractor.class);
-        cbrStore = mock(CbrCaseMemoryStore.class);
+        cbrStore = mock(CbrRecordStore.class);
         service = new LifeCbrSuggestionService(featureExtractor, cbrStore, new ObjectMapper());
     }
 
@@ -50,7 +50,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(scoredCase(2000, "COMPLETED", 0.8)));
         var result = service.suggest(LifeCaseType.TRAVEL_PLAN, Map.of());
         assertTrue(result.isEmpty());
@@ -62,7 +62,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(
                         scoredCase(1500, "COMPLETED", 0.9),
                         scoredCase(2000, "COMPLETED", 0.85),
@@ -86,7 +86,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(
                         scoredCaseWithStringFeature("Barcelona", 1500, 0.9),
                         scoredCaseWithStringFeature("Madrid", 2000, 0.8)));
@@ -109,7 +109,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(
                         scoredCase(1500, "COMPLETED", 0.9),
                         scoredCase(2000, "COMPLETED", 0.7)));
@@ -124,7 +124,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(
                         scoredCase(1500, "COMPLETED", 0.9),
                         scoredCase(2000, "COMPLETED", 0.8)));
@@ -147,7 +147,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(scoredCase(2000, "COMPLETED", 0.8)));
         var result = service.retrieveForAdaptation(LifeCaseType.TRAVEL_PLAN, Map.of());
         assertEquals(1, result.cases().size());
@@ -160,7 +160,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(
                         scoredCase(1500, "COMPLETED", 0.9),
                         scoredCase(2000, "COMPLETED", 0.8)));
@@ -176,7 +176,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, Map.of("budget", FeatureValue.number(2000)))));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of());
         var result = service.retrieveForAdaptation(LifeCaseType.TRAVEL_PLAN, Map.of());
         assertTrue(result.cases().isEmpty());
@@ -189,7 +189,7 @@ class LifeCbrSuggestionServiceTest {
         when(featureExtractor.extract(eq("travel-plan"), any()))
                 .thenReturn(Optional.of(new LifeCbrFeatureExtractor.ExtractionResult(
                         config, features)));
-        when(cbrStore.retrieveSimilar(any(), eq(ResolvedCase.class)))
+        when(cbrStore.retrieveSimilar(any(), eq(CbrPlanRecord.class)))
                 .thenReturn(List.of(scoredCase(2000, "COMPLETED", 0.8)));
         var result = service.retrieveForAdaptation(LifeCaseType.TRAVEL_PLAN, Map.of());
         assertEquals(features, result.currentFeatures());
@@ -205,17 +205,17 @@ class LifeCbrSuggestionServiceTest {
         return config;
     }
 
-    private ScoredCbrCase<ResolvedCase> scoredCase(double budget, String outcome, double score) {
-        var cbrCase = new ResolvedCase("problem", "solution", outcome, null,
+    private CbrMatch<CbrPlanRecord> scoredCase(double budget, String outcome, double score) {
+        var cbrCase = new CbrPlanRecord("problem", "solution", outcome, null,
                 Map.of("budget", FeatureValue.number(budget)), List.of(), null, null);
-        return new ScoredCbrCase<>(cbrCase, score);
+        return new CbrMatch<>(cbrCase, score);
     }
 
-    private ScoredCbrCase<ResolvedCase> scoredCaseWithStringFeature(String dest, double budget, double score) {
-        var cbrCase = new ResolvedCase("problem", "solution", "COMPLETED", null,
+    private CbrMatch<CbrPlanRecord> scoredCaseWithStringFeature(String dest, double budget, double score) {
+        var cbrCase = new CbrPlanRecord("problem", "solution", "COMPLETED", null,
                 Map.of("destination", FeatureValue.string(dest),
                        "budget", FeatureValue.number(budget)),
                 List.of(), null, null);
-        return new ScoredCbrCase<>(cbrCase, score);
+        return new CbrMatch<>(cbrCase, score);
     }
 }

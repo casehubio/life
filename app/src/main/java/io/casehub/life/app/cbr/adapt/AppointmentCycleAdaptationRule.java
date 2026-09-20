@@ -3,10 +3,10 @@ package io.casehub.life.app.cbr.adapt;
 import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.ArrayList;
@@ -33,9 +33,9 @@ public class AppointmentCycleAdaptationRule implements LifeAdaptationRule {
     }
 
     @Override
-    public List<AdaptedStep> adapt(ScoredCbrCase<ResolvedCase> retrieved,
+    public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        ResolvedCase past             = retrieved.cbrCase();
+        CbrPlanRecord past             = retrieved.cbrCase();
         double      currentFollowUp  = numericFeature(currentFeatures, "followUpIntervalDays");
         double      pastFollowUp     = numericFeature(past.features(), "followUpIntervalDays");
         String      currentProvider  = stringFeature(currentFeatures, "providerType");
@@ -45,7 +45,7 @@ public class AppointmentCycleAdaptationRule implements LifeAdaptationRule {
         double      trustScore       = numericFeature(currentFeatures, "actorTrustScore");
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (ResolutionStep trace : past.resolutionStep()) {
+        for (CbrPlanStep trace : past.cbrPlanStep()) {
             Map<String, Object> params   = new LinkedHashMap<>(trace.parameters());
             int                 priority = trace.priority();
             AdaptationAction    action   = AdaptationAction.RETAINED;

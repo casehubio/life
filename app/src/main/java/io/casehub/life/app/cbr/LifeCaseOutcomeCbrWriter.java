@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.api.spi.CaseOutcomeEvent;
 import io.casehub.api.spi.CaseOutcomeObserver;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.path.Path;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -25,12 +25,12 @@ public class LifeCaseOutcomeCbrWriter implements CaseOutcomeObserver {
     private static final Logger LOG = Logger.getLogger(LifeCaseOutcomeCbrWriter.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private final CbrCaseMemoryStore cbrStore;
+    private final CbrRecordStore cbrStore;
     private final LifeCbrFeatureExtractor featureExtractor;
     private final Map<String, LifeCbrDescriptionProvider> providers;
 
     @Inject
-    public LifeCaseOutcomeCbrWriter(CbrCaseMemoryStore cbrStore,
+    public LifeCaseOutcomeCbrWriter(CbrRecordStore cbrStore,
                                     LifeCbrFeatureExtractor featureExtractor,
                                     Instance<LifeCbrDescriptionProvider> providers) {
         this.cbrStore = cbrStore;
@@ -51,7 +51,7 @@ public class LifeCaseOutcomeCbrWriter implements CaseOutcomeObserver {
 
             var result = extraction.get();
 
-            ResolvedCase cbrCase = new ResolvedCase(
+            CbrPlanRecord cbrCase = new CbrPlanRecord(
                     descProvider.describeProblem(event.caseFileSnapshot()),
                     descProvider.describeSolution(event.caseFileSnapshot()),
                     event.outcomeLabel(),

@@ -14,10 +14,10 @@ import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.BeforeEach;
@@ -231,10 +231,10 @@ class LifeCaseServiceCbrTest {
                 features);
     }
 
-    private ScoredCbrCase<PlanCbrCase> scoredCase(Map<String, FeatureValue> features) {
-        return new ScoredCbrCase<>(
-                new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new ResolutionStep("b1", "request-quote", "w1", "ok", 5, Map.of(), null)), null, null),
+    private CbrMatch<CbrPlanRecord> scoredCase(Map<String, FeatureValue> features) {
+        return new CbrMatch<>(
+                new CbrPlanRecord("problem", "solution", "COMPLETED", 0.9, features,
+                        List.of(new CbrPlanStep("b1", "request-quote", "w1", "ok", 5, Map.of(), null)), null, null),
                 "source-case-1", 0.85);
     }
 

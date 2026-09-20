@@ -2,10 +2,10 @@ package io.casehub.life.app.cbr.adapt;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -71,8 +71,8 @@ class AppointmentCycleAdaptationRuleTest {
 
     @Test
     void emptyTrace_returnsEmpty() {
-        var past = new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9), Map.of(), List.of(), null, null);
-        assertTrue(rule.adapt(new ScoredCbrCase<>(past, "c1", 0.8), Map.of()).isEmpty());
+        var past = new CbrPlanRecord("p", "s", "COMPLETED", Confidence.unknown(0.9), Map.of(), List.of(), null, null);
+        assertTrue(rule.adapt(new CbrMatch<>(past, "c1", 0.8), Map.of()).isEmpty());
     }
 
     @Test
@@ -89,18 +89,18 @@ class AppointmentCycleAdaptationRuleTest {
     }
 
 
-    private ScoredCbrCase<ResolvedCase> scored(Map<String, FeatureValue> features) {
-        return new ScoredCbrCase<>(
-                new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
-                        List.of(new ResolutionStep("b1", "book-appointment", "w1", "ok", 5, Map.of(), null)), null, null),
+    private CbrMatch<CbrPlanRecord> scored(Map<String, FeatureValue> features) {
+        return new CbrMatch<>(
+                new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
+                        List.of(new CbrPlanStep("b1", "book-appointment", "w1", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 
-    private ScoredCbrCase<ResolvedCase> scoredWithPrep(Map<String, FeatureValue> features) {
-        return new ScoredCbrCase<>(
-                new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
-                        List.of(new ResolutionStep("b1", "book-appointment", "w1", "ok", 5, Map.of(), null),
-                                new ResolutionStep("b2", "pre-visit-prep", "w2", "ok", 3, Map.of(), null)), null, null),
+    private CbrMatch<CbrPlanRecord> scoredWithPrep(Map<String, FeatureValue> features) {
+        return new CbrMatch<>(
+                new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
+                        List.of(new CbrPlanStep("b1", "book-appointment", "w1", "ok", 5, Map.of(), null),
+                                new CbrPlanStep("b2", "pre-visit-prep", "w2", "ok", 3, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 }

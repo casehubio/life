@@ -2,10 +2,10 @@ package io.casehub.life.app.cbr.adapt;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -55,11 +55,11 @@ class HomeMaintenanceAdaptationRuleTest {
 
     @Test
     void failedOutcome_suppresses() {
-        var past = new ResolvedCase("p", "s", "FAILED", Confidence.unknown(0.5),
+        var past = new CbrPlanRecord("p", "s", "FAILED", Confidence.unknown(0.5),
                 Map.of(), List.of(
-                        new ResolutionStep("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null),
-                        new ResolutionStep("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of(), null)), null, null);
-        var scored = new ScoredCbrCase<>(past, "c1", 0.8);
+                        new CbrPlanStep("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null),
+                        new CbrPlanStep("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of(), null)), null, null);
+        var scored = new CbrMatch<>(past, "c1", 0.8);
         var steps = rule.adapt(scored, Map.of());
         assertEquals(AdaptationAction.SUPPRESSED, steps.get(0).action());
         assertEquals(AdaptationAction.RETAINED, steps.get(1).action());
@@ -74,8 +74,8 @@ class HomeMaintenanceAdaptationRuleTest {
 
     @Test
     void emptyTrace_returnsEmpty() {
-        var past = new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9), Map.of(), List.of(), null, null);
-        assertTrue(rule.adapt(new ScoredCbrCase<>(past, "c1", 0.8), Map.of()).isEmpty());
+        var past = new CbrPlanRecord("p", "s", "COMPLETED", Confidence.unknown(0.9), Map.of(), List.of(), null, null);
+        assertTrue(rule.adapt(new CbrMatch<>(past, "c1", 0.8), Map.of()).isEmpty());
     }
 
     @Test
@@ -95,11 +95,11 @@ class HomeMaintenanceAdaptationRuleTest {
 
     @Test
     void lowDeadlineReliability_boostsSentinel() {
-        var past = new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9),
+        var past = new CbrPlanRecord("p", "s", "COMPLETED", Confidence.unknown(0.9),
                                    Map.of("estimatedCost", FeatureValue.number(1000)),
-                                   List.of(new ResolutionStep("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null),
-                                           new ResolutionStep("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of(), null)), null, null);
-        var scored = new ScoredCbrCase<>(past, "c1", 0.85);
+                                   List.of(new CbrPlanStep("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null),
+                                           new CbrPlanStep("b2", "maintenance-sentinel", "w2", "ok", 3, Map.of(), null)), null, null);
+        var scored = new CbrMatch<>(past, "c1", 0.85);
         Map<String, FeatureValue> current = new java.util.LinkedHashMap<>(Map.of(
                 "estimatedCost", FeatureValue.number(1000),
                 "actorDeadlineReliability", FeatureValue.number(0.3)));
@@ -111,10 +111,10 @@ class HomeMaintenanceAdaptationRuleTest {
     }
 
 
-    private ScoredCbrCase<ResolvedCase> scored(Map<String, FeatureValue> features) {
-        return new ScoredCbrCase<>(
-                new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
-                        List.of(new ResolutionStep("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null)), null, null),
+    private CbrMatch<CbrPlanRecord> scored(Map<String, FeatureValue> features) {
+        return new CbrMatch<>(
+                new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
+                        List.of(new CbrPlanStep("b1", "schedule-inspection", "w1", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 }

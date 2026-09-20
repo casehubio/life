@@ -3,9 +3,9 @@ package io.casehub.life.app.cbr;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -74,8 +74,8 @@ class LifePlanAdapterTest {
     @Test
     void emptyPlanTrace_returnsEmptySteps() {
         var adapter = new LifePlanAdapter(List.of());
-        var scored = new ScoredCbrCase<>(
-                new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9),
+        var scored = new CbrMatch<>(
+                new CbrPlanRecord("p", "s", "COMPLETED", Confidence.unknown(0.9),
                         Map.of(), List.of(), null, null),
                 "case-1", 0.85);
         var result = adapter.adapt("any", scored, Map.of());
@@ -129,22 +129,22 @@ class LifePlanAdapterTest {
 
     // --- helpers ---
 
-    static ScoredCbrCase<ResolvedCase> scoredCase(String capabilityName) {
-        return new ScoredCbrCase<>(
-                new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(0.9),
+    static CbrMatch<CbrPlanRecord> scoredCase(String capabilityName) {
+        return new CbrMatch<>(
+                new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(0.9),
                         Map.of("budget", FeatureValue.number(1000)),
-                        List.of(new ResolutionStep("b1", capabilityName, "w1", "ok", 5, Map.of(), null)), null, null),
+                        List.of(new CbrPlanStep("b1", capabilityName, "w1", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 
     static LifeAdaptationRule testRule(String caseType, Set<String> capabilities,
-            java.util.function.BiFunction<ScoredCbrCase<ResolvedCase>,
+            java.util.function.BiFunction<CbrMatch<CbrPlanRecord>,
                     Map<String, FeatureValue>, List<AdaptedStep>> fn) {
         return new LifeAdaptationRule() {
             @Override public String caseType() { return caseType; }
             @Override public Set<String> knownCapabilities() { return capabilities; }
             @Override public List<AdaptedStep> adapt(
-                    ScoredCbrCase<ResolvedCase> r, Map<String, FeatureValue> f) {
+                    CbrMatch<CbrPlanRecord> r, Map<String, FeatureValue> f) {
                 return fn.apply(r, f);
             }
         };

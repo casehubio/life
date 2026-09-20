@@ -6,9 +6,9 @@ import io.casehub.api.model.cbr.CbrConfig;
 import io.casehub.api.spi.routing.AgentRoutingContext;
 import io.casehub.api.spi.routing.RoutingOutcome;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.platform.api.path.Path;
 import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ class LifeRoutingOutcomeRecorderTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private CbrCaseMemoryStore cbrStore;
+    private CbrRecordStore cbrStore;
     private LifeCbrFeatureExtractor featureExtractor;
     private LifeRoutingOutcomeRecorder.CaseTypeLookup caseTypeLookup;
     private LifeRoutingOutcomeRecorder recorder;
@@ -41,7 +41,7 @@ class LifeRoutingOutcomeRecorderTest {
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
-        cbrStore = mock(CbrCaseMemoryStore.class);
+        cbrStore = mock(CbrRecordStore.class);
         featureExtractor = mock(LifeCbrFeatureExtractor.class);
         caseTypeLookup = mock(LifeRoutingOutcomeRecorder.CaseTypeLookup.class);
 
@@ -55,7 +55,7 @@ class LifeRoutingOutcomeRecorderTest {
     }
 
     @Test
-    void record_lifeCase_writesResolvedCaseWithTrace() {
+    void record_lifeCase_writesCbrPlanRecordWithTrace() {
         UUID caseId = UUID.randomUUID();
         when(caseTypeLookup.findCaseType(caseId)).thenReturn(Optional.of("contractor-coordination"));
 
@@ -77,7 +77,7 @@ class LifeRoutingOutcomeRecorderTest {
                 RoutingOutcome.SUCCESS, Duration.ofSeconds(2))
 ;
 
-        var caseCaptor = ArgumentCaptor.forClass(ResolvedCase.class);
+        var caseCaptor = ArgumentCaptor.forClass(CbrPlanRecord.class);
         verify(cbrStore).store(
                 caseCaptor.capture(),
                 eq("contractor-coordination"),
@@ -87,14 +87,14 @@ class LifeRoutingOutcomeRecorderTest {
                 eq(caseId.toString()),
                 eq(Path.parse("casehubio/life/contractor")));
 
-        ResolvedCase stored = caseCaptor.getValue();
+        CbrPlanRecord stored = caseCaptor.getValue();
         assertThat(stored.outcome()).isEqualTo("SUCCESS");
         assertThat(stored.features()).containsEntry("problemType", FeatureValue.string("boiler-repair"));
-        assertThat(stored.resolutionStep()).hasSize(1);
-        assertThat(stored.resolutionStep().get(0).bindingName()).isEqualTo("request-quote");
-        assertThat(stored.resolutionStep().get(0).capabilityName()).isEqualTo("request-quote");
-        assertThat(stored.resolutionStep().get(0).workerName()).isEqualTo("request-quote-agent");
-        assertThat(stored.resolutionStep().get(0).stepOutcome()).isEqualTo("SUCCESS");
+        assertThat(stored.cbrPlanStep()).hasSize(1);
+        assertThat(stored.cbrPlanStep().get(0).bindingName()).isEqualTo("request-quote");
+        assertThat(stored.cbrPlanStep().get(0).capabilityName()).isEqualTo("request-quote");
+        assertThat(stored.cbrPlanStep().get(0).workerName()).isEqualTo("request-quote-agent");
+        assertThat(stored.cbrPlanStep().get(0).stepOutcome()).isEqualTo("SUCCESS");
     }
 
     @Test
@@ -172,8 +172,8 @@ class LifeRoutingOutcomeRecorderTest {
         recorder.record(context, "w1", "b1", RoutingOutcome.GATE_REJECTED, null)
 ;
 
-        var captor = ArgumentCaptor.forClass(ResolvedCase.class);
+        var captor = ArgumentCaptor.forClass(CbrPlanRecord.class);
         verify(cbrStore).store(captor.capture(), any(), any(), any(), any(), any(), any());
-        assertThat(captor.getValue().resolutionStep().get(0).stepOutcome()).isEqualTo("GATE_REJECTED");
+        assertThat(captor.getValue().cbrPlanStep().get(0).stepOutcome()).isEqualTo("GATE_REJECTED");
     }
 }

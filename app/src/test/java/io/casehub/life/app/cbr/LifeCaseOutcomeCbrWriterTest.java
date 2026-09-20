@@ -6,9 +6,9 @@ import io.casehub.api.model.cbr.CbrConfig;
 import io.casehub.api.spi.CaseOutcomeEvent;
 import io.casehub.life.app.cbr.describe.ContractorCoordinationDescriptionProvider;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.platform.api.path.Path;
 import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,14 +32,14 @@ class LifeCaseOutcomeCbrWriterTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private CbrCaseMemoryStore cbrStore;
+    private CbrRecordStore cbrStore;
     private LifeCbrFeatureExtractor featureExtractor;
     private LifeCaseOutcomeCbrWriter writer;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
-        cbrStore = mock(CbrCaseMemoryStore.class);
+        cbrStore = mock(CbrRecordStore.class);
         featureExtractor = mock(LifeCbrFeatureExtractor.class);
 
         var descProvider = new ContractorCoordinationDescriptionProvider();
@@ -50,7 +50,7 @@ class LifeCaseOutcomeCbrWriterTest {
     }
 
     @Test
-    void onOutcome_contractorCase_writesResolvedCase() {
+    void onOutcome_contractorCase_writesCbrPlanRecord() {
         CbrConfig config = CbrConfig.builder()
                 .feature("problemType", ".contractorRequest.problemType")
                 .feature("budget", ".contractorRequest.budget")
@@ -71,7 +71,7 @@ class LifeCaseOutcomeCbrWriterTest {
 
         writer.onOutcome(event);
 
-        var caseCaptor = ArgumentCaptor.forClass(ResolvedCase.class);
+        var caseCaptor = ArgumentCaptor.forClass(CbrPlanRecord.class);
         verify(cbrStore).store(
                 caseCaptor.capture(),
                 eq("contractor-coordination"),
@@ -81,11 +81,11 @@ class LifeCaseOutcomeCbrWriterTest {
                 eq(event.caseId().toString()),
                 eq(Path.parse("casehubio/life/contractor")));
 
-        ResolvedCase stored = caseCaptor.getValue();
+        CbrPlanRecord stored = caseCaptor.getValue();
         assertThat(stored.outcome()).isEqualTo("COMPLETED");
         assertThat(stored.features()).containsEntry("problemType", FeatureValue.string("boiler-repair"));
         assertThat(stored.features()).containsEntry("budget", FeatureValue.number(500));
-        assertThat(stored.resolutionStep()).isEmpty();
+        assertThat(stored.cbrPlanStep()).isEmpty();
         assertThat(stored.problem()).contains("boiler-repair");
     }
 
@@ -149,7 +149,7 @@ class LifeCaseOutcomeCbrWriterTest {
 
         writer.onOutcome(event);
 
-        var caseCaptor = ArgumentCaptor.forClass(ResolvedCase.class);
+        var caseCaptor = ArgumentCaptor.forClass(CbrPlanRecord.class);
         verify(cbrStore).store(caseCaptor.capture(), any(), any(), any(), any(), any(), any());
         assertThat(caseCaptor.getValue().outcome()).isEqualTo("FAULTED");
     }
