@@ -7,12 +7,12 @@ import io.casehub.life.api.CbrSuggestions;
 import io.casehub.life.api.FeatureStatistics;
 import io.casehub.life.api.LifeCaseType;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.platform.api.path.Path;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.platform.api.path.Path;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -61,7 +61,7 @@ public class LifeCbrSuggestionService {
                                      .withMinSimilarity(config.minSimilarity())
                                      .withVectorWeight(config.vectorWeight());
 
-            List<ScoredCbrCase<PlanCbrCase>> cases = cbrStore.retrieveSimilar(query, PlanCbrCase.class);
+            List<ScoredCbrCase<ResolvedCase>> cases = cbrStore.retrieveSimilar(query, ResolvedCase.class);
             if (cases.size() < 2) {return CbrSuggestions.EMPTY;}
 
             Map<String, FeatureStatistics> featureStats  = computeFeatureStats(cases);
@@ -95,7 +95,7 @@ public class LifeCbrSuggestionService {
                                      .withMinSimilarity(config.minSimilarity())
                                      .withVectorWeight(config.vectorWeight());
 
-            List<ScoredCbrCase<PlanCbrCase>> cases = cbrStore.retrieveSimilar(query, PlanCbrCase.class);
+            List<ScoredCbrCase<ResolvedCase>> cases = cbrStore.retrieveSimilar(query, ResolvedCase.class);
             if (cases.isEmpty()) {return LifeCbrRetrievalResult.EMPTY;}
 
             CbrSuggestions suggestions = CbrSuggestions.EMPTY;
@@ -113,7 +113,7 @@ public class LifeCbrSuggestionService {
         }}
 
 
-    private Map<String, FeatureStatistics> computeFeatureStats(List<ScoredCbrCase<PlanCbrCase>> cases) {
+    private Map<String, FeatureStatistics> computeFeatureStats(List<ScoredCbrCase<ResolvedCase>> cases) {
         Map<String, List<Double>> numericValues = new LinkedHashMap<>();
         for (var scored : cases) {
             for (var entry : scored.cbrCase().features().entrySet()) {
@@ -132,7 +132,7 @@ public class LifeCbrSuggestionService {
         return stats;
     }
 
-    private double computeSuccessRate(List<ScoredCbrCase<PlanCbrCase>> cases) {
+    private double computeSuccessRate(List<ScoredCbrCase<ResolvedCase>> cases) {
         long completed = cases.stream()
                 .filter(c -> "COMPLETED".equals(c.cbrCase().outcome()))
                 .count();

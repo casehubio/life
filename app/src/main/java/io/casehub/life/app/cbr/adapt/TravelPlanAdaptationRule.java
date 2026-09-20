@@ -4,8 +4,8 @@ import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
 import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -34,9 +34,9 @@ public class TravelPlanAdaptationRule implements LifeAdaptationRule {
     }
 
     @Override
-    public List<AdaptedStep> adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public List<AdaptedStep> adapt(ScoredCbrCase<ResolvedCase> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        PlanCbrCase past = retrieved.cbrCase();
+        ResolvedCase past = retrieved.cbrCase();
         double currentBudget = numericFeature(currentFeatures, "budget");
         double pastBudget = numericFeature(past.features(), "budget");
         String currentSeason = stringFeature(currentFeatures, "season");

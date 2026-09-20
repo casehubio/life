@@ -28,7 +28,7 @@ import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.neocortex.memory.cbr.AdaptationTrace;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
@@ -180,7 +180,7 @@ public class LifeCaseService {
                                                "No CaseHub registered for type: " + type));
     }
 
-    private String serializePrecedents(List<ScoredCbrCase<PlanCbrCase>> cases) {
+    private String serializePrecedents(List<ScoredCbrCase<ResolvedCase>> cases) {
         if (cases.isEmpty()) {return null;}
         try {
             List<CbrPrecedentResponse> precedents = cases.stream()

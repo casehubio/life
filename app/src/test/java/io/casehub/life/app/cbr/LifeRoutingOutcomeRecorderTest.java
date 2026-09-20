@@ -6,10 +6,10 @@ import io.casehub.api.model.cbr.CbrConfig;
 import io.casehub.api.spi.routing.AgentRoutingContext;
 import io.casehub.api.spi.routing.RoutingOutcome;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.platform.api.path.Path;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.platform.api.path.Path;
 import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class LifeRoutingOutcomeRecorderTest {
     }
 
     @Test
-    void record_lifeCase_writesPlanCbrCaseWithTrace() {
+    void record_lifeCase_writesResolvedCaseWithTrace() {
         UUID caseId = UUID.randomUUID();
         when(caseTypeLookup.findCaseType(caseId)).thenReturn(Optional.of("contractor-coordination"));
 
@@ -77,7 +77,7 @@ class LifeRoutingOutcomeRecorderTest {
                 RoutingOutcome.SUCCESS, Duration.ofSeconds(2))
 ;
 
-        var caseCaptor = ArgumentCaptor.forClass(PlanCbrCase.class);
+        var caseCaptor = ArgumentCaptor.forClass(ResolvedCase.class);
         verify(cbrStore).store(
                 caseCaptor.capture(),
                 eq("contractor-coordination"),
@@ -87,7 +87,7 @@ class LifeRoutingOutcomeRecorderTest {
                 eq(caseId.toString()),
                 eq(Path.parse("casehubio/life/contractor")));
 
-        PlanCbrCase stored = caseCaptor.getValue();
+        ResolvedCase stored = caseCaptor.getValue();
         assertThat(stored.outcome()).isEqualTo("SUCCESS");
         assertThat(stored.features()).containsEntry("problemType", FeatureValue.string("boiler-repair"));
         assertThat(stored.planTrace()).hasSize(1);
@@ -172,7 +172,7 @@ class LifeRoutingOutcomeRecorderTest {
         recorder.record(context, "w1", "b1", RoutingOutcome.GATE_REJECTED, null)
 ;
 
-        var captor = ArgumentCaptor.forClass(PlanCbrCase.class);
+        var captor = ArgumentCaptor.forClass(ResolvedCase.class);
         verify(cbrStore).store(captor.capture(), any(), any(), any(), any(), any(), any());
         assertThat(captor.getValue().planTrace().get(0).stepOutcome()).isEqualTo("GATE_REJECTED");
     }

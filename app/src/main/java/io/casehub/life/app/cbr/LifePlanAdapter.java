@@ -5,8 +5,8 @@ import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.PlanAdapter;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
 import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.All;
 import jakarta.annotation.Priority;
@@ -51,7 +51,7 @@ public class LifePlanAdapter implements PlanAdapter {
         }
     }
 
-    public AdaptedPlan adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public AdaptedPlan adapt(ScoredCbrCase<ResolvedCase> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
         String inferred = inferCaseType(retrieved.cbrCase().planTrace());
         return adapt(inferred, retrieved, currentFeatures);
@@ -59,7 +59,7 @@ public class LifePlanAdapter implements PlanAdapter {
 
     @Override
     public AdaptedPlan adapt(String caseType,
-                             ScoredCbrCase<PlanCbrCase> retrieved,
+                             ScoredCbrCase<ResolvedCase> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
         if (retrieved.cbrCase().planTrace().isEmpty()) {
             return new AdaptedPlan(List.of());
@@ -82,7 +82,7 @@ public class LifePlanAdapter implements PlanAdapter {
         return "";
     }
 
-    private AdaptedPlan retainAll(ScoredCbrCase<PlanCbrCase> retrieved) {
+    private AdaptedPlan retainAll(ScoredCbrCase<ResolvedCase> retrieved) {
         return new AdaptedPlan(
                 retrieved.cbrCase().planTrace().stream()
                         .map(t -> new AdaptedStep(t.bindingName(), t.capabilityName(),

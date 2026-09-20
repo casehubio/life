@@ -1,9 +1,10 @@
 package io.casehub.life.app.cbr.adapt;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.Test;
 
@@ -38,9 +39,9 @@ class HealthAdaptationRuleTest {
 
     @Test
     void slaBreach_boostsHealthCheck() {
-        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
+        var past = new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9),
                 Map.of("patientRiskLevel", FeatureValue.number(5.0)),
-                List.of(new PlanTrace("b1", "health-check", "w1", "breach-occurred", 5, Map.of(), null)), null, null);
+                List.of(new ResolutionStep("b1", "health-check", "w1", "breach-occurred", 5, Map.of(), null)), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.8);
         Map<String, FeatureValue> current = Map.of("patientRiskLevel", FeatureValue.number(5.0));
         var steps = rule.adapt(scored, current);
@@ -69,7 +70,7 @@ class HealthAdaptationRuleTest {
 
     @Test
     void emptyTrace_returnsEmpty() {
-        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9, Map.of(), List.of(), null, null);
+        var past = new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9), Map.of(), List.of(), null, null);
         assertTrue(rule.adapt(new ScoredCbrCase<>(past, "c1", 0.8), Map.of()).isEmpty());
     }
 
@@ -88,9 +89,9 @@ class HealthAdaptationRuleTest {
 
     @Test
     void lowFactualAccuracy_boostsHealthCheck() {
-        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
+        var past = new ResolvedCase("p", "s", "COMPLETED", Confidence.unknown(0.9),
                                    Map.of("patientRiskLevel", FeatureValue.number(5.0)),
-                                   List.of(new PlanTrace("b1", "health-check", "w1", "ok", 5, Map.of(), null)), null, null);
+                                   List.of(new ResolutionStep("b1", "health-check", "w1", "ok", 5, Map.of(), null)), null, null);
         var scored = new ScoredCbrCase<>(past, "c1", 0.85);
         Map<String, FeatureValue> current = new java.util.LinkedHashMap<>(Map.of(
                 "patientRiskLevel", FeatureValue.number(5.0),
@@ -102,10 +103,10 @@ class HealthAdaptationRuleTest {
     }
 
 
-    private ScoredCbrCase<PlanCbrCase> scored(Map<String, FeatureValue> features) {
+    private ScoredCbrCase<ResolvedCase> scored(Map<String, FeatureValue> features) {
         return new ScoredCbrCase<>(
-                new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new PlanTrace("b1", "needs-assessment", "w1", "ok", 5, Map.of(), null)), null, null),
+                new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
+                        List.of(new ResolutionStep("b1", "needs-assessment", "w1", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 }

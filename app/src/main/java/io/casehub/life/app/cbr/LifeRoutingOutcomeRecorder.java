@@ -7,10 +7,10 @@ import io.casehub.api.spi.routing.RoutingOutcome;
 import io.casehub.api.spi.routing.RoutingOutcomeRecorder;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.platform.api.path.Path;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.platform.api.path.Path;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -66,11 +66,11 @@ public class LifeRoutingOutcomeRecorder implements RoutingOutcomeRecorder {
             var                 result   = extraction.get();
             Map<String, Object> caseData = MAPPER.convertValue(context.caseContext(), MAP_TYPE);
 
-            PlanTrace trace = new PlanTrace(
+            ResolutionStep trace = new ResolutionStep(
                     bindingName, context.capabilityName(),
                     workerId, outcome.name(), 0, Map.of(), null);
 
-            PlanCbrCase cbrCase = new PlanCbrCase(
+            ResolvedCase cbrCase = new ResolvedCase(
                     descProvider.describeProblem(caseData),
                     descProvider.describeSolution(caseData),
                     outcome.name(),
