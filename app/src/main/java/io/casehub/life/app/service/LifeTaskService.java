@@ -12,6 +12,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemCreateRequest;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.model.WorkItemTemplate;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.casehub.work.runtime.service.WorkItemTemplateService;
@@ -111,15 +112,18 @@ public class LifeTaskService {
         ledgerHandlers.stream()
                 .filter(h -> h.domain() == domain)
                 .findFirst()
-                .ifPresent(h -> h.writeEntry(LifeDecisionEventType.CREATED, workItem.id, workItem));
+                .ifPresent(h -> {
+                    WorkItemEntity entity = WorkItemEntity.findById(workItem.id());
+                    if (entity != null) h.writeEntry(LifeDecisionEventType.CREATED, workItem.id(), entity);
+                });
 
         return new LifeTaskResponse(
-                workItem.id,
+                workItem.id(),
                 req.templateRef(),
                 domain,
-                workItem.status.name(),
+                workItem.status().name(),
                 req.externalActorId(),
-                workItem.createdAt,
+                workItem.createdAt(),
                 null, null,  // commitmentMode / commitmentStatus — null at creation time
                 null, List.of()  // assigneeId / candidateGroups — not set at creation time
         );

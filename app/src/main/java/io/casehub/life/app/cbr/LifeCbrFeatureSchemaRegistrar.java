@@ -15,7 +15,7 @@ public class LifeCbrFeatureSchemaRegistrar {
     private final CbrRecordStore cbrStore;
 
     @Inject
-    public LifeCbrRecordSchemaRegistrar(CbrRecordStore cbrStore) {
+    public LifeCbrFeatureSchemaRegistrar(CbrRecordStore cbrStore) {
         this.cbrStore = cbrStore;
     }
 
