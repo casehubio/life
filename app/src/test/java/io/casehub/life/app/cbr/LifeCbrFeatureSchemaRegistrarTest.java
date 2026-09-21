@@ -1,6 +1,6 @@
 package io.casehub.life.app.cbr;
 
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
@@ -13,19 +13,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-class LifeCbrFeatureSchemaRegistrarTest {
+class LifeCbrRecordSchemaRegistrarTest {
 
     @Test
     void registersAllSixSchemas() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
+        var registrar = new LifeCbrRecordSchemaRegistrar(store);
         registrar.onStartup(null);
 
-        var captor = ArgumentCaptor.forClass(CbrFeatureSchema.class);
+        var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
         verify(store, times(6)).registerSchema(captor.capture());
 
         var caseTypes = captor.getAllValues().stream()
-                .map(CbrFeatureSchema::caseType).toList();
+                .map(CbrRecordSchema::caseType).toList();
         assertThat(caseTypes).containsExactlyInAnyOrder(
                 "contractor-coordination", "home-maintenance",
                 "appointment-cycle", "care-coordination",
@@ -35,13 +35,13 @@ class LifeCbrFeatureSchemaRegistrarTest {
     @Test
     void contractorSchema_hasCorrectFields() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
+        var registrar = new LifeCbrRecordSchemaRegistrar(store);
         registrar.onStartup(null);
 
-        var captor = ArgumentCaptor.forClass(CbrFeatureSchema.class);
+        var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
         verify(store, atLeast(1)).registerSchema(captor.capture());
 
-        CbrFeatureSchema contractor = captor.getAllValues().stream()
+        CbrRecordSchema contractor = captor.getAllValues().stream()
                 .filter(s -> "contractor-coordination".equals(s.caseType()))
                 .findFirst().orElseThrow();
 
@@ -55,13 +55,13 @@ class LifeCbrFeatureSchemaRegistrarTest {
     @Test
     void seasonField_hasCategoricalTable() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
+        var registrar = new LifeCbrRecordSchemaRegistrar(store);
         registrar.onStartup(null);
 
-        var captor = ArgumentCaptor.forClass(CbrFeatureSchema.class);
+        var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
         verify(store, atLeast(1)).registerSchema(captor.capture());
 
-        CbrFeatureSchema contractor = captor.getAllValues().stream()
+        CbrRecordSchema contractor = captor.getAllValues().stream()
                 .filter(s -> "contractor-coordination".equals(s.caseType()))
                 .findFirst().orElseThrow();
 
@@ -76,13 +76,13 @@ class LifeCbrFeatureSchemaRegistrarTest {
     @Test
     void budgetField_hasGaussianDecay() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
+        var registrar = new LifeCbrRecordSchemaRegistrar(store);
         registrar.onStartup(null);
 
-        var captor = ArgumentCaptor.forClass(CbrFeatureSchema.class);
+        var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
         verify(store, atLeast(1)).registerSchema(captor.capture());
 
-        CbrFeatureSchema contractor = captor.getAllValues().stream()
+        CbrRecordSchema contractor = captor.getAllValues().stream()
                 .filter(s -> "contractor-coordination".equals(s.caseType()))
                 .findFirst().orElseThrow();
 
@@ -99,13 +99,13 @@ class LifeCbrFeatureSchemaRegistrarTest {
     @Test
     void travelSchema_hasPartySize() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
+        var registrar = new LifeCbrRecordSchemaRegistrar(store);
         registrar.onStartup(null);
 
-        var captor = ArgumentCaptor.forClass(CbrFeatureSchema.class);
+        var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
         verify(store, atLeast(1)).registerSchema(captor.capture());
 
-        CbrFeatureSchema travel = captor.getAllValues().stream()
+        CbrRecordSchema travel = captor.getAllValues().stream()
                 .filter(s -> "travel-plan".equals(s.caseType()))
                 .findFirst().orElseThrow();
 

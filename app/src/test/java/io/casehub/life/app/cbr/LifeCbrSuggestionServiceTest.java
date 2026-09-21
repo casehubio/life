@@ -208,7 +208,7 @@ class LifeCbrSuggestionServiceTest {
     private CbrMatch<CbrPlanRecord> scoredCase(double budget, String outcome, double score) {
         var cbrCase = new CbrPlanRecord("problem", "solution", outcome, null,
                 Map.of("budget", FeatureValue.number(budget)), List.of(), null, null);
-        return new CbrMatch<>(cbrCase, score);
+        return new CbrMatch<>(cbrCase, "test-case", score);
     }
 
     private CbrMatch<CbrPlanRecord> scoredCaseWithStringFeature(String dest, double budget, double score) {
@@ -216,6 +216,6 @@ class LifeCbrSuggestionServiceTest {
                 Map.of("destination", FeatureValue.string(dest),
                        "budget", FeatureValue.number(budget)),
                 List.of(), null, null);
-        return new CbrMatch<>(cbrCase, score);
+        return new CbrMatch<>(cbrCase, "test-case", score);
     }
 }
