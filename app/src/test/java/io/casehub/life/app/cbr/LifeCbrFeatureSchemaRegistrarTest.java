@@ -13,12 +13,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-class LifeCbrRecordSchemaRegistrarTest {
+class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
     void registersAllSixSchemas() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrRecordSchemaRegistrar(store);
+        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
         var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
@@ -35,7 +35,7 @@ class LifeCbrRecordSchemaRegistrarTest {
     @Test
     void contractorSchema_hasCorrectFields() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrRecordSchemaRegistrar(store);
+        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
         var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
@@ -55,7 +55,7 @@ class LifeCbrRecordSchemaRegistrarTest {
     @Test
     void seasonField_hasCategoricalTable() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrRecordSchemaRegistrar(store);
+        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
         var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
@@ -76,7 +76,7 @@ class LifeCbrRecordSchemaRegistrarTest {
     @Test
     void budgetField_hasGaussianDecay() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrRecordSchemaRegistrar(store);
+        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
         var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
@@ -99,7 +99,7 @@ class LifeCbrRecordSchemaRegistrarTest {
     @Test
     void travelSchema_hasPartySize() {
         var store = mock(CbrRecordStore.class);
-        var registrar = new LifeCbrRecordSchemaRegistrar(store);
+        var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
         var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);

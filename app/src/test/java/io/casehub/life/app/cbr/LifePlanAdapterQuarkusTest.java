@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @QuarkusTest
-class LifeCbrCbrPlanAdapterQuarkusTest {
+class LifeCbrPlanAdapterQuarkusTest {
 
     @Inject
-    CbrCbrPlanAdapter planAdapter;
+    CbrPlanAdapter planAdapter;
 
     @Test
-    void planAdapter_resolvesToLifeCbrCbrPlanAdapter() {
-        assertInstanceOf(LifeCbrCbrPlanAdapter.class, planAdapter);
+    void planAdapter_resolvesToLifeCbrPlanAdapter() {
+        assertInstanceOf(LifeCbrPlanAdapter.class, planAdapter);
     }
 }
