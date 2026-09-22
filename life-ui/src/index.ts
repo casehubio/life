@@ -5,3 +5,5 @@ import './views/inbox-view.js';
 import './views/people-view.js';
 import './views/cases-view.js';
 import './views/journal-view.js';
+import './views/onboarding-view.js';
+import './views/settings-view.js';

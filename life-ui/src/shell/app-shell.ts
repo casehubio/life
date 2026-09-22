@@ -5,7 +5,7 @@ import { applyTheme } from '@casehubio/blocks-ui-core';
 import { LifeEventController, INBOX_EVENT_TYPES } from '../events/life-event-controller.js';
 import '@casehubio/pages-ui-components/badge/pages-badge.js';
 
-type View = 'home' | 'inbox' | 'people' | 'cases' | 'journal';
+type View = 'home' | 'inbox' | 'people' | 'cases' | 'journal' | 'onboarding' | 'settings';
 
 const NAV_ITEMS: { view: View; label: string }[] = [
   { view: 'home', label: 'Dashboard' },
@@ -118,6 +118,7 @@ export class AppShell extends LitElement {
     applyTheme('casehub-light');
     window.addEventListener('hashchange', this._onHashChange);
     this._syncViewFromHash();
+    this._checkOnboarding();
   }
 
   override disconnectedCallback(): void {
@@ -131,7 +132,9 @@ export class AppShell extends LitElement {
 
   private _syncViewFromHash(): void {
     const hash = window.location.hash.slice(1);
-    if (hash && NAV_ITEMS.some(n => n.view === hash)) {
+    if (hash === 'onboarding' || hash === 'settings') {
+      this.currentView = hash as View;
+    } else if (hash && NAV_ITEMS.some(n => n.view === hash)) {
       this.currentView = hash as View;
     } else {
       this.currentView = 'home';
@@ -167,6 +170,8 @@ export class AppShell extends LitElement {
                   style="position: absolute; top: -4px; right: -4px;"
                 ></pages-badge>`
               : ''}</button>
+          <button title="Settings" aria-label="Settings"
+            @click=${() => this._navigate('settings' as View)}>⚙️</button>
           <button title="Toggle theme" aria-label="Toggle theme"
             @click=${this._toggleTheme}>${this._darkMode ? '☀️' : '🌙'}</button>
           <span class="user">Mark (Admin)</span>
@@ -183,6 +188,18 @@ export class AppShell extends LitElement {
     applyTheme(this._darkMode ? 'casehub-dark' : 'casehub-light');
   }
 
+  private async _checkOnboarding(): Promise<void> {
+    try {
+      const res = await fetch('/onboarding/status');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.needsOnboarding) {
+        this.currentView = 'onboarding';
+        window.location.hash = 'onboarding';
+      }
+    } catch (e) { console.error(e); }
+  }
+
   private _renderView() {
     switch (this.currentView) {
       case 'home': return html`<home-view></home-view>`;
@@ -190,6 +207,8 @@ export class AppShell extends LitElement {
       case 'people': return html`<people-view></people-view>`;
       case 'cases': return html`<cases-view></cases-view>`;
       case 'journal': return html`<journal-view></journal-view>`;
+      case 'onboarding': return html`<onboarding-view></onboarding-view>`;
+      case 'settings': return html`<settings-view></settings-view>`;
       default: return html`<div class="placeholder">Unknown view</div>`;
     }
   }
