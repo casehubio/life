@@ -1,13 +1,14 @@
 package io.casehub.life.app.api;
 
 import io.casehub.life.api.LifeDomain;
+import io.casehub.life.api.commitment.CommitmentOutcome;
 import io.casehub.life.api.request.OversightGateRequest;
 import io.casehub.life.api.response.BriefingResponse;
 import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.api.response.PendingActionResponse;
-import io.casehub.life.app.resource.DashboardResource;
-import io.casehub.life.app.resource.LifeOversightGateResource;
-import io.casehub.life.app.resource.PendingActionsResource;
+import io.casehub.life.app.commitment.LifeCommitmentService;
+import io.casehub.life.app.service.DashboardService;
+import io.casehub.life.app.service.PendingActionsService;
 import io.casehub.platform.api.mcp.McpDomain;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
@@ -20,14 +21,14 @@ import jakarta.ws.rs.QueryParam;
 @ApplicationScoped
 public class LifeDashboardApi {
 
-    @Inject DashboardResource dashboardResource;
-    @Inject PendingActionsResource pendingActionsResource;
-    @Inject LifeOversightGateResource oversightResource;
+    @Inject DashboardService dashboardService;
+    @Inject PendingActionsService pendingActionsService;
+    @Inject LifeCommitmentService commitmentService;
 
     @PlatformQuery("Get household briefing")
     @RestPath("/briefing")
     public BriefingResponse briefing() {
-        return dashboardResource.briefing();
+        return dashboardService.buildBriefing();
     }
 
     @PlatformQuery("List pending actions")
@@ -38,12 +39,12 @@ public class LifeDashboardApi {
             @QueryParam("dueSoonHours") int dueSoonHours,
             @QueryParam("page") int page,
             @QueryParam("size") int size) {
-        return pendingActionsResource.list(domain, candidateGroup, dueSoonHours, page, size);
+        return pendingActionsService.findPendingActions(domain, candidateGroup, dueSoonHours, page, size);
     }
 
     @PlatformMutation("Request an oversight gate approval")
     @RestPath("/oversight-gates")
-    public Object requestApproval(OversightGateRequest request) {
-        return oversightResource.requestApproval(request).getEntity();
+    public CommitmentOutcome requestApproval(OversightGateRequest request) {
+        return commitmentService.requestApproval(request);
     }
 }

@@ -172,7 +172,7 @@ CDI event bridge for SSE push to the frontend:
 - `LifeSseEvent` record: carries type, payload, timestamp
 - `LifeEventBridge`: observes CDI events from work/engine subsystems, converts to `LifeSseEvent`
 - `LifeEventBroadcaster`: fan-out broadcaster; subscribers register callbacks
-- `LifeEventSseResource`: exposes two SSE streams (`/events/inbox`, `/events/cases`) filtered by event type, with 30-second keepalive heartbeat
+- `LifeEventStreamApi`: `@McpDomain("life/events")` with three `@PlatformStream` endpoints (`/events/inbox`, `/events/cases`, `/events/stream`) filtered by event type
 
 ### Routing and Risk Classification
 

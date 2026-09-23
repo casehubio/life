@@ -305,12 +305,11 @@ Dual-path architecture in `LifeCaseService.startCase()`: calls `cbrSuggestionSer
 - `GET /external-actors/{id}/trust-history` -- actor trust score history. Paged.
 - `GET /external-actors/{id}/activity` -- actor activity timeline. Paged.
 
-### SSE Events (`LifeEventSseResource`, `/events`)
+### SSE Events (`LifeEventStreamApi`, `/events`)
 
 - `GET /events/inbox` -- SSE stream of work item events: `WORK_ITEM_CREATED`, `WORK_ITEM_UPDATED`, `WORK_ITEM_COMPLETED`, `SLA_BREACH`. All groups.
 - `GET /events/cases` -- SSE stream of case events: `CASE_STARTED`, `CASE_COMPLETED`, `CASE_FAULTED`. Admin or member.
-
-Both streams include a 30-second keepalive heartbeat.
+- `GET /events/stream` -- SSE stream of all events. All groups.
 
 ## Visibility Policy SPIs
 

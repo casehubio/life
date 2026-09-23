@@ -1,4 +1,4 @@
-package io.casehub.life.app.resource;
+package io.casehub.life.app.api;
 
 import io.casehub.life.api.HouseholdGroups;
 import io.casehub.life.app.LifeTestFixtures;
@@ -14,7 +14,7 @@ import static io.restassured.RestAssured.given;
 
 @QuarkusTest
 @TestSecurity(user = "admin", roles = {HouseholdGroups.ADMIN})
-class LifeEventSseResourceTest {
+class LifeEventStreamApiTest {
 
     @BeforeEach
     @Transactional
