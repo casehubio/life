@@ -1,5 +1,6 @@
 package io.casehub.life.app.cbr;
 
+import io.casehub.neocortex.memory.cbr.CbrPlanAdapter;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ class LifeCbrPlanAdapterQuarkusTest {
     CbrPlanAdapter planAdapter;
 
     @Test
-    void planAdapter_resolvesToLifeCbrPlanAdapter() {
-        assertInstanceOf(LifeCbrPlanAdapter.class, planAdapter);
+    void planAdapter_resolvesToLifePlanAdapter() {
+        assertInstanceOf(LifePlanAdapter.class, planAdapter);
     }
 }

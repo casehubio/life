@@ -7,6 +7,7 @@ import io.casehub.qhorus.api.store.MessageStore;
 import io.casehub.qhorus.api.store.query.MessageQuery;
 import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.platform.api.identity.ActorType;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,8 @@ class LifeChannelContextProviderTest {
 
         when(messageStore.scan(any(MessageQuery.class))).thenReturn(List.of());
 
-        provider = new LifeChannelContextProvider(channelService, messageStore, 10) {
+        EntityManager mockEm = mock(EntityManager.class);
+        provider = new LifeChannelContextProvider(channelService, messageStore, mockEm, 10) {
             @Override protected Map<String, String> resolveActorChannels(UUID caseId) {
                 return Map.of();
             }
@@ -86,7 +88,8 @@ class LifeChannelContextProviderTest {
     @Test
     void gatherContext_respectsMessageLimit() {
         UUID caseId = UUID.randomUUID();
-        provider = new LifeChannelContextProvider(channelService, messageStore, 5) {
+        EntityManager mockEm = mock(EntityManager.class);
+        provider = new LifeChannelContextProvider(channelService, messageStore, mockEm, 5) {
             @Override protected Map<String, String> resolveActorChannels(UUID caseId) {
                 return Map.of();
             }
@@ -130,6 +133,6 @@ class LifeChannelContextProviderTest {
 
     private static Message message(String sender, MessageType type, String content, Instant createdAt) {
         return new Message(1L, UUID.randomUUID(), sender, type, ActorType.AGENT,
-                "test-tenant", content, null, null, 0, null, null, null, null, null, null, 0, createdAt);
+                "test-tenant", content, null, null, null, 0, null, null, null, null, null, null, 0, createdAt);
     }
 }

@@ -10,6 +10,7 @@ import io.casehub.life.app.cbr.LifeCbrRetrievalResult;
 import io.casehub.life.app.cbr.LifeCbrSuggestionService;
 import io.casehub.life.app.cbr.LifePlanAdapter;
 import io.casehub.life.app.cbr.LifeTrustFeatureEnricher;
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;

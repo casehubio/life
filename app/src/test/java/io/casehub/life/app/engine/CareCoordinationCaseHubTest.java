@@ -122,9 +122,11 @@ class CareCoordinationCaseHubTest {
         assertEquals("1.0.0", subCase.version());
         assertTrue(subCase.waitForCompletion());
         assertTrue(subCase.inputMapping() instanceof SubCaseMapping.Expression inputExpr
-                   && "{ careRequest: .careRequest, carePlan: .carePlan }".equals(inputExpr.expression()));
+                   && inputExpr.evaluator() instanceof JQExpressionEvaluator jqIn
+                   && "{ careRequest: .careRequest, carePlan: .carePlan }".equals(jqIn.expression()));
         assertTrue(subCase.outputMapping() instanceof SubCaseMapping.Expression outputExpr
-                   && "{ episodeResult: . }".equals(outputExpr.expression()));
+                   && outputExpr.evaluator() instanceof JQExpressionEvaluator jqOut
+                   && "{ episodeResult: . }".equals(jqOut.expression()));
     }
 
     @Test
