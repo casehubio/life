@@ -108,7 +108,7 @@ class LifeDecisionLedgerObserverTest {
     void onLifecycleEvent_skipsRejectedStatus() {
         var workItem = WorkItem.builder()
                 .id(healthWorkItemId)
-                .status(WorkItemStatus.ACTIVE)
+                .status(WorkItemStatus.PENDING)
                 .build();
         var event = WorkItemLifecycleEvent.of("REJECTED", workItem, "life-system", null);
         observer.onLifecycleEvent(event);
