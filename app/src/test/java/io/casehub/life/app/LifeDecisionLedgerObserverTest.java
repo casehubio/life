@@ -14,6 +14,7 @@ import io.casehub.work.api.SlaBreachContext;
 import io.casehub.work.runtime.event.SlaBreachEvent;
 import io.casehub.work.api.WorkItemLifecycleEvent;
 import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
 import io.casehub.work.api.WorkItemStatus;
@@ -105,8 +106,11 @@ class LifeDecisionLedgerObserverTest {
 
     @Test
     void onLifecycleEvent_skipsRejectedStatus() {
-        var wi = loadWorkItem(healthWorkItemId);
-        var event = WorkItemLifecycleEvent.of("REJECTED", wi, "life-system", null);
+        var workItem = WorkItem.builder()
+                .id(healthWorkItemId)
+                .status(WorkItemStatus.ACTIVE)
+                .build();
+        var event = WorkItemLifecycleEvent.of("REJECTED", workItem, "life-system", null);
         observer.onLifecycleEvent(event);
         assertThat(ledgerRepository.findLatestBySubjectId(healthWorkItemId, TenancyConstants.DEFAULT_TENANT_ID)).isEmpty();
     }
@@ -141,11 +145,11 @@ class LifeDecisionLedgerObserverTest {
         var workItem = workItemService.create(req);
 
         var ctx = new LifeTaskContext();
-        ctx.workItemId = workItem.id;
+        ctx.workItemId = workItem.id();
         ctx.domain = domain;
         em.persist(ctx);
 
-        return workItem.id;
+        return workItem.id();
     }
 
     @Transactional
@@ -160,21 +164,15 @@ class LifeDecisionLedgerObserverTest {
                 .scope("casehubio/life/household")
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
-        return workItemService.create(req).id;
+        return workItemService.create(req).id();
     }
 
     @Transactional
-    WorkItemEntity completeWorkItem(UUID id, String outcome) {
+    void completeWorkItem(UUID id, String outcome) {
         var wi = WorkItemEntity.<WorkItemEntity>findByIdOptional(id).orElseThrow();
         wi.outcome = outcome;
         wi.status = WorkItemStatus.COMPLETED;
         wi.persist();
-        return wi;
-    }
-
-    @Transactional
-    WorkItemEntity loadWorkItem(UUID id) {
-        return WorkItemEntity.<WorkItemEntity>findByIdOptional(id).orElseThrow();
     }
 
     private SlaBreachEvent breachEvent(UUID taskId) {
@@ -186,7 +184,13 @@ class LifeDecisionLedgerObserverTest {
     }
 
     private WorkItemLifecycleEvent completedEvent(UUID workItemId, String outcome) {
-        var wi = completeWorkItem(workItemId, outcome);
-        return WorkItemLifecycleEvent.of("COMPLETED", wi, "life-system", null);
+        completeWorkItem(workItemId, outcome);
+        var workItem = WorkItem.builder()
+                .id(workItemId)
+                .status(WorkItemStatus.COMPLETED)
+                .outcome(outcome)
+                .scope("casehubio/life/test")
+                .build();
+        return WorkItemLifecycleEvent.of("COMPLETED", workItem, "life-system", null);
     }
 }

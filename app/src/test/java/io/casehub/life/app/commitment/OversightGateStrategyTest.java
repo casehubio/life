@@ -7,6 +7,7 @@ import io.casehub.life.api.request.OversightGateRequest;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +27,9 @@ class OversightGateStrategyTest {
 
     @Inject
     OversightGateStrategy strategy;
+    @Inject
+    EntityManager em;
+
 
     @Test
     @Transactional
@@ -40,9 +44,7 @@ class OversightGateStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(new OversightContext(request));
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = findByCorrelationId(outcome.correlationId());
         assertThat(record.domain).isEqualTo(LifeDomain.FINANCE);
     }
 
@@ -59,9 +61,7 @@ class OversightGateStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(new OversightContext(request));
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = findByCorrelationId(outcome.correlationId());
         assertThat(record.domain).isEqualTo(LifeDomain.HEALTH);
     }
 
@@ -78,9 +78,7 @@ class OversightGateStrategyTest {
 
         final CommitmentOutcome outcome = strategy.execute(new OversightContext(request));
 
-        final LifeCommitmentRecord record = LifeCommitmentRecord
-                .findByCorrelationId(outcome.correlationId())
-                .orElseThrow();
+        final LifeCommitmentRecord record = findByCorrelationId(outcome.correlationId());
         assertThat(record.oversightKey).isEqualTo("Buy new motorbike:household-task");
         assertThat(record.delegateTo).isNull();
     }
@@ -106,5 +104,11 @@ class OversightGateStrategyTest {
         } catch (CommitmentConflictException e) {
             assertThat(e.getMessage()).contains("Duplicate gate");
         }
+    }
+
+    private LifeCommitmentRecord findByCorrelationId(String correlationId) {
+        return em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                 .setParameter("correlationId", correlationId)
+                 .getResultStream().findFirst().orElseThrow();
     }
 }

@@ -9,6 +9,7 @@ import io.casehub.life.app.entity.ExternalActor;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -172,11 +173,12 @@ class ExternalActorGdprResourceTest {
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         var wi = workItemService.create(req);
-        wi.status = io.casehub.work.api.WorkItemStatus.COMPLETED;
-        wi.persist();
+        var entity = WorkItemEntity.<WorkItemEntity>findByIdOptional(wi.id()).orElseThrow();
+        entity.status = io.casehub.work.api.WorkItemStatus.COMPLETED;
+        entity.persist();
 
         var ctx = new LifeTaskContext();
-        ctx.workItemId = wi.id;
+        ctx.workItemId = wi.id();
         ctx.domain = LifeDomain.HOUSEHOLD;
         ctx.externalActorId = actorId;
         em.persist(ctx);
@@ -197,7 +199,7 @@ class ExternalActorGdprResourceTest {
         var wi = workItemService.create(req);
 
         var ctx = new LifeTaskContext();
-        ctx.workItemId = wi.id;
+        ctx.workItemId = wi.id();
         ctx.domain = LifeDomain.HOUSEHOLD;
         ctx.externalActorId = actorId;
         em.persist(ctx);

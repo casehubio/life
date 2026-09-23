@@ -141,9 +141,10 @@ class CommitmentLifecycleScenarioTest {
         // triggers the Watchdog alert. evaluateAll() fires the WatchdogAlertEvent asynchronously.
         // Gap closed vs OpenClaw alone: the commitment + Watchdog means the deadline breach
         // is tracked and will escalate, rather than being silently forgotten.
-        final LifeCommitmentRecord commitmentBefore = LifeCommitmentRecord
-                .findByWorkItemId(UUID.fromString(pickupTaskId))
-                .orElseThrow();
+        final LifeCommitmentRecord commitmentBefore = em.createQuery(
+                "SELECT r FROM LifeCommitmentRecord r WHERE r.workItemId = :workItemId", LifeCommitmentRecord.class)
+                .setParameter("workItemId", UUID.fromString(pickupTaskId))
+                .getResultStream().findFirst().orElseThrow();
         assertThat(commitmentBefore.status).isEqualTo(CommitmentStatus.PENDING_RESPONSE);
         assertThat(commitmentBefore.deadline).isBefore(Instant.now());
 

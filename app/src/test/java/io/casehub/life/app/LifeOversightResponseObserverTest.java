@@ -74,9 +74,9 @@ class LifeOversightResponseObserverTest {
                 .build());
 
         // Assert: record is FULFILLED and workItemId is set.
-        final LifeCommitmentRecord updated = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord updated = em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                .setParameter("correlationId", correlationId)
+                .getResultStream().findFirst().orElseThrow();
         assertThat(updated.status).isEqualTo(CommitmentStatus.FULFILLED);
         assertThat(updated.workItemId).isNotNull();
     }
