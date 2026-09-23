@@ -39,7 +39,6 @@ class HomeMaintenanceIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("engine SNAPSHOT: PlanItemCompletionApplier.resolveStrategy() NPE on JudgmentTarget completion")
     void afterApproval_issueCommitmentFires() {
         var caseId = CaseIntegrationTestSupport.startCase(caseHub, runtime, Map.of(
                 "request", Map.of("issue", "Boiler service", "urgency", "low")
