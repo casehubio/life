@@ -71,10 +71,10 @@ class FamilyVoteCaseHubTest {
     }
 
     @Test
-    void shouldHaveHumanTaskTarget() {
+    void shouldHaveJudgmentTarget() {
         CaseDefinition def = caseHub.getDefinition();
 
         Binding castVote = def.getBindings().iterator().next();
-        assertThat(castVote.target().getClass().getSimpleName()).isEqualTo("HumanTaskTarget");
+        assertThat(castVote.target().getClass().getSimpleName()).isEqualTo("JudgmentTarget");
     }
 }

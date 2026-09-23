@@ -236,7 +236,7 @@ class LifeCaseServiceCbrTest {
         return new CbrMatch<>(
                 new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
                         List.of(new CbrPlanStep("b1", "request-quote", "w1", "ok", 5, Map.of(), null)), null, null),
-                "source-case-1", 0.85);
+                "source-case-1", "contractor-coordination", 0.85);
     }
 
     private AdaptedPlan adaptedPlanWithSteps() {

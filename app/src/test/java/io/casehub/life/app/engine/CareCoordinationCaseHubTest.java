@@ -15,7 +15,8 @@
  */
 package io.casehub.life.app.engine;
 
-import io.casehub.api.model.HumanTaskTarget;
+import io.casehub.api.model.HumanRoutingConfig;
+import io.casehub.api.model.JudgmentTarget;
 import io.casehub.api.model.SubCaseMapping;
 import io.casehub.api.model.SubCaseTarget;
 import io.casehub.api.model.evaluator.JQExpressionEvaluator;
@@ -97,15 +98,15 @@ class CareCoordinationCaseHubTest {
     }
 
     @Test
-    void assignCarerIsHumanTask() {
+    void assignCarerIsJudgment() {
         var binding = caseHub.getDefinition().getBindings().stream()
                 .filter(b -> "assign-carer".equals(b.getName()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && "Accept care delegation".equals(ht.title())
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-member")
-                && "casehubio/life/elder-care".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && "Accept care delegation".equals(jt.title())
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-member")
+                && "casehubio/life/elder-care".equals(jt.scope()));
     }
 
     @Test
@@ -138,21 +139,21 @@ class CareCoordinationCaseHubTest {
         // Adaptive: fires only when health concern detected
         assertTrue(binding.getWhen() instanceof JQExpressionEvaluator jq
                 && jq.expression().contains("healthConcern == true"));
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
-                && "casehubio/life/elder-care".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
+                && "casehubio/life/elder-care".equals(jt.scope()));
     }
 
     @Test
-    void careReviewIsHumanTask() {
+    void careReviewIsJudgment() {
         var binding = caseHub.getDefinition().getBindings().stream()
                 .filter(b -> "care-review".equals(b.getName()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && "Review care quality".equals(ht.title())
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
-                && "casehubio/life/elder-care".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && "Review care quality".equals(jt.title())
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
+                && "casehubio/life/elder-care".equals(jt.scope()));
     }
 
     @Test
