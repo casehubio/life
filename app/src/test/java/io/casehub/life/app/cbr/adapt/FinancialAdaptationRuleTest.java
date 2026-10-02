@@ -1,10 +1,11 @@
 package io.casehub.life.app.cbr.adapt;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -45,10 +46,10 @@ class FinancialAdaptationRuleTest {
 
     @Test
     void pastEscalation_flagsMiscalibration() {
-        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9,
+        var past = new CbrPlanRecord("p", "s", "COMPLETED", Confidence.unknown(0.9),
                 Map.of("amount", FeatureValue.number(1000)),
-                List.of(new PlanTrace("b1", "escalate-anomalies", "w1", "escalated-to-admin", 5, Map.of(), null)), null, null);
-        var scored = new ScoredCbrCase<>(past, "c1", 0.8);
+                List.of(new CbrPlanStep("b1", "escalate-anomalies", "w1", "escalated-to-admin", 5, Map.of(), null)), null, null);
+        var scored = new CbrMatch<>(past, "c1", 0.8);
         Map<String, FeatureValue> current = Map.of("amount", FeatureValue.number(1000));
         var steps = rule.adapt(scored, current);
         assertTrue(steps.getFirst().reason().contains("miscalibrated"));
@@ -71,15 +72,15 @@ class FinancialAdaptationRuleTest {
 
     @Test
     void emptyTrace_returnsEmpty() {
-        var past = new PlanCbrCase("p", "s", "COMPLETED", 0.9, Map.of(), List.of(), null, null);
-        assertTrue(rule.adapt(new ScoredCbrCase<>(past, "c1", 0.8), Map.of()).isEmpty());
+        var past = new CbrPlanRecord("p", "s", "COMPLETED", Confidence.unknown(0.9), Map.of(), List.of(), null, null);
+        assertTrue(rule.adapt(new CbrMatch<>(past, "c1", 0.8), Map.of()).isEmpty());
     }
 
-    private ScoredCbrCase<PlanCbrCase> scored(Map<String, FeatureValue> features) {
-        return new ScoredCbrCase<>(
-                new PlanCbrCase("problem", "solution", "COMPLETED", 0.9, features,
-                        List.of(new PlanTrace("b1", "gather-data", "w1", "ok", 5, Map.of(), null),
-                                new PlanTrace("b2", "escalate-anomalies", "w2", "ok", 5, Map.of(), null)), null, null),
+    private CbrMatch<CbrPlanRecord> scored(Map<String, FeatureValue> features) {
+        return new CbrMatch<>(
+                new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(0.9), features,
+                        List.of(new CbrPlanStep("b1", "gather-data", "w1", "ok", 5, Map.of(), null),
+                                new CbrPlanStep("b2", "escalate-anomalies", "w2", "ok", 5, Map.of(), null)), null, null),
                 "case-1", 0.85);
     }
 }

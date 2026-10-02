@@ -55,7 +55,7 @@ class LifeTypedCaseHubTest {
         var hub = createHub();
         Worker worker = hub.agentWorker("test-cap", "Test system prompt", Map.class);
         assertThat(worker.name()).isEqualTo("test-cap-agent");
-        assertThat(worker.capabilityNames()).containsExactly("test-cap");
+        assertThat(worker.capabilities()).containsExactly("test-cap");
         assertThat(worker.function()).isInstanceOf(AgentWorkerFunction.class);
     }
 

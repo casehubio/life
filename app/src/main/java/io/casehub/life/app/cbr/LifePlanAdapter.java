@@ -3,11 +3,11 @@ package io.casehub.life.app.cbr;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanAdapter;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanAdapter;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.All;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +22,7 @@ import java.util.Map;
 @ApplicationScoped
 @Alternative
 @Priority(10)
-public class LifePlanAdapter implements PlanAdapter {
+public class LifePlanAdapter implements CbrPlanAdapter {
 
     private static final Logger LOG = Logger.getLogger(LifePlanAdapter.class);
 
@@ -51,17 +51,17 @@ public class LifePlanAdapter implements PlanAdapter {
         }
     }
 
-    public AdaptedPlan adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public AdaptedPlan adapt(CbrMatch<CbrPlanRecord> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
-        String inferred = inferCaseType(retrieved.cbrCase().planTrace());
+        String inferred = inferCaseType(retrieved.cbrRecord().cbrPlanStep());
         return adapt(inferred, retrieved, currentFeatures);
     }
 
     @Override
     public AdaptedPlan adapt(String caseType,
-                             ScoredCbrCase<PlanCbrCase> retrieved,
+                             CbrMatch<CbrPlanRecord> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
-        if (retrieved.cbrCase().planTrace().isEmpty()) {
+        if (retrieved.cbrRecord().cbrPlanStep().isEmpty()) {
             return new AdaptedPlan(List.of());
         }
         LifeAdaptationRule rule = rulesByType.get(caseType);
@@ -72,7 +72,7 @@ public class LifePlanAdapter implements PlanAdapter {
         return new AdaptedPlan(steps);
     }
 
-    private String inferCaseType(List<PlanTrace> traces) {
+    private String inferCaseType(List<CbrPlanStep> traces) {
         for (var trace : traces) {
             LifeAdaptationRule rule = rulesByCapability.get(trace.capabilityName());
             if (rule != null) {
@@ -82,9 +82,9 @@ public class LifePlanAdapter implements PlanAdapter {
         return "";
     }
 
-    private AdaptedPlan retainAll(ScoredCbrCase<PlanCbrCase> retrieved) {
+    private AdaptedPlan retainAll(CbrMatch<CbrPlanRecord> retrieved) {
         return new AdaptedPlan(
-                retrieved.cbrCase().planTrace().stream()
+                retrieved.cbrRecord().cbrPlanStep().stream()
                         .map(t -> new AdaptedStep(t.bindingName(), t.capabilityName(),
                                 t.workerName(), t.stepOutcome(), t.priority(),
                                 t.parameters(), AdaptationAction.RETAINED, null))

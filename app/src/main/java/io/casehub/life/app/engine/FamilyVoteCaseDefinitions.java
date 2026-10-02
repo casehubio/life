@@ -59,7 +59,7 @@ public final class FamilyVoteCaseDefinitions {
                                 .name("cast-vote")
                                 .on(new ContextChangeTrigger("."))
                                 .when(".vote == null")
-                                .humanTask(HumanTaskTarget.inline()
+                                .target(HumanTaskTarget.inline()
                                         .title("Cast your vote — approve or reject")
                                         .expiresIn(Duration.ofHours(48))
                                         .candidateGroups(Set.of("household-member"))

@@ -5,7 +5,7 @@ import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.work.runtime.event.SlaBreachEvent;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItemLifecycleEvent;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
 import jakarta.enterprise.context.ApplicationScoped;

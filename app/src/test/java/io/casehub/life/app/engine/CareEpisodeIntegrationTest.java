@@ -27,6 +27,7 @@ class CareEpisodeIntegrationTest {
     }
 
     @Test
+
     void goldenPath_workersAndHumanTaskToCompletion() {
         var caseId = CaseIntegrationTestSupport.startCase(caseHub, runtime, Map.of(
                 "careRequest", Map.of("patient", "Grandma", "concern", "routine check")

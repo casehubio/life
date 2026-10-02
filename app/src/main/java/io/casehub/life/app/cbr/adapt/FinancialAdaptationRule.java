@@ -3,10 +3,10 @@ package io.casehub.life.app.cbr.adapt;
 import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.ArrayList;
@@ -33,17 +33,17 @@ public class FinancialAdaptationRule implements LifeAdaptationRule {
     }
 
     @Override
-    public List<AdaptedStep> adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        PlanCbrCase past = retrieved.cbrCase();
+        CbrPlanRecord past = retrieved.cbrRecord();
         double currentAmount = numericFeature(currentFeatures, "amount");
         double pastAmount = numericFeature(past.features(), "amount");
-        boolean pastHadEscalation = past.planTrace().stream()
+        boolean pastHadEscalation = past.cbrPlanStep().stream()
                 .anyMatch(t -> t.stepOutcome() != null
                         && t.stepOutcome().toLowerCase().contains("escalat"));
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (PlanTrace trace : past.planTrace()) {
+        for (CbrPlanStep trace : past.cbrPlanStep()) {
             Map<String, Object> params = new LinkedHashMap<>(trace.parameters());
             int priority = trace.priority();
             AdaptationAction action = AdaptationAction.RETAINED;

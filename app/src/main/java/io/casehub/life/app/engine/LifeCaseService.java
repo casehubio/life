@@ -25,11 +25,11 @@ import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.app.cbr.LifeCbrRetrievalResult;
 import io.casehub.life.app.cbr.LifeCbrSuggestionService;
 import io.casehub.life.app.entity.LifeCaseTracker;
-import io.casehub.neocortex.memory.cbr.AdaptationTrace;
+import io.casehub.neocortex.memory.cbr.CbrAdaptationTrace;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
@@ -102,7 +102,7 @@ public class LifeCaseService {
                     initialContext.put("adaptedPlan",
                                        objectMapper.convertValue(adaptedPlan, Map.class));
                 }
-                adaptationEvent.fire(new CbrAdaptationRecorded(new AdaptationTrace(
+                adaptationEvent.fire(new CbrAdaptationRecorded(new CbrAdaptationTrace(
                         UUID.randomUUID().toString(),
                         null,
                         request.caseType().caseName(),
@@ -180,14 +180,14 @@ public class LifeCaseService {
                                                "No CaseHub registered for type: " + type));
     }
 
-    private String serializePrecedents(List<ScoredCbrCase<PlanCbrCase>> cases) {
+    private String serializePrecedents(List<CbrMatch<CbrPlanRecord>> cases) {
         if (cases.isEmpty()) {return null;}
         try {
             List<CbrPrecedentResponse> precedents = cases.stream()
                                                          .map(s -> new CbrPrecedentResponse(
                                                                  s.caseId(),
                                                                  s.score(),
-                                                                 s.cbrCase().outcome(),
+                                                                 s.cbrRecord().outcome(),
                                                                  s.storedAt() != null ? s.storedAt().toString() : null))
                                                          .toList();
             return objectMapper.writeValueAsString(precedents);

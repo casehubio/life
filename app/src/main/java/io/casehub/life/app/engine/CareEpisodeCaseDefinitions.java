@@ -86,7 +86,7 @@ public final class CareEpisodeCaseDefinitions {
                                 .name("record-notes")
                                 .on(new ContextChangeTrigger("."))
                                 .when(".careProvided != null and .careNotes == null")
-                                .humanTask(HumanTaskTarget.inline()
+                                .target(HumanTaskTarget.inline()
                                         .title("Record care visit notes")
                                         .expiresIn(Duration.ofHours(24))
                                         .candidateGroups(Set.of("household-member"))

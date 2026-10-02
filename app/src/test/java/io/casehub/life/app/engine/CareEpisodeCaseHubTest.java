@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.casehub.api.model.HumanTaskTarget;
+import io.casehub.api.model.HumanRoutingConfig;
+import io.casehub.api.model.JudgmentTarget;
 import io.casehub.api.model.evaluator.JQExpressionEvaluator;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -72,15 +73,15 @@ class CareEpisodeCaseHubTest {
     }
 
     @Test
-    void recordNotesIsHumanTask() {
+    void recordNotesIsJudgment() {
         var binding = caseHub.getDefinition().getBindings().stream()
                 .filter(b -> "record-notes".equals(b.getName()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && "Record care visit notes".equals(ht.title())
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-member")
-                && "casehubio/life/elder-care".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && "Record care visit notes".equals(jt.title())
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-member")
+                && "casehubio/life/elder-care".equals(jt.scope()));
     }
 
     @Test

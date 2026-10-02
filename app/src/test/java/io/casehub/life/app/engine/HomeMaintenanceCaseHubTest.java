@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.casehub.api.model.HumanTaskTarget;
+import io.casehub.api.model.HumanRoutingConfig;
+import io.casehub.api.model.JudgmentTarget;
 import io.casehub.api.model.evaluator.JQExpressionEvaluator;
 import io.casehub.life.api.LifeCaseType;
 import io.quarkus.test.junit.QuarkusTest;
@@ -73,27 +74,27 @@ class HomeMaintenanceCaseHubTest {
     }
 
     @Test
-    void approveContractorIsHumanTask() {
+    void approveContractorIsJudgment() {
         var binding = caseHub.getDefinition().getBindings().stream()
                 .filter(b -> "approve-contractor".equals(b.getName()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && "Select a contractor quote".equals(ht.title())
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
-                && "casehubio/life/household".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && "Select a contractor quote".equals(jt.title())
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
+                && "casehubio/life/household".equals(jt.scope()));
     }
 
     @Test
-    void verifyCompletionIsHumanTask() {
+    void verifyCompletionIsJudgment() {
         var binding = caseHub.getDefinition().getBindings().stream()
                 .filter(b -> "verify-completion".equals(b.getName()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && "Verify job completion".equals(ht.title())
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-member")
-                && "casehubio/life/household".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && "Verify job completion".equals(jt.title())
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-member")
+                && "casehubio/life/household".equals(jt.scope()));
     }
 
     @Test

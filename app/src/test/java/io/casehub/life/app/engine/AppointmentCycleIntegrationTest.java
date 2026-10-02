@@ -29,6 +29,7 @@ class AppointmentCycleIntegrationTest {
     }
 
     @Test
+
     void goldenPath_completesAfterHumanTaskCompletion() {
         var caseId = CaseIntegrationTestSupport.startCase(caseHub, runtime, Map.of(
                 "appointmentType", "GP",

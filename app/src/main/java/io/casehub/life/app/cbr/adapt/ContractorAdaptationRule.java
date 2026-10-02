@@ -3,10 +3,10 @@ package io.casehub.life.app.cbr.adapt;
 import io.casehub.life.app.cbr.LifeAdaptationRule;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.ArrayList;
@@ -36,9 +36,9 @@ public class ContractorAdaptationRule implements LifeAdaptationRule {
     }
 
     @Override
-    public List<AdaptedStep> adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public List<AdaptedStep> adapt(CbrMatch<CbrPlanRecord> retrieved,
                                    Map<String, FeatureValue> currentFeatures) {
-        PlanCbrCase past                = retrieved.cbrCase();
+        CbrPlanRecord past                = retrieved.cbrRecord();
         String      currentSeason       = stringFeature(currentFeatures, "season");
         String      currentProblemType  = stringFeature(currentFeatures, "problemType");
         double      currentBudget       = numericFeature(currentFeatures, "budget");
@@ -48,7 +48,7 @@ public class ContractorAdaptationRule implements LifeAdaptationRule {
         double      deadlineReliability = numericFeature(currentFeatures, "actorDeadlineReliability");
 
         List<AdaptedStep> steps = new ArrayList<>();
-        for (PlanTrace trace : past.planTrace()) {
+        for (CbrPlanStep trace : past.cbrPlanStep()) {
             if (pastFailed && !"contractor-sentinel".equals(trace.capabilityName())) {
                 steps.add(new AdaptedStep(trace.bindingName(), trace.capabilityName(),
                                           trace.workerName(), trace.stepOutcome(), trace.priority(),
@@ -106,7 +106,7 @@ public class ContractorAdaptationRule implements LifeAdaptationRule {
         return steps;
     }
 
-    private Map<String, Object> adjustCostParams(PlanTrace trace,
+    private Map<String, Object> adjustCostParams(CbrPlanStep trace,
                                                   double currentBudget, double pastBudget) {
         if (currentBudget <= 0 || pastBudget <= 0) return null;
         double ratio = currentBudget / pastBudget;

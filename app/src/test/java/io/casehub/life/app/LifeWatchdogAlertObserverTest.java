@@ -61,9 +61,7 @@ class LifeWatchdogAlertObserverTest {
 
         observer.onAlert(approvalPendingEvent("life/del-obs-happy"));
 
-        final LifeCommitmentRecord updated = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord updated = findByCorrelationId(correlationId);
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
         assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("alice has not confirmed — action required");
@@ -77,9 +75,7 @@ class LifeWatchdogAlertObserverTest {
 
         observer.onAlert(approvalPendingEvent("life/del-obs-contractor"));
 
-        final LifeCommitmentRecord updated = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord updated = findByCorrelationId(correlationId);
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
         assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("Contractor has not confirmed by deadline");
@@ -98,9 +94,7 @@ class LifeWatchdogAlertObserverTest {
 
         observer.onAlert(approvalPendingEvent("life/del-obs-oversight"));
 
-        final LifeCommitmentRecord updated = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord updated = findByCorrelationId(correlationId);
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
         assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("Oversight gate expired — request not approved");
@@ -130,9 +124,7 @@ class LifeWatchdogAlertObserverTest {
 
         observer.onAlert(approvalPendingEvent("life/del-obs-null-delegate"));
 
-        final LifeCommitmentRecord updated = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord updated = findByCorrelationId(correlationId);
         assertThat(updated.status).isEqualTo(CommitmentStatus.EXPIRED);
         assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore + 1);
         assertThat(latestWorkItemTitle()).isEqualTo("Unknown has not confirmed — action required");
@@ -152,9 +144,7 @@ class LifeWatchdogAlertObserverTest {
                 new ChannelIdleContext(List.of("life/del-obs-idle"), 300L)
         ));
 
-        final LifeCommitmentRecord unchanged = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord unchanged = findByCorrelationId(correlationId);
         assertThat(unchanged.status).isEqualTo(CommitmentStatus.PENDING_RESPONSE);
         assertThat(WorkItemEntity.count()).isEqualTo(workItemsBefore);
     }
@@ -169,13 +159,18 @@ class LifeWatchdogAlertObserverTest {
 
         observer.onAlert(approvalPendingEvent("life/del-obs-future"));
 
-        final LifeCommitmentRecord unchanged = LifeCommitmentRecord
-                .findByCorrelationId(correlationId)
-                .orElseThrow();
+        final LifeCommitmentRecord unchanged = findByCorrelationId(correlationId);
         assertThat(unchanged.status).isEqualTo(CommitmentStatus.PENDING_RESPONSE);
     }
 
     // --- Helpers ---
+
+
+    private LifeCommitmentRecord findByCorrelationId(String correlationId) {
+        return em.createNamedQuery("LifeCommitmentRecord.findByCorrelationId", LifeCommitmentRecord.class)
+                 .setParameter("correlationId", correlationId)
+                 .getResultStream().findFirst().orElseThrow();
+    }
 
     @FunctionalInterface
     interface RecordCustomizer {

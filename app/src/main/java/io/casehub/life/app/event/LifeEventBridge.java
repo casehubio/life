@@ -2,7 +2,7 @@ package io.casehub.life.app.event;
 
 import io.casehub.engine.common.spi.event.CaseLifecycleEvent;
 import io.casehub.work.runtime.event.SlaBreachEvent;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItemLifecycleEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;

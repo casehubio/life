@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.casehub.api.model.HumanTaskTarget;
+import io.casehub.api.model.HumanRoutingConfig;
+import io.casehub.api.model.JudgmentTarget;
 import io.casehub.api.model.OnThresholdReached;
 import io.casehub.api.model.SubCaseTarget;
 import io.casehub.api.model.evaluator.JQExpressionEvaluator;
@@ -118,15 +119,15 @@ class TravelPlanCaseHubTest {
     }
 
     @Test
-    void approvalGateIsHumanTask() {
+    void approvalGateIsJudgment() {
         var binding = caseHub.getDefinition().getBindings().stream()
                 .filter(b -> "approval-gate".equals(b.getName()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(binding.target() instanceof HumanTaskTarget ht
-                && "Approve travel booking".equals(ht.title())
-                && ht.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
-                && "casehubio/life/finance".equals(ht.scope()));
+        assertTrue(binding.target() instanceof JudgmentTarget jt
+                && "Approve travel booking".equals(jt.title())
+                && jt.routingConfig() instanceof HumanRoutingConfig hrc && hrc.candidateGroups() instanceof CandidateSetSpec.Inline inline && inline.strategy() instanceof StaticSetStrategy ss && ss.values().contains("household-admin")
+                && "casehubio/life/finance".equals(jt.scope()));
     }
 
     @Test
