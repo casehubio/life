@@ -55,7 +55,7 @@ class ExternalActorGdprResourceTest {
         final UUID actorId = createActor();
 
         given()
-                .when().delete("/external-actors/" + actorId + "/personal-data")
+                .when().delete("/api/life/actors/" + actorId + "/personal-data")
                 .then()
                 .statusCode(200)
                 .body("erasedActorId", equalTo(actorId.toString()))
@@ -75,7 +75,7 @@ class ExternalActorGdprResourceTest {
         final UUID actorId = createActor();
 
         given()
-                .when().delete("/external-actors/" + actorId + "/personal-data")
+                .when().delete("/api/life/actors/" + actorId + "/personal-data")
                 .then().statusCode(200);
 
         var entry = ledgerRepository.findLatestBySubjectId(actorId, TenancyConstants.DEFAULT_TENANT_ID).orElseThrow();
@@ -90,15 +90,15 @@ class ExternalActorGdprResourceTest {
     @Test
     void eraseActor_404_whenNotFound() {
         given()
-                .when().delete("/external-actors/" + UUID.randomUUID() + "/personal-data")
+                .when().delete("/api/life/actors/" + UUID.randomUUID() + "/personal-data")
                 .then().statusCode(404);
     }
 
     @Test
     void eraseActor_409_whenAlreadyErased() {
         final UUID actorId = createActor();
-        given().when().delete("/external-actors/" + actorId + "/personal-data").then().statusCode(200);
-        given().when().delete("/external-actors/" + actorId + "/personal-data").then().statusCode(409);
+        given().when().delete("/api/life/actors/" + actorId + "/personal-data").then().statusCode(200);
+        given().when().delete("/api/life/actors/" + actorId + "/personal-data").then().statusCode(409);
     }
 
     @Test
@@ -107,7 +107,7 @@ class ExternalActorGdprResourceTest {
         createActiveTaskForActor(actorId);
 
         given()
-                .when().delete("/external-actors/" + actorId + "/personal-data")
+                .when().delete("/api/life/actors/" + actorId + "/personal-data")
                 .then().statusCode(409);
     }
 
@@ -117,17 +117,17 @@ class ExternalActorGdprResourceTest {
         createCompletedTaskForActor(actorId);
 
         given()
-                .when().delete("/external-actors/" + actorId + "/personal-data")
+                .when().delete("/api/life/actors/" + actorId + "/personal-data")
                 .then().statusCode(200);
     }
 
     @Test
     void getActor_includesGdprErasedAt_afterErasure() {
         final UUID actorId = createActor();
-        given().when().delete("/external-actors/" + actorId + "/personal-data").then().statusCode(200);
+        given().when().delete("/api/life/actors/" + actorId + "/personal-data").then().statusCode(200);
 
         given()
-                .when().get("/external-actors/" + actorId)
+                .when().get("/api/life/actors/" + actorId)
                 .then()
                 .statusCode(200)
                 .body("gdprErasedAt", notNullValue())
@@ -141,7 +141,7 @@ class ExternalActorGdprResourceTest {
     void getActor_gdprErasedAtIsNull_beforeErasure() {
         final UUID actorId = createActor();
         given()
-                .when().get("/external-actors/" + actorId)
+                .when().get("/api/life/actors/" + actorId)
                 .then()
                 .statusCode(200)
                 .body("gdprErasedAt", nullValue());
@@ -173,9 +173,9 @@ class ExternalActorGdprResourceTest {
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         var wi = workItemService.create(req);
-        var entity = WorkItemEntity.<WorkItemEntity>findByIdOptional(wi.id()).orElseThrow();
+        var entity = em.find(WorkItemEntity.class, wi.id());
         entity.status = io.casehub.work.api.WorkItemStatus.COMPLETED;
-        entity.persist();
+        em.merge(entity);
 
         var ctx = new LifeTaskContext();
         ctx.workItemId = wi.id();

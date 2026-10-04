@@ -79,7 +79,7 @@ class LifeCaseResourceTest {
                 .contentType(ContentType.JSON)
                 .body("{\"caseType\": \"APPOINTMENT_CYCLE\", \"context\": {\"appointmentType\": \"GP\"}}")
                 .when()
-                .post("/life-cases")
+                .post("/api/life/cases")
                 .then()
                 .statusCode(201)
                 .body("caseType", equalTo("APPOINTMENT_CYCLE"))
@@ -90,7 +90,7 @@ class LifeCaseResourceTest {
     @Test
     void listReturnsSeededCases() {
         given()
-                .when().get("/life-cases")
+                .when().get("/api/life/cases")
                 .then()
                 .statusCode(200)
                 .body("items.size()", greaterThanOrEqualTo(3))
@@ -101,7 +101,7 @@ class LifeCaseResourceTest {
     void listFiltersByDomain() {
         given()
                 .queryParam("domain", "TRAVEL")
-                .when().get("/life-cases")
+                .when().get("/api/life/cases")
                 .then()
                 .statusCode(200)
                 .body("items.size()", is(1))
@@ -112,7 +112,7 @@ class LifeCaseResourceTest {
     void listFiltersByStatus() {
         given()
                 .queryParam("status", "COMPLETED")
-                .when().get("/life-cases")
+                .when().get("/api/life/cases")
                 .then()
                 .statusCode(200)
                 .body("items.size()", is(1))
@@ -122,7 +122,7 @@ class LifeCaseResourceTest {
     @Test
     void getByIdReturnsDetail() {
         given()
-                .when().get("/life-cases/" + FINANCE_ID)
+                .when().get("/api/life/cases/" + FINANCE_ID)
                 .then()
                 .statusCode(200)
                 .body("caseId", is(FINANCE_ID.toString()))
@@ -132,7 +132,7 @@ class LifeCaseResourceTest {
     @Test
     void getByIdReturns404ForUnknown() {
         given()
-                .when().get("/life-cases/" + UUID.randomUUID())
+                .when().get("/api/life/cases/" + UUID.randomUUID())
                 .then()
                 .statusCode(404);
     }
@@ -142,7 +142,7 @@ class LifeCaseResourceTest {
     void juniorSeesEmptyList() {
         currentPrincipal.setGroups(Set.of(HouseholdGroups.JUNIOR));
         given()
-                .when().get("/life-cases")
+                .when().get("/api/life/cases")
                 .then()
                 .statusCode(200)
                 .body("items.size()", is(0))

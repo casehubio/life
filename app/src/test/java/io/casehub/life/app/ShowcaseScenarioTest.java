@@ -47,7 +47,7 @@ class ShowcaseScenarioTest {
     void seedTemplates() {
         if (bobActorId == null) {
             em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-            WorkItemEntity.deleteAll();
+            em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
             em.createQuery("DELETE FROM ExternalActor").executeUpdate();
         }
         LifeTestFixtures.seedStandardTemplates();
@@ -62,7 +62,7 @@ class ShowcaseScenarioTest {
                         {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
                          "contactMethod":"phone","contactValue":"+44-7700-900100"}
                         """)
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .body("name", equalTo("Bob's Plumbing"))
                 .extract().path("id");
@@ -74,7 +74,7 @@ class ShowcaseScenarioTest {
                         {"templateRef":"contractor-coordination","title":"Fix boiler",
                          "externalActorId":"%s"}
                         """.formatted(bobActorId))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .body("workItemId", notNullValue())
                 .body("domain", equalTo("CONTRACTOR_COORDINATION"))
@@ -82,9 +82,9 @@ class ShowcaseScenarioTest {
                 .body("status", equalTo("PENDING"))
                 .extract().path("workItemId");
 
-        // LifeTaskContext links WorkItem to Bob — visible via /external-actors/{id}/tasks.
+        // LifeTaskContext links WorkItem to Bob — visible via /api/life/actors/{id}/tasks.
         given()
-                .when().get("/external-actors/{id}/tasks", bobActorId)
+                .when().get("/api/life/actors/{id}/tasks", bobActorId)
                 .then()
                 .statusCode(200)
                 .body("size()", equalTo(1))
@@ -101,7 +101,7 @@ class ShowcaseScenarioTest {
                                        {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
                                         "contactMethod":"phone","contactValue":"+44-7700-900200"}
                                        """)
-                                 .when().post("/external-actors")
+                                 .when().post("/api/life/actors")
                                  .then().statusCode(201)
                                  .extract().path("id");
         }
@@ -112,7 +112,7 @@ class ShowcaseScenarioTest {
                       {"templateRef":"contractor-coordination","title":"Overdue boiler quote",
                        "externalActorId":"%s","deadline":"%s"}
                       """.formatted(bobActorId, Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201);
 
         expiryLifecycleService.checkExpired();
@@ -127,7 +127,7 @@ class ShowcaseScenarioTest {
                 .body("""
                         {"templateRef":"health-appointment","title":"GP follow-up call"}
                         """)
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .body("domain", equalTo("HEALTH"))
                 .body("status", equalTo("PENDING"));
@@ -143,7 +143,7 @@ class ShowcaseScenarioTest {
                         {"templateRef":"health-appointment","title":"Overdue GP call",
                          "deadline":"%s"}
                         """.formatted(Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201);
 
         // Layer 1: task would remain silently overdue indefinitely.
@@ -157,7 +157,7 @@ class ShowcaseScenarioTest {
     void actorDeletion_blockedByActiveTask() {
         if (bobActorId == null) {return;}
         given()
-                .when().delete("/external-actors/{id}", bobActorId)
+                .when().delete("/api/life/actors/{id}", bobActorId)
                 .then()
                 .statusCode(409);
     }
@@ -167,7 +167,7 @@ class ShowcaseScenarioTest {
     void weekSummary_allTasksTrackedWithWorkItems() {
         if (bobActorId == null) {return;}
         given()
-                .when().get("/external-actors/{id}/tasks", bobActorId)
+                .when().get("/api/life/actors/{id}/tasks", bobActorId)
                 .then()
                 .statusCode(200)
                 .body("size()", greaterThanOrEqualTo(1));

@@ -33,9 +33,11 @@ public class DashboardService {
         List<BriefingItem> items     = new ArrayList<>();
         String             tenancyId = principal.tenancyId();
 
-        List<WorkItemEntity> overdue = WorkItemEntity.list(
-                "tenancyId = ?1 and status in (?2, ?3) and expiresAt < ?4",
-                tenancyId, WorkItemStatus.PENDING, WorkItemStatus.IN_PROGRESS, Instant.now());
+        List<WorkItemEntity> overdue = em.createQuery(
+                "FROM WorkItemEntity WHERE tenancyId = ?1 and status in (?2, ?3) and expiresAt < ?4", WorkItemEntity.class)
+                .setParameter(1, tenancyId).setParameter(2, WorkItemStatus.PENDING)
+                .setParameter(3, WorkItemStatus.IN_PROGRESS).setParameter(4, Instant.now())
+                .getResultList();
         for (WorkItemEntity wi : overdue) {
             LifeDomain domain = resolveDomain(wi);
             items.add(new BriefingItem(wi.title + " — overdue", domain, "sla-breach"));
@@ -43,9 +45,11 @@ public class DashboardService {
 
         Instant endOfDay = Instant.now().plusSeconds(
                 LocalTime.of(23, 59).toSecondOfDay() - LocalTime.now().toSecondOfDay());
-        List<WorkItemEntity> dueToday = WorkItemEntity.list(
-                "tenancyId = ?1 and status in (?2, ?3) and expiresAt >= ?4 and expiresAt <= ?5",
-                tenancyId, WorkItemStatus.PENDING, WorkItemStatus.IN_PROGRESS, Instant.now(), endOfDay);
+        List<WorkItemEntity> dueToday = em.createQuery(
+                "FROM WorkItemEntity WHERE tenancyId = ?1 and status in (?2, ?3) and expiresAt >= ?4 and expiresAt <= ?5", WorkItemEntity.class)
+                .setParameter(1, tenancyId).setParameter(2, WorkItemStatus.PENDING)
+                .setParameter(3, WorkItemStatus.IN_PROGRESS).setParameter(4, Instant.now()).setParameter(5, endOfDay)
+                .getResultList();
         for (WorkItemEntity wi : dueToday) {
             LifeDomain domain = resolveDomain(wi);
             items.add(new BriefingItem(wi.title + " — due today", domain, "action"));

@@ -169,10 +169,10 @@ class LifeDecisionLedgerObserverTest {
 
     @Transactional
     void completeWorkItem(UUID id, String outcome) {
-        var wi = WorkItemEntity.<WorkItemEntity>findByIdOptional(id).orElseThrow();
+        var wi = em.find(WorkItemEntity.class, id);
         wi.outcome = outcome;
         wi.status = WorkItemStatus.COMPLETED;
-        wi.persist();
+        em.persist(wi);
     }
 
     private SlaBreachEvent breachEvent(UUID taskId) {

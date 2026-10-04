@@ -54,8 +54,10 @@ final class CaseIntegrationTestSupport {
         var ref = new AtomicReference<WorkItemEntity>();
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() ->
                 QuarkusTransaction.requiringNew().call(() -> {
-                    WorkItemEntity wi = WorkItemEntity.find("callerRef like ?1 and status = ?2",
-                            callerRefPrefix + "%", WorkItemStatus.PENDING).firstResult();
+                    var cem = io.quarkus.arc.Arc.container().instance(jakarta.persistence.EntityManager.class).get();
+                    WorkItemEntity wi = cem.createQuery("FROM WorkItemEntity WHERE callerRef like ?1 and status = ?2", WorkItemEntity.class)
+                            .setParameter(1, callerRefPrefix + "%").setParameter(2, WorkItemStatus.PENDING)
+                            .getResultStream().findFirst().orElse(null);
                     if (wi != null) {
                         ref.set(wi);
                         return true;

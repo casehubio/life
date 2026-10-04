@@ -36,7 +36,10 @@ public final class LifeTestFixtures {
     private static void seedIfAbsent(String id, String name, String category,
                                      int expiryHours, String candidateGroups,
                                      WorkItemPriority priority, String description) {
-        if (WorkItemTemplate.find("name", name).count() == 0) {
+        var em = io.quarkus.arc.Arc.container().instance(jakarta.persistence.EntityManager.class).get();
+        long count = em.createQuery("SELECT COUNT(t) FROM WorkItemTemplate t WHERE t.name = ?1", Long.class)
+                .setParameter(1, name).getSingleResult();
+        if (count == 0) {
             WorkItemTemplate t = new WorkItemTemplate();
             t.id = UUID.fromString(id);
             t.name = name;
@@ -47,7 +50,7 @@ public final class LifeTestFixtures {
             t.description = description;
             t.createdBy = "life-system";
             t.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
-            t.persist();
+            em.persist(t);
         }
     }
 }

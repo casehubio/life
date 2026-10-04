@@ -46,8 +46,7 @@ public class LifeCommitmentService {
         }
 
         // Load existing task.
-        final WorkItemEntity workItem = WorkItemEntity.findByIdOptional(workItemId)
-                                                      .map(o -> (WorkItemEntity) o)
+        final WorkItemEntity workItem = Optional.ofNullable(em.find(WorkItemEntity.class, workItemId))
                                                       .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
         final LifeTaskContext taskContext = Optional.ofNullable(em.find(LifeTaskContext.class, workItemId))
                 .orElseThrow(() -> new WebApplicationException("LifeTaskContext not found: " + workItemId, 404));

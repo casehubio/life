@@ -49,7 +49,7 @@ class CaseChannelQueryTest {
         em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         em.createQuery("DELETE FROM LifeCommitmentRecord").executeUpdate();
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
         UUID            engineCaseId = UUID.randomUUID();
@@ -72,7 +72,7 @@ class CaseChannelQueryTest {
         wi.candidateGroups = "household-admin";
         wi.tenancyId       = TENANCY_ID;
         wi.createdAt       = Instant.now();
-        wi.persist();
+        em.persist(wi);
 
         String                                          correlationId = "corr-" + UUID.randomUUID();
         io.casehub.life.app.entity.LifeCommitmentRecord rec           = new io.casehub.life.app.entity.LifeCommitmentRecord();
@@ -110,7 +110,7 @@ class CaseChannelQueryTest {
     void channels_returnsMessagesFromSharedChannels() {
         given()
         .when()
-            .get("/life-cases/{id}/channels", caseTrackerId)
+            .get("/api/life/cases/{id}/channels", caseTrackerId)
         .then()
             .statusCode(200)
             .body("$", hasSize(greaterThanOrEqualTo(2)));
@@ -120,7 +120,7 @@ class CaseChannelQueryTest {
     void channels_messageHasExpectedFields() {
         given()
         .when()
-            .get("/life-cases/{id}/channels", caseTrackerId)
+            .get("/api/life/cases/{id}/channels", caseTrackerId)
         .then()
             .statusCode(200)
             .body("[0].sender", equalTo("home-agent"))
@@ -133,7 +133,7 @@ class CaseChannelQueryTest {
     void channels_unknownCase_returns404() {
         given()
         .when()
-            .get("/life-cases/{id}/channels", UUID.randomUUID())
+            .get("/api/life/cases/{id}/channels", UUID.randomUUID())
         .then()
             .statusCode(404);
     }
@@ -142,7 +142,7 @@ class CaseChannelQueryTest {
     void channels_noMessages_returnsEmptyListOrSharedMessages() {
         given()
         .when()
-            .get("/life-cases/{id}/channels", emptyCaseTrackerId)
+            .get("/api/life/cases/{id}/channels", emptyCaseTrackerId)
         .then()
             .statusCode(200);
     }

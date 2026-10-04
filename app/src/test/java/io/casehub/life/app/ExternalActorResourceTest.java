@@ -33,7 +33,7 @@ class ExternalActorResourceTest {
         given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("create"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then()
                 .statusCode(201)
                 .body("id", notNullValue())
@@ -47,12 +47,12 @@ class ExternalActorResourceTest {
         String id = given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("get"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
         given()
-                .when().get("/external-actors/{id}", id)
+                .when().get("/api/life/actors/{id}", id)
                 .then()
                 .statusCode(200)
                 .body("id", equalTo(id));
@@ -61,7 +61,7 @@ class ExternalActorResourceTest {
     @Test
     void getActor_unknownId_returns404() {
         given()
-                .when().get("/external-actors/00000000-0000-0000-0000-000000000000")
+                .when().get("/api/life/actors/00000000-0000-0000-0000-000000000000")
                 .then()
                 .statusCode(404);
     }
@@ -73,12 +73,12 @@ class ExternalActorResourceTest {
                 .body("""
                         {"name":"AI Agent-%s","actorType":"AI_AGENT","contactMethod":"api","contactValue":"http://agent.local"}
                         """.formatted("list"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201);
 
         given()
                 .queryParam("actorType", "AI_AGENT")
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then()
                 .statusCode(200)
                 .body("items.findAll { it.actorType == 'AI_AGENT' }.size()", greaterThanOrEqualTo(1));
@@ -89,7 +89,7 @@ class ExternalActorResourceTest {
         String id = given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("update"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
@@ -98,7 +98,7 @@ class ExternalActorResourceTest {
                 .body("""
                         {"name":"Updated Plumbing","actorType":"EXTERNAL_HUMAN","contactMethod":"email","contactValue":"bob@plumbing.com"}
                         """)
-                .when().put("/external-actors/{id}", id)
+                .when().put("/api/life/actors/{id}", id)
                 .then()
                 .statusCode(200)
                 .body("contactMethod", equalTo("email"));
@@ -109,12 +109,12 @@ class ExternalActorResourceTest {
         String id = given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("delete"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
         given()
-                .when().delete("/external-actors/{id}", id)
+                .when().delete("/api/life/actors/{id}", id)
                 .then()
                 .statusCode(204);
     }
@@ -122,7 +122,7 @@ class ExternalActorResourceTest {
     @Test
     void deleteActor_unknownId_returns404() {
         given()
-                .when().delete("/external-actors/00000000-0000-0000-0000-000000000000")
+                .when().delete("/api/life/actors/00000000-0000-0000-0000-000000000000")
                 .then()
                 .statusCode(404);
     }
@@ -132,7 +132,7 @@ class ExternalActorResourceTest {
         String actorId = given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("ref409"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
@@ -142,12 +142,12 @@ class ExternalActorResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Fix boiler","externalActorId":"%s"}
                         """.formatted(actorId))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201);
 
         // Delete must be blocked — LifeTaskContext referential integrity guard fires.
         given()
-                .when().delete("/external-actors/{id}", actorId)
+                .when().delete("/api/life/actors/{id}", actorId)
                 .then()
                 .statusCode(409);
     }
@@ -157,7 +157,7 @@ class ExternalActorResourceTest {
         String actorId = given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("tasks"))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
@@ -166,11 +166,11 @@ class ExternalActorResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Boiler repair","externalActorId":"%s"}
                         """.formatted(actorId))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201);
 
         given()
-                .when().get("/external-actors/{id}/tasks", actorId)
+                .when().get("/api/life/actors/{id}/tasks", actorId)
                 .then()
                 .statusCode(200)
                 .body("size()", equalTo(1))

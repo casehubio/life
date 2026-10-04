@@ -29,7 +29,7 @@ class DashboardResourceTest {
     @Transactional
     void seedTemplates() {
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
     }
 
@@ -41,11 +41,11 @@ class DashboardResourceTest {
                         {"templateRef":"health-appointment","title":"Overdue GP call",
                          "deadline":"%s"}
                         """.formatted(Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201);
 
         given()
-                .when().get("/dashboard/briefing")
+                .when().get("/api/life/dashboard/briefing")
                 .then().statusCode(200)
                 .body("greeting", startsWith("Good"))
                 .body("actionCount", greaterThanOrEqualTo(1))
@@ -55,7 +55,7 @@ class DashboardResourceTest {
     @Test
     void briefing_empty_when_no_tasks() {
         given()
-                .when().get("/dashboard/briefing")
+                .when().get("/api/life/dashboard/briefing")
                 .then().statusCode(200)
                 .body("greeting", startsWith("Good"))
                 .body("actionCount", org.hamcrest.Matchers.equalTo(0));
@@ -65,7 +65,7 @@ class DashboardResourceTest {
     @TestSecurity(user = "junior", roles = {HouseholdGroups.JUNIOR})
     void briefing_accessible_to_junior() {
         given()
-                .when().get("/dashboard/briefing")
+                .when().get("/api/life/dashboard/briefing")
                 .then().statusCode(200);
     }
 }

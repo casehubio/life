@@ -97,7 +97,7 @@ public class LifeChannelQueryService {
 
     private Set<String> resolveActorChannels(UUID engineCaseId) {
         String               callerRefPrefix = "case:" + engineCaseId + "/";
-        List<WorkItemEntity> workItems       = WorkItemEntity.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        List<WorkItemEntity> workItems       = em.createQuery("FROM WorkItemEntity WHERE callerRef LIKE ?1", WorkItemEntity.class).setParameter(1, callerRefPrefix + "%").getResultList();
 
         Set<String> channels = new LinkedHashSet<>();
         for (WorkItemEntity wi : workItems) {
@@ -110,7 +110,7 @@ public class LifeChannelQueryService {
 
     private Set<String> resolveCaseCorrelationIds(UUID engineCaseId) {
         String               callerRefPrefix = "case:" + engineCaseId + "/";
-        List<WorkItemEntity> workItems       = WorkItemEntity.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        List<WorkItemEntity> workItems       = em.createQuery("FROM WorkItemEntity WHERE callerRef LIKE ?1", WorkItemEntity.class).setParameter(1, callerRefPrefix + "%").getResultList();
         List<UUID>           workItemIds     = workItems.stream().map(wi -> wi.id).toList();
         if (workItemIds.isEmpty()) {return Set.of();}
 

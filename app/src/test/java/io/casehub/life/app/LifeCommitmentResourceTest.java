@@ -24,7 +24,7 @@ class LifeCommitmentResourceTest {
         LifeTestFixtures.seedEscalationTemplate();
     }
 
-    // --- POST /life-tasks/{id}/commit ---
+    // --- POST /api/life/tasks/{id}/commit ---
 
     @Test
     void commit_delegation_returns201WithDelegationMode() {
@@ -36,7 +36,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"delegateTo":"alice","deadline":"%s"}
                         """.formatted(deadline))
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
                 .statusCode(201)
                 .body("mode", equalTo("DELEGATION"))
@@ -56,7 +56,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"externalActorId":"%s","deadline":"%s"}
                         """.formatted(actorId, deadline))
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
                 .statusCode(201)
                 .body("mode", equalTo("CONTRACTOR"))
@@ -72,7 +72,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"deadline":"%s"}
                         """.formatted(Instant.now().plus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
                 .statusCode(422);
     }
@@ -87,7 +87,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"delegateTo":"alice","externalActorId":"%s","deadline":"%s"}
                         """.formatted(actorId, Instant.now().plus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
                 .statusCode(422);
     }
@@ -101,7 +101,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"delegateTo":"alice"}
                         """)
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
                 .statusCode(422);
     }
@@ -113,7 +113,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"delegateTo":"alice","deadline":"%s"}
                         """.formatted(Instant.now().plus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks/{id}/commit", UUID.randomUUID())
+                .when().post("/api/life/tasks/{id}/commit", UUID.randomUUID())
                 .then()
                 .statusCode(404);
     }
@@ -127,7 +127,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"externalActorId":"%s","deadline":"%s"}
                         """.formatted(UUID.randomUUID(), Instant.now().plus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
                 .statusCode(422);
     }
@@ -140,12 +140,12 @@ class LifeCommitmentResourceTest {
                 """.formatted(Instant.now().plus(2, ChronoUnit.HOURS));
 
         given().contentType("application/json").body(body)
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then().statusCode(201);
 
         // Second commit on same task → 409
         given().contentType("application/json").body(body)
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then().statusCode(409);
     }
 
@@ -158,11 +158,11 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"delegateTo":"bob","deadline":"%s"}
                         """.formatted(Instant.now().plus(3, ChronoUnit.HOURS)))
-                .when().post("/life-tasks/{id}/commit", taskId)
+                .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then().statusCode(201);
 
         given()
-                .when().get("/life-tasks/{id}", taskId)
+                .when().get("/api/life/tasks/{id}", taskId)
                 .then()
                 .statusCode(200)
                 .body("commitmentMode", equalTo("DELEGATION"))
@@ -221,7 +221,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"templateRef":"%s","title":"%s"}
                         """.formatted(templateRef, title))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .extract().path("workItemId");
     }
@@ -232,7 +232,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"templateRef":"%s","title":"%s","externalActorId":"%s"}
                         """.formatted(templateRef, title, actorId))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .extract().path("workItemId");
     }
@@ -243,7 +243,7 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"name":"%s","actorType":"EXTERNAL_HUMAN","contactMethod":"phone","contactValue":"+44-7700-900999"}
                         """.formatted(name))
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
     }

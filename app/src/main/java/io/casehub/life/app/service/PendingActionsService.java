@@ -10,7 +10,7 @@ import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.life.api.commitment.CommitmentStatus;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.quarkus.panache.common.Page;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -57,20 +57,23 @@ public class PendingActionsService {
         }
 
         String whereClause = String.join(" AND ", conditions);
-        long total = WorkItemEntity.count(whereClause, params);
+        var countQuery = em.createQuery("SELECT COUNT(e) FROM WorkItemEntity e WHERE " + whereClause, Long.class);
+        params.forEach(countQuery::setParameter);
+        long total = countQuery.getSingleResult();
 
         Instant now = Instant.now();
         var orderParams = new HashMap<>(params);
         orderParams.put("now", now);
         orderParams.put("dueSoonCutoff", now.plus(dueSoonHours, ChronoUnit.HOURS));
 
-        String query = whereClause
+        String query = "FROM WorkItemEntity WHERE " + whereClause
                 + " ORDER BY CASE WHEN expiresAt IS NULL THEN 3 WHEN expiresAt <= :now THEN 0"
                 + " WHEN expiresAt <= :dueSoonCutoff THEN 1 ELSE 2 END ASC,"
                 + " expiresAt ASC NULLS LAST, createdAt ASC NULLS LAST";
 
-        List<WorkItemEntity> items = WorkItemEntity.<WorkItemEntity>find(query, orderParams)
-                                                   .page(Page.of(page, size)).list();
+        var tq = em.createQuery(query, WorkItemEntity.class);
+        orderParams.forEach(tq::setParameter);
+        List<WorkItemEntity> items = tq.setFirstResult(page * size).setMaxResults(size).getResultList();
 
         List<PendingActionResponse> responses = items.stream()
                 .map(wi -> toPendingAction(wi, now, dueSoonHours))

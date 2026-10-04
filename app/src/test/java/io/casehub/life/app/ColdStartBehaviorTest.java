@@ -65,12 +65,12 @@ class ColdStartBehaviorTest {
                 .body("""
                         {"name":"Cold Start Actor","actorType":"EXTERNAL_HUMAN","contactMethod":"phone","contactValue":"+44-7700-900099"}
                         """)
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
         given()
-                .when().get("/external-actors/{id}", actorId)
+                .when().get("/api/life/actors/{id}", actorId)
                 .then()
                 .statusCode(200)
                 .body("trustProfile.globalScore", nullValue())

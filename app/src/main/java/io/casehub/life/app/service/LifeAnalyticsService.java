@@ -1,7 +1,7 @@
 package io.casehub.life.app.service;
 
 import io.casehub.ledger.api.model.ScoreType;
-import io.casehub.ledger.runtime.model.ActorTrustScore;
+import io.casehub.ledger.jpa.ActorTrustScore;
 import io.casehub.life.api.LifeActorIds;
 import io.casehub.life.api.LifeCaseStatus;
 import io.casehub.life.api.LifeDomain;
@@ -110,8 +110,10 @@ public class LifeAnalyticsService {
             params.put("domainScope", LIFE_SCOPE_PREFIX + domain.descriptor().templateCategory() + "%");
         }
 
-        String               query = String.join(" AND ", conditions);
-        List<WorkItemEntity> items = WorkItemEntity.list(query, params);
+        String jpql = "FROM WorkItemEntity WHERE " + String.join(" AND ", conditions);
+        TypedQuery<WorkItemEntity> tq = em.createQuery(jpql, WorkItemEntity.class);
+        params.forEach(tq::setParameter);
+        List<WorkItemEntity> items = tq.getResultList();
 
         Instant now = Instant.now();
         Map<String, List<WorkItemEntity>> byDomain = items.stream()

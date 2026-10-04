@@ -1,7 +1,7 @@
 package io.casehub.life.app;
 
 import io.casehub.ledger.api.model.ScoreType;
-import io.casehub.ledger.runtime.model.ActorTrustScore;
+import io.casehub.ledger.jpa.ActorTrustScore;
 import io.casehub.life.api.LifeActorIds;
 import io.casehub.life.api.LifeActorType;
 import io.casehub.life.api.LifeCaseStatus;
@@ -45,7 +45,7 @@ class LifeAnalyticsTest {
     void seed() {
         em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         em.createQuery("DELETE FROM ExternalActor").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
         qhorusEm.createQuery("DELETE FROM ActorTrustScore").executeUpdate();
@@ -61,7 +61,7 @@ class LifeAnalyticsTest {
         seedTracker("home-maintenance", LifeCaseStatus.COMPLETED, 24);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/cases")
+                .when().get("/api/life/analytics/cases")
                 .then().statusCode(200)
                 .body("entries", hasSize(2))
                 .body("entries.find { it.caseType == 'travel-plan' }.total", equalTo(3))
@@ -76,7 +76,7 @@ class LifeAnalyticsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("caseType", "travel-plan")
-                .when().get("/analytics/cases")
+                .when().get("/api/life/analytics/cases")
                 .then().statusCode(200)
                 .body("entries", hasSize(1))
                 .body("entries[0].caseType", equalTo("travel-plan"));
@@ -85,7 +85,7 @@ class LifeAnalyticsTest {
     @Test
     void caseStatistics_emptyResult() {
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/cases")
+                .when().get("/api/life/analytics/cases")
                 .then().statusCode(200)
                 .body("entries", hasSize(0));
     }
@@ -96,7 +96,7 @@ class LifeAnalyticsTest {
         seedTracker("travel-plan", LifeCaseStatus.COMPLETED, 72);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/cases")
+                .when().get("/api/life/analytics/cases")
                 .then().statusCode(200)
                 .body("entries[0].avgResolutionHours", notNullValue())
                 .body("entries[0].p50ResolutionHours", notNullValue())
@@ -109,7 +109,7 @@ class LifeAnalyticsTest {
         seedTracker("travel-plan", LifeCaseStatus.FAILED, null);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/cases")
+                .when().get("/api/life/analytics/cases")
                 .then().statusCode(200)
                 .body("entries[0].completionRate", equalTo(0.5F));
     }
@@ -127,7 +127,7 @@ class LifeAnalyticsTest {
                 now.minus(3, ChronoUnit.DAYS), now.minus(1, ChronoUnit.DAYS));
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/sla")
+                .when().get("/api/life/analytics/sla")
                 .then().statusCode(200)
                 .body("entries", hasSize(1))
                 .body("entries[0].totalWithSla", equalTo(2))
@@ -146,7 +146,7 @@ class LifeAnalyticsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("domain", "HEALTH")
-                .when().get("/analytics/sla")
+                .when().get("/api/life/analytics/sla")
                 .then().statusCode(200)
                 .body("entries", hasSize(1))
                 .body("entries[0].domain", equalTo("health"));
@@ -155,7 +155,7 @@ class LifeAnalyticsTest {
     @Test
     void slaCompliance_emptyResult() {
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/sla")
+                .when().get("/api/life/analytics/sla")
                 .then().statusCode(200)
                 .body("entries", hasSize(0));
     }
@@ -168,7 +168,7 @@ class LifeAnalyticsTest {
                 now.minus(2, ChronoUnit.DAYS), null);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/sla")
+                .when().get("/api/life/analytics/sla")
                 .then().statusCode(200)
                 .body("entries[0].breachedCount", equalTo(1));
     }
@@ -181,7 +181,7 @@ class LifeAnalyticsTest {
         seedGlobalTrustScore(LifeActorIds.of(actorId), 0.85);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/trust")
+                .when().get("/api/life/analytics/trust")
                 .then().statusCode(200)
                 .body("actorCount", equalTo(1))
                 .body("avgGlobalScore", equalTo(0.85F));
@@ -190,7 +190,7 @@ class LifeAnalyticsTest {
     @Test
     void trustAnalytics_emptyWhenNoActors() {
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/trust")
+                .when().get("/api/life/analytics/trust")
                 .then().statusCode(200)
                 .body("actorCount", equalTo(0))
                 .body("avgGlobalScore", nullValue());
@@ -205,7 +205,7 @@ class LifeAnalyticsTest {
         seedGlobalTrustScore(LifeActorIds.of(erasedId), 0.40);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/trust")
+                .when().get("/api/life/analytics/trust")
                 .then().statusCode(200)
                 .body("actorCount", equalTo(1))
                 .body("avgGlobalScore", equalTo(0.90F));
@@ -219,7 +219,7 @@ class LifeAnalyticsTest {
         seedGlobalTrustScore(LifeActorIds.of(a2), 0.30);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/trust")
+                .when().get("/api/life/analytics/trust")
                 .then().statusCode(200)
                 .body("lowestScoreActors", hasSize(2))
                 .body("lowestScoreActors[0].name", equalTo("Low Trust"));
@@ -232,7 +232,7 @@ class LifeAnalyticsTest {
         seedDimensionTrustScore(LifeActorIds.of(a1), "cost-accuracy", 0.60);
 
         given().contentType(ContentType.JSON)
-                .when().get("/analytics/trust")
+                .when().get("/api/life/analytics/trust")
                 .then().statusCode(200)
                 .body("dimensionAverages.size()", equalTo(2))
                 .body("dimensionAverages.'deadline-reliability'", equalTo(0.80F))
@@ -265,7 +265,7 @@ class LifeAnalyticsTest {
         wi.scope = scope;
         wi.status = status;
         wi.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
-        wi.persist();
+        em.persist(wi);
         wi.createdAt = createdAt;
         wi.expiresAt = expiresAt;
         wi.completedAt = completedAt;

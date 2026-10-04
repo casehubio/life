@@ -39,7 +39,7 @@ class CaseScopedTasksTest {
     @Transactional
     void seed() {
         fixedPrincipal.setGroups(java.util.Set.of("household-admin"));
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
@@ -80,7 +80,7 @@ class CaseScopedTasksTest {
     void caseTasks_returnsScopedWorkItems() {
         given()
         .when()
-            .get("/life-cases/{id}/tasks", caseTrackerId)
+            .get("/api/life/cases/{id}/tasks", caseTrackerId)
         .then()
             .statusCode(200)
             .body("items", hasSize(2))
@@ -91,7 +91,7 @@ class CaseScopedTasksTest {
     void caseTasks_excludesUnrelatedWorkItems() {
         given()
         .when()
-            .get("/life-cases/{id}/tasks", caseTrackerId)
+            .get("/api/life/cases/{id}/tasks", caseTrackerId)
         .then()
             .statusCode(200)
             .body("items", hasSize(2));
@@ -101,7 +101,7 @@ class CaseScopedTasksTest {
     void caseTasks_unknownCase_returns404() {
         given()
         .when()
-            .get("/life-cases/{id}/tasks", UUID.randomUUID())
+            .get("/api/life/cases/{id}/tasks", UUID.randomUUID())
         .then()
             .statusCode(404);
     }
@@ -110,7 +110,7 @@ class CaseScopedTasksTest {
     void caseTasks_noWorkItems_returnsEmptyList() {
         given()
                 .when()
-                .get("/life-cases/{id}/tasks", emptyCaseTrackerId)
+                .get("/api/life/cases/{id}/tasks", emptyCaseTrackerId)
                 .then()
                 .statusCode(200)
                 .body("items", hasSize(0));
@@ -123,7 +123,7 @@ class CaseScopedTasksTest {
 
         given()
                 .when()
-                .get("/life-cases/{id}/tasks", caseTrackerId)
+                .get("/api/life/cases/{id}/tasks", caseTrackerId)
                 .then()
                 .statusCode(404);}
 
@@ -139,6 +139,6 @@ class CaseScopedTasksTest {
         wi.candidateGroups = "household-admin,household-member";
         wi.createdAt = Instant.now();
         wi.tenancyId = TENANCY_ID;
-        wi.persist();
+        em.persist(wi);
     }
 }

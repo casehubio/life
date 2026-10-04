@@ -73,7 +73,7 @@ class CaseCbrQueryTest {
     void cbr_returnsPrecedents() {
         given()
         .when()
-            .get("/life-cases/{id}/cbr", caseWithCbr)
+            .get("/api/life/cases/{id}/cbr", caseWithCbr)
         .then()
             .statusCode(200)
             .body("$", hasSize(3))
@@ -88,7 +88,7 @@ class CaseCbrQueryTest {
     void cbr_noPrecedents_returnsEmptyList() {
         given()
         .when()
-            .get("/life-cases/{id}/cbr", caseWithoutCbr)
+            .get("/api/life/cases/{id}/cbr", caseWithoutCbr)
         .then()
             .statusCode(200)
             .body("$", hasSize(0));
@@ -98,7 +98,7 @@ class CaseCbrQueryTest {
     void cbr_unknownCase_returns404() {
         given()
         .when()
-            .get("/life-cases/{id}/cbr", UUID.randomUUID())
+            .get("/api/life/cases/{id}/cbr", UUID.randomUUID())
         .then()
             .statusCode(404);
     }

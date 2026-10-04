@@ -102,7 +102,7 @@ public class LifeGdprErasureService {
                 .setParameter("externalActorId", externalActorId)
                 .getResultList().stream()
                 .filter(ctx -> {
-                    var wi = WorkItemEntity.<WorkItemEntity>findByIdOptional(ctx.workItemId).orElse(null);
+                    var wi = em.find(WorkItemEntity.class, ctx.workItemId);
                     return wi != null && wi.status.isActive();
                 })
                 .count();

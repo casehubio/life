@@ -1,6 +1,6 @@
 package io.casehub.life.app.service;
 
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.api.model.LedgerAttestation;
 import io.casehub.life.api.response.ActorActivityEntry;
 import io.casehub.life.api.response.PagedResponse;
 import io.casehub.life.api.response.TrustHistoryEntry;

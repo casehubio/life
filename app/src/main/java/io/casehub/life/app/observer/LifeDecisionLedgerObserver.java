@@ -59,7 +59,7 @@ public class LifeDecisionLedgerObserver {
     }
 
     private void resolveAndWrite(UUID workItemId, LifeDecisionEventType eventType) {
-        WorkItemEntity workItem = WorkItemEntity.<WorkItemEntity>findByIdOptional(workItemId).orElse(null);
+        WorkItemEntity workItem = em.find(WorkItemEntity.class, workItemId);
         if (workItem == null) return;
         LifeDomain domain = resolveDomain(workItemId, workItem);
         if (domain == null) return; // unresolvable domain — deliberate no-op

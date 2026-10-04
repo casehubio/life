@@ -1,7 +1,7 @@
 package io.casehub.life.app;
 
 import io.casehub.ledger.api.model.AttestationVerdict;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.api.model.LedgerAttestation;
 import io.casehub.life.api.LifeActorType;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.entity.ExternalActor;
@@ -41,7 +41,7 @@ class ExternalActorHistoryTest {
     void seed() {
         em.createQuery("DELETE FROM ExternalActor").executeUpdate();
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
 
         ExternalActor actor = new ExternalActor();
         actor.id = ACTOR_ID;
@@ -61,7 +61,7 @@ class ExternalActorHistoryTest {
         seedAttestation(ACTOR_ID, "contractor-coordination", null, null, AttestationVerdict.FLAGGED);
 
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/trust-history")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/trust-history")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("items[0].capabilityTag", notNullValue())
@@ -73,7 +73,7 @@ class ExternalActorHistoryTest {
         seedAttestation(ACTOR_ID, "contractor-coordination", null, null, AttestationVerdict.FLAGGED);
 
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/trust-history")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/trust-history")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].dimension", nullValue())
@@ -86,7 +86,7 @@ class ExternalActorHistoryTest {
         seedAttestation(ACTOR_ID, "household-management", "deadline-reliability", 0.92, AttestationVerdict.SOUND);
 
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/trust-history")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/trust-history")
                 .then().statusCode(200)
                 .body("items[0].dimension", equalTo("deadline-reliability"))
                 .body("items[0].score", equalTo(0.92F))
@@ -96,7 +96,7 @@ class ExternalActorHistoryTest {
     @Test
     void trustHistory_unknownActor_returns404() {
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + UUID.randomUUID() + "/trust-history")
+                .when().get("/api/life/actors/" + UUID.randomUUID() + "/trust-history")
                 .then().statusCode(404);
     }
 
@@ -109,7 +109,7 @@ class ExternalActorHistoryTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("page", 0).queryParam("size", 2)
-                .when().get("/external-actors/" + ACTOR_ID + "/trust-history")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/trust-history")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("totalCount", equalTo(5));
@@ -118,7 +118,7 @@ class ExternalActorHistoryTest {
     @Test
     void trustHistory_noAttestations_returnsEmptyList() {
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/trust-history")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/trust-history")
                 .then().statusCode(200)
                 .body("items", hasSize(0))
                 .body("totalCount", equalTo(0));
@@ -129,7 +129,7 @@ class ExternalActorHistoryTest {
         UUID wiId = seedWorkItemWithContext(ACTOR_ID, "Fix boiler", LifeDomain.HOUSEHOLD, WorkItemStatus.COMPLETED);
 
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/activity")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/activity")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].workItemId", equalTo(wiId.toString()))
@@ -140,14 +140,14 @@ class ExternalActorHistoryTest {
     @Test
     void activity_unknownActor_returns404() {
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + UUID.randomUUID() + "/activity")
+                .when().get("/api/life/actors/" + UUID.randomUUID() + "/activity")
                 .then().statusCode(404);
     }
 
     @Test
     void activity_noWorkItems_returnsEmptyList() {
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/activity")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/activity")
                 .then().statusCode(200)
                 .body("items", hasSize(0))
                 .body("totalCount", equalTo(0));
@@ -159,7 +159,7 @@ class ExternalActorHistoryTest {
         seedOrphanedContext(ACTOR_ID, LifeDomain.FINANCE);
 
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors/" + ACTOR_ID + "/activity")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/activity")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("totalCount", equalTo(1))
@@ -174,7 +174,7 @@ class ExternalActorHistoryTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("page", 0).queryParam("size", 2)
-                .when().get("/external-actors/" + ACTOR_ID + "/activity")
+                .when().get("/api/life/actors/" + ACTOR_ID + "/activity")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("totalCount", equalTo(5));
@@ -204,7 +204,7 @@ class ExternalActorHistoryTest {
         wi.scope = "casehubio/life/" + domain.descriptor().templateCategory();
         wi.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
         if (status == WorkItemStatus.COMPLETED) wi.completedAt = Instant.now();
-        wi.persist();
+        em.persist(wi);
 
         LifeTaskContext ctx = new LifeTaskContext();
         ctx.workItemId = wi.id;

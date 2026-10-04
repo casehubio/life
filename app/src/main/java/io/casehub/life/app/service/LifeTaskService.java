@@ -113,7 +113,7 @@ public class LifeTaskService {
                 .filter(h -> h.domain() == domain)
                 .findFirst()
                 .ifPresent(h -> {
-                    WorkItemEntity entity = WorkItemEntity.findById(workItem.id());
+                    WorkItemEntity entity = em.find(WorkItemEntity.class, workItem.id());
                     if (entity != null) h.writeEntry(LifeDecisionEventType.CREATED, workItem.id(), entity);
                 });
 
@@ -131,8 +131,7 @@ public class LifeTaskService {
 
     @Transactional
     public LifeTaskResponse get(final java.util.UUID workItemId) {
-        final WorkItemEntity workItem = WorkItemEntity.findByIdOptional(workItemId)
-                                                      .map(o -> (WorkItemEntity) o)
+        final WorkItemEntity workItem = Optional.ofNullable(em.find(WorkItemEntity.class, workItemId))
                                                       .orElseThrow(() -> new WebApplicationException("Life task not found: " + workItemId, 404));
         final LifeTaskContext ctx = Optional.ofNullable(em.find(LifeTaskContext.class, workItemId))
                 .orElseThrow(() -> new WebApplicationException("LifeTaskContext not found: " + workItemId, 404));

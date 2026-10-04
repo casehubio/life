@@ -47,7 +47,7 @@ class CaseCommitmentsAndChannelsTest {
         fixedPrincipal.setGroups(java.util.Set.of(HouseholdGroups.ADMIN));
         em.createQuery("DELETE FROM LifeCommitmentRecord").executeUpdate();
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         em.createQuery("DELETE FROM LifeCaseTracker").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
@@ -92,7 +92,7 @@ class CaseCommitmentsAndChannelsTest {
     void commitments_returnsScopedRecords() {
         given()
         .when()
-            .get("/life-cases/{id}/commitments", caseTrackerId)
+            .get("/api/life/cases/{id}/commitments", caseTrackerId)
         .then()
             .statusCode(200)
             .body("$", hasSize(1))
@@ -104,7 +104,7 @@ class CaseCommitmentsAndChannelsTest {
     void commitments_unknownCase_returns404() {
         given()
         .when()
-            .get("/life-cases/{id}/commitments", UUID.randomUUID())
+            .get("/api/life/cases/{id}/commitments", UUID.randomUUID())
         .then()
             .statusCode(404);
     }
@@ -113,7 +113,7 @@ class CaseCommitmentsAndChannelsTest {
     void commitments_noneLinked_returnsEmpty() {
         given()
         .when()
-            .get("/life-cases/{id}/commitments", emptyCaseTrackerId)
+            .get("/api/life/cases/{id}/commitments", emptyCaseTrackerId)
         .then()
             .statusCode(200)
             .body("$", hasSize(0));
@@ -130,7 +130,7 @@ class CaseCommitmentsAndChannelsTest {
         wi.candidateGroups = "household-admin";
         wi.createdAt = Instant.now();
         wi.tenancyId = TENANCY_ID;
-        wi.persist();
+        em.persist(wi);
         return wi.id;
     }
 }

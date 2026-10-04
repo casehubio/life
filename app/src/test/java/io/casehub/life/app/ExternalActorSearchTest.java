@@ -33,7 +33,7 @@ class ExternalActorSearchTest {
     @Test
     void search_noFilters_returnsPagedResponse() {
         given().contentType(ContentType.JSON)
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(4))
                 .body("page", equalTo(0))
@@ -45,7 +45,7 @@ class ExternalActorSearchTest {
     void search_byName_caseInsensitive() {
         given().contentType(ContentType.JSON)
                 .queryParam("name", "alice")
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].name", equalTo("Alice Plumbing"));
@@ -55,7 +55,7 @@ class ExternalActorSearchTest {
     void search_byActorType() {
         given().contentType(ContentType.JSON)
                 .queryParam("actorType", "EXTERNAL_HUMAN")
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("totalCount", equalTo(2));
@@ -65,7 +65,7 @@ class ExternalActorSearchTest {
     void search_byContactMethod() {
         given().contentType(ContentType.JSON)
                 .queryParam("contactMethod", "email")
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(3));
     }
@@ -74,7 +74,7 @@ class ExternalActorSearchTest {
     void search_erasedOnly() {
         given().contentType(ContentType.JSON)
                 .queryParam("erasedOnly", true)
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].name", equalTo("[ERASED]"));
@@ -85,7 +85,7 @@ class ExternalActorSearchTest {
         given().contentType(ContentType.JSON)
                 .queryParam("page", 0)
                 .queryParam("size", 2)
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("totalCount", equalTo(4))
@@ -98,7 +98,7 @@ class ExternalActorSearchTest {
         given().contentType(ContentType.JSON)
                 .queryParam("page", 1)
                 .queryParam("size", 2)
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("totalCount", equalTo(4));
@@ -109,7 +109,7 @@ class ExternalActorSearchTest {
         given().contentType(ContentType.JSON)
                 .queryParam("page", 10)
                 .queryParam("size", 20)
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(0))
                 .body("totalCount", equalTo(4));
@@ -120,7 +120,7 @@ class ExternalActorSearchTest {
         given().contentType(ContentType.JSON)
                 .queryParam("actorType", "EXTERNAL_HUMAN")
                 .queryParam("contactMethod", "email")
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].name", equalTo("Bob Electric"));
@@ -130,7 +130,7 @@ class ExternalActorSearchTest {
     void search_sizeCappedAt100() {
         given().contentType(ContentType.JSON)
                 .queryParam("size", 500)
-                .when().get("/external-actors")
+                .when().get("/api/life/actors")
                 .then().statusCode(200)
                 .body("size", equalTo(100));
     }

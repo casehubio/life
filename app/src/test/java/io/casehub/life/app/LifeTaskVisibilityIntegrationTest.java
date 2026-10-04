@@ -68,7 +68,7 @@ class LifeTaskVisibilityIntegrationTest {
         fixedPrincipal.setGroups(Set.of(HouseholdGroups.ADMIN));
 
         given()
-            .when().get("/life-tasks/" + adminTaskId)
+            .when().get("/api/life/tasks/" + adminTaskId)
             .then()
             .statusCode(200)
             .body("workItemId", equalTo(adminTaskId.toString()));
@@ -81,7 +81,7 @@ class LifeTaskVisibilityIntegrationTest {
         fixedPrincipal.setGroups(Set.of(HouseholdGroups.JUNIOR));
 
         given()
-            .when().get("/life-tasks/" + adminTaskId)
+            .when().get("/api/life/tasks/" + adminTaskId)
             .then()
             .statusCode(404);
     }
@@ -93,7 +93,7 @@ class LifeTaskVisibilityIntegrationTest {
         fixedPrincipal.setGroups(Set.of(HouseholdGroups.JUNIOR));
 
         given()
-            .when().get("/life-tasks/" + juniorTaskId)
+            .when().get("/api/life/tasks/" + juniorTaskId)
             .then()
             .statusCode(200)
             .body("workItemId", equalTo(juniorTaskId.toString()));
@@ -110,7 +110,7 @@ class LifeTaskVisibilityIntegrationTest {
         wi.callerRef = "life:task/household-task";
         wi.scope = "casehubio/life/household";
         wi.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
-        wi.persist();
+        em.persist(wi);
 
         LifeTaskContext ctx = new LifeTaskContext();
         ctx.workItemId = wi.id;

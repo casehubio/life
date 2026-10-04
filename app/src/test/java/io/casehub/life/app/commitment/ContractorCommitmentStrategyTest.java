@@ -95,7 +95,7 @@ class ContractorCommitmentStrategyTest {
         w.createdAt = Instant.now();
         w.updatedAt = Instant.now();
         w.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
-        w.persist();
+        em.persist(w);
         return w;
     }
 

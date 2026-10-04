@@ -88,7 +88,7 @@ public class LifeChannelContextProvider {
 
     protected Map<String, String> resolveActorChannels(UUID caseId) {
         String               callerRefPrefix = "case:" + caseId + "/";
-        List<WorkItemEntity> workItems       = WorkItemEntity.list("callerRef LIKE ?1", callerRefPrefix + "%");
+        List<WorkItemEntity> workItems       = em.createQuery("FROM WorkItemEntity WHERE callerRef LIKE ?1", WorkItemEntity.class).setParameter(1, callerRefPrefix + "%").getResultList();
 
         Map<String, String> actorChannels = new LinkedHashMap<>();
         for (WorkItemEntity wi : workItems) {

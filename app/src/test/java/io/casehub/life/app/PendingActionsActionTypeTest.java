@@ -39,7 +39,7 @@ class PendingActionsActionTypeTest {
     void seed() {
         em.createQuery("DELETE FROM LifeCommitmentRecord").executeUpdate();
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
 
         standardWiId = seedWorkItem("Grocery Run", WorkItemStatus.PENDING);
@@ -114,7 +114,7 @@ class PendingActionsActionTypeTest {
         wi.candidateGroups = "household-admin,household-member";
         wi.createdAt = Instant.now();
         wi.tenancyId = TENANCY_ID;
-        wi.persist();
+        em.persist(wi);
         return wi.id;
     }
 

@@ -79,7 +79,7 @@ class CaseRoutingQueryTest {
     void routing_returnsScopedDecisions() {
         given()
         .when()
-            .get("/life-cases/{id}/routing", caseTrackerId)
+            .get("/api/life/cases/{id}/routing", caseTrackerId)
         .then()
             .statusCode(200)
             .body("$", hasSize(2))
@@ -97,7 +97,7 @@ class CaseRoutingQueryTest {
     void routing_policyDerivedFromCapability() {
         given()
         .when()
-            .get("/life-cases/{id}/routing", caseTrackerId)
+            .get("/api/life/cases/{id}/routing", caseTrackerId)
         .then()
             .statusCode(200)
             .body("[0].policy.threshold", notNullValue())
@@ -109,7 +109,7 @@ class CaseRoutingQueryTest {
     void routing_unknownCase_returns404() {
         given()
         .when()
-            .get("/life-cases/{id}/routing", UUID.randomUUID())
+            .get("/api/life/cases/{id}/routing", UUID.randomUUID())
         .then()
             .statusCode(404);
     }
@@ -118,7 +118,7 @@ class CaseRoutingQueryTest {
     void routing_noDecisions_returnsEmptyList() {
         given()
         .when()
-            .get("/life-cases/{id}/routing", emptyCaseTrackerId)
+            .get("/api/life/cases/{id}/routing", emptyCaseTrackerId)
         .then()
             .statusCode(200)
             .body("$", hasSize(0));

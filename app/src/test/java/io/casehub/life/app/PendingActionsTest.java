@@ -29,7 +29,7 @@ class PendingActionsTest {
     @Transactional
     void seed() {
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
     }
 
@@ -238,7 +238,7 @@ class PendingActionsTest {
         wi.candidateGroups = candidateGroups;
         wi.expiresAt = expiresAt;
         wi.tenancyId = "278776f9-e1b0-46fb-9032-8bddebdcf9ce";
-        wi.persist();
+        em.persist(wi);
 
         if (domain != null) {
             LifeTaskContext ctx = new LifeTaskContext();

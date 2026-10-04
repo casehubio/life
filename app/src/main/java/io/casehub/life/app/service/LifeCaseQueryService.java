@@ -103,8 +103,8 @@ public class LifeCaseQueryService {
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
         String callerRefPrefix = "case:" + tracker.engineCaseId + "/";
-        List<WorkItemEntity> workItems = WorkItemEntity.<WorkItemEntity>list("callerRef LIKE ?1 ORDER BY createdAt ASC",
-                                                           callerRefPrefix + "%");
+        List<WorkItemEntity> workItems = em.createQuery("FROM WorkItemEntity WHERE callerRef LIKE ?1 ORDER BY createdAt ASC", WorkItemEntity.class)
+                                                           .setParameter(1, callerRefPrefix + "%").getResultList();
 
         List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
         Map<UUID, LifeCommitmentRecord> commitmentsByWorkItem = workItemIds.isEmpty()
@@ -145,8 +145,8 @@ public class LifeCaseQueryService {
         if (tracker.engineCaseId == null) {return Optional.of(List.of());}
 
         String callerRefPrefix = "case:" + tracker.engineCaseId + "/";
-        List<WorkItemEntity> workItems = WorkItemEntity.<WorkItemEntity>list("callerRef LIKE ?1",
-                                                           callerRefPrefix + "%");
+        List<WorkItemEntity> workItems = em.createQuery("FROM WorkItemEntity WHERE callerRef LIKE ?1", WorkItemEntity.class)
+                                                           .setParameter(1, callerRefPrefix + "%").getResultList();
         List<UUID> workItemIds = workItems.stream().map(wi -> wi.id).toList();
         if (workItemIds.isEmpty()) {return Optional.of(List.of());}
 

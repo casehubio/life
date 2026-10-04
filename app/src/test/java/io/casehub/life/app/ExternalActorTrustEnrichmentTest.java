@@ -1,7 +1,7 @@
 package io.casehub.life.app;
 
 import io.casehub.ledger.api.model.ScoreType;
-import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
+import io.casehub.ledger.api.spi.ActorTrustScoreRepository;
 import io.casehub.life.api.LifeActorIds;
 import io.casehub.platform.api.identity.ActorType;
 import io.quarkus.test.junit.QuarkusTest;
@@ -28,7 +28,7 @@ class ExternalActorTrustEnrichmentTest {
         var actorId = createActorAndSeedTrustScore();
 
         given()
-            .when().get("/external-actors/" + actorId)
+            .when().get("/api/life/actors/" + actorId)
             .then()
             .statusCode(200)
             .body("trustProfile.globalScore", notNullValue())
@@ -42,7 +42,7 @@ class ExternalActorTrustEnrichmentTest {
         var actorId = createActor();
 
         given()
-            .when().get("/external-actors/" + actorId)
+            .when().get("/api/life/actors/" + actorId)
             .then()
             .statusCode(200)
             .body("trustProfile.globalScore", nullValue())
@@ -72,7 +72,7 @@ class ExternalActorTrustEnrichmentTest {
                       "contactValue": "test@example.com"
                     }
                     """)
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id"));
     }

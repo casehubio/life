@@ -29,7 +29,7 @@ class LifeTaskResourceTest {
     @Transactional
     void seedTemplates() {
         em.createQuery("DELETE FROM LifeTaskContext").executeUpdate();
-        WorkItemEntity.deleteAll();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
         LifeTestFixtures.seedStandardTemplates();
     }
 
@@ -40,7 +40,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Grocery order"}
                         """)
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then()
                 .statusCode(201)
                 .body("workItemId", notNullValue())
@@ -56,7 +56,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"name":"Dr. Smith","actorType":"EXTERNAL_HUMAN","contactMethod":"phone","contactValue":"+44-7700-900200"}
                         """)
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
@@ -65,7 +65,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"health-appointment","title":"GP checkup","externalActorId":"%s"}
                         """.formatted(actorId))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then()
                 .statusCode(201)
                 .body("workItemId", notNullValue())
@@ -80,7 +80,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"nonexistent-template","title":"Something"}
                         """)
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then()
                 .statusCode(422);
     }
@@ -92,7 +92,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Fix boiler","externalActorId":"00000000-0000-0000-0000-000000000099"}
                         """)
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then()
                 .statusCode(422);
     }
@@ -104,13 +104,13 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Overdue task","deadline":"%s"}
                         """.formatted(Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .extract().path("workItemId");
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 given()
-                        .when().get("/life-tasks/" + workItemId)
+                        .when().get("/api/life/tasks/" + workItemId)
                         .then()
                         .statusCode(200)
                         .body("candidateGroups", hasItem("household-admin")));

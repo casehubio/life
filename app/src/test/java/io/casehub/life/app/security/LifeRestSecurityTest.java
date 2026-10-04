@@ -27,35 +27,35 @@ class LifeRestSecurityTest {
     @Test
     void unauthenticated_postLifeTasks_returns401() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-tasks")
+            .when().post("/api/life/tasks")
             .then().statusCode(401);
     }
 
     @Test
     void unauthenticated_postExternalActors_returns401() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/external-actors")
+            .when().post("/api/life/actors")
             .then().statusCode(401);
     }
 
     @Test
     void unauthenticated_getLifeTask_returns401() {
         given()
-            .when().get("/life-tasks/" + UUID.randomUUID())
+            .when().get("/api/life/tasks/" + UUID.randomUUID())
             .then().statusCode(401);
     }
 
     @Test
     void unauthenticated_deleteExternalActor_returns401() {
         given()
-            .when().delete("/external-actors/" + UUID.randomUUID())
+            .when().delete("/api/life/actors/" + UUID.randomUUID())
             .then().statusCode(401);
     }
 
     @Test
     void unauthenticated_postLifeCases_returns401() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-cases")
+            .when().post("/api/life/cases")
             .then().statusCode(401);
     }
 
@@ -69,33 +69,33 @@ class LifeRestSecurityTest {
     @Test
     void unauthenticated_postCommitment_returns401() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-tasks/" + UUID.randomUUID() + "/commit")
+            .when().post("/api/life/tasks/" + UUID.randomUUID() + "/commit")
             .then().statusCode(401);
     }
 
     @Test
     void unauthenticated_getExternalActors_returns401() {
         given()
-            .when().get("/external-actors")
+            .when().get("/api/life/actors")
             .then().statusCode(401);
     }
 
     @Test
     void unauthenticated_getExternalActorTasks_returns401() {
         given()
-            .when().get("/external-actors/" + UUID.randomUUID() + "/tasks")
+            .when().get("/api/life/actors/" + UUID.randomUUID() + "/tasks")
             .then().statusCode(401);
     }
 
     // ==============================
-    // household-junior — blocked on create/mutate, allowed on GET /life-tasks/{id}
+    // household-junior — blocked on create/mutate, allowed on GET /api/life/tasks/{id}
     // ==============================
 
     @Test
     @TestSecurity(user = "junior", roles = {"household-junior"})
     void junior_postLifeTasks_returns403() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-tasks")
+            .when().post("/api/life/tasks")
             .then().statusCode(403);
     }
 
@@ -103,7 +103,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "junior", roles = {"household-junior"})
     void junior_postLifeCases_returns403() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-cases")
+            .when().post("/api/life/cases")
             .then().statusCode(403);
     }
 
@@ -111,7 +111,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "junior", roles = {"household-junior"})
     void junior_deleteExternalActor_returns403() {
         given()
-            .when().delete("/external-actors/" + UUID.randomUUID())
+            .when().delete("/api/life/actors/" + UUID.randomUUID())
             .then().statusCode(403);
     }
 
@@ -126,9 +126,9 @@ class LifeRestSecurityTest {
     @Test
     @TestSecurity(user = "junior", roles = {"household-junior"})
     void junior_getLifeTask_isNotForbidden() {
-        // junior has operation-level access to GET /life-tasks/{id}; data filter deferred to life#41
+        // junior has operation-level access to GET /api/life/tasks/{id}; data filter deferred to life#41
         given()
-            .when().get("/life-tasks/" + UUID.randomUUID())
+            .when().get("/api/life/tasks/" + UUID.randomUUID())
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -140,7 +140,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "member", roles = {"household-member"})
     void member_deleteExternalActor_returns403() {
         given()
-            .when().delete("/external-actors/" + UUID.randomUUID())
+            .when().delete("/api/life/actors/" + UUID.randomUUID())
             .then().statusCode(403);
     }
 
@@ -148,7 +148,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "member", roles = {"household-member"})
     void member_putExternalActor_returns403() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().put("/external-actors/" + UUID.randomUUID())
+            .when().put("/api/life/actors/" + UUID.randomUUID())
             .then().statusCode(403);
     }
 
@@ -156,7 +156,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "member", roles = {"household-member"})
     void member_eraseExternalActorPersonalData_returns403() {
         given()
-            .when().delete("/external-actors/" + UUID.randomUUID() + "/personal-data")
+            .when().delete("/api/life/actors/" + UUID.randomUUID() + "/personal-data")
             .then().statusCode(403);
     }
 
@@ -164,7 +164,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "member", roles = {"household-member"})
     void member_postLifeTasks_isNotForbidden() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-tasks")
+            .when().post("/api/life/tasks")
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -172,7 +172,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "member", roles = {"household-member"})
     void member_postLifeCases_isNotForbidden() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-cases")
+            .when().post("/api/life/cases")
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -188,7 +188,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "member", roles = {"household-member"})
     void member_postCommitment_isNotForbidden() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-tasks/" + UUID.randomUUID() + "/commit")
+            .when().post("/api/life/tasks/" + UUID.randomUUID() + "/commit")
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -200,7 +200,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "admin", roles = {"household-admin"})
     void admin_deleteExternalActor_isNotForbidden() {
         given()
-            .when().delete("/external-actors/" + UUID.randomUUID())
+            .when().delete("/api/life/actors/" + UUID.randomUUID())
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -208,7 +208,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "admin", roles = {"household-admin"})
     void admin_eraseExternalActorPersonalData_isNotForbidden() {
         given()
-            .when().delete("/external-actors/" + UUID.randomUUID() + "/personal-data")
+            .when().delete("/api/life/actors/" + UUID.randomUUID() + "/personal-data")
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -216,7 +216,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "admin", roles = {"household-admin"})
     void admin_putExternalActor_isNotForbidden() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().put("/external-actors/" + UUID.randomUUID())
+            .when().put("/api/life/actors/" + UUID.randomUUID())
             .then().statusCode(not(in(List.of(401, 403))));
     }
 
@@ -224,7 +224,7 @@ class LifeRestSecurityTest {
     @TestSecurity(user = "admin", roles = {"household-admin"})
     void admin_postLifeTasks_isNotForbidden() {
         given().contentType(ContentType.JSON).body("{}")
-            .when().post("/life-tasks")
+            .when().post("/api/life/tasks")
             .then().statusCode(not(in(List.of(401, 403))));
     }
 }

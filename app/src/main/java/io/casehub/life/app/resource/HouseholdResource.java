@@ -1,6 +1,7 @@
 package io.casehub.life.app.resource;
 
 import io.casehub.life.api.HouseholdGroups;
+import io.casehub.platform.api.mcp.HandWrittenEndpoint;
 import io.casehub.life.api.request.CreateMemberRequest;
 import io.casehub.life.api.response.HouseholdCapabilitiesResponse;
 import io.casehub.life.api.response.HouseholdMemberResponse;
@@ -23,6 +24,7 @@ import java.util.List;
 @Blocking
 @ApplicationScoped
 @Path("/household")
+@HandWrittenEndpoint("household settings CRUD — pending @McpDomain migration")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class HouseholdResource {

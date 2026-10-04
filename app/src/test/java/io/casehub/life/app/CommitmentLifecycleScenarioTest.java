@@ -68,7 +68,7 @@ class CommitmentLifecycleScenarioTest {
                         {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
                          "contactMethod":"phone","contactValue":"+44-7700-900300"}
                         """)
-                .when().post("/external-actors")
+                .when().post("/api/life/actors")
                 .then().statusCode(201)
                 .extract().path("id");
 
@@ -78,7 +78,7 @@ class CommitmentLifecycleScenarioTest {
                         {"templateRef":"contractor-coordination","title":"Fix boiler",
                          "externalActorId":"%s"}
                         """.formatted(bobActorId))
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .body("workItemId", notNullValue())
                 .extract().path("workItemId");
@@ -96,7 +96,7 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"externalActorId":"%s","deadline":"%s"}
                         """.formatted(bobActorId, deadline))
-                .when().post("/life-tasks/{id}/commit", boilerTaskId)
+                .when().post("/api/life/tasks/{id}/commit", boilerTaskId)
                 .then()
                 .statusCode(201)
                 .body("mode", equalTo("CONTRACTOR"))
@@ -105,7 +105,7 @@ class CommitmentLifecycleScenarioTest {
 
         // Commitment is visible on the task
         given()
-                .when().get("/life-tasks/{id}", boilerTaskId)
+                .when().get("/api/life/tasks/{id}", boilerTaskId)
                 .then()
                 .statusCode(200)
                 .body("commitmentMode", equalTo("CONTRACTOR"))
@@ -124,7 +124,7 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"templateRef":"household-task","title":"School pickup - past deadline"}
                         """)
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .extract().path("workItemId");
 
@@ -134,7 +134,7 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"delegateTo":"charlie","deadline":"%s"}
                         """.formatted(pastDeadline))
-                .when().post("/life-tasks/{id}/commit", pickupTaskId)
+                .when().post("/api/life/tasks/{id}/commit", pickupTaskId)
                 .then().statusCode(201);
 
         // Commitment is in PENDING_RESPONSE with a past deadline — this is the condition that
@@ -186,7 +186,7 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"templateRef":"household-task","title":"Weekly grocery run"}
                         """)
-                .when().post("/life-tasks")
+                .when().post("/api/life/tasks")
                 .then().statusCode(201)
                 .extract().path("workItemId");
 
@@ -195,7 +195,7 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"delegateTo":"alice","deadline":"%s"}
                         """.formatted(Instant.now().plus(4, ChronoUnit.HOURS)))
-                .when().post("/life-tasks/{id}/commit", groceryTaskId)
+                .when().post("/api/life/tasks/{id}/commit", groceryTaskId)
                 .then()
                 .statusCode(201)
                 .body("mode", equalTo("DELEGATION"))

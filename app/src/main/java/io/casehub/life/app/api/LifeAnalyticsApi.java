@@ -4,7 +4,7 @@ import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.response.CaseStatisticsResponse;
 import io.casehub.life.api.response.SlaComplianceResponse;
 import io.casehub.life.api.response.TrustAnalyticsResponse;
-import io.casehub.life.app.resource.LifeAnalyticsResource;
+import io.casehub.life.app.service.LifeAnalyticsService;
 import io.casehub.platform.api.mcp.McpDomain;
 import io.casehub.platform.api.mcp.PlatformQuery;
 import io.casehub.platform.api.mcp.RestPath;
@@ -16,7 +16,7 @@ import jakarta.ws.rs.QueryParam;
 @ApplicationScoped
 public class LifeAnalyticsApi {
 
-    @Inject LifeAnalyticsResource resource;
+    @Inject LifeAnalyticsService resource;
 
     @PlatformQuery("Get case statistics")
     @RestPath("/cases")
