@@ -38,7 +38,9 @@ public class PendingActionsService {
     public PagedResponse<PendingActionResponse> findPendingActions(
             LifeDomain domain, String candidateGroup, int dueSoonHours, int page, int size) {
         page = Math.max(page, 0);
-        size = Math.max(Math.min(size, 100), 1);
+        if (size <= 0) size = 20;
+        size = Math.min(size, 100);
+        int effectiveDueSoonHours = dueSoonHours <= 0 ? 24 : dueSoonHours;
 
         var params = new HashMap<String, Object>();
         var conditions = new ArrayList<String>();
@@ -64,7 +66,7 @@ public class PendingActionsService {
         Instant now = Instant.now();
         var orderParams = new HashMap<>(params);
         orderParams.put("now", now);
-        orderParams.put("dueSoonCutoff", now.plus(dueSoonHours, ChronoUnit.HOURS));
+        orderParams.put("dueSoonCutoff", now.plus(effectiveDueSoonHours, ChronoUnit.HOURS));
 
         String query = "FROM WorkItemEntity WHERE " + whereClause
                 + " ORDER BY CASE WHEN expiresAt IS NULL THEN 3 WHEN expiresAt <= :now THEN 0"
@@ -76,7 +78,7 @@ public class PendingActionsService {
         List<WorkItemEntity> items = tq.setFirstResult(page * size).setMaxResults(size).getResultList();
 
         List<PendingActionResponse> responses = items.stream()
-                .map(wi -> toPendingAction(wi, now, dueSoonHours))
+                .map(wi -> toPendingAction(wi, now, effectiveDueSoonHours))
                 .toList();
 
         return new PagedResponse<>(responses, page, size, total);

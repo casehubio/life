@@ -41,8 +41,8 @@ class DashboardResourceTest {
                         {"templateRef":"health-appointment","title":"Overdue GP call",
                          "deadline":"%s"}
                         """.formatted(Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201);
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200);
 
         given()
                 .when().get("/api/life/dashboard/briefing")

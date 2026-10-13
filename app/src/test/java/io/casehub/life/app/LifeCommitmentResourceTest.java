@@ -38,7 +38,7 @@ class LifeCommitmentResourceTest {
                         """.formatted(deadline))
                 .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("mode", equalTo("DELEGATION"))
                 .body("status", equalTo("PENDING_RESPONSE"))
                 .body("recordId", notNullValue())
@@ -58,7 +58,7 @@ class LifeCommitmentResourceTest {
                         """.formatted(actorId, deadline))
                 .when().post("/api/life/tasks/{id}/commit", taskId)
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("mode", equalTo("CONTRACTOR"))
                 .body("status", equalTo("PENDING_RESPONSE"));
     }
@@ -141,7 +141,7 @@ class LifeCommitmentResourceTest {
 
         given().contentType("application/json").body(body)
                 .when().post("/api/life/tasks/{id}/commit", taskId)
-                .then().statusCode(201);
+                .then().statusCode(200);
 
         // Second commit on same task → 409
         given().contentType("application/json").body(body)
@@ -159,7 +159,7 @@ class LifeCommitmentResourceTest {
                         {"delegateTo":"bob","deadline":"%s"}
                         """.formatted(Instant.now().plus(3, ChronoUnit.HOURS)))
                 .when().post("/api/life/tasks/{id}/commit", taskId)
-                .then().statusCode(201);
+                .then().statusCode(200);
 
         given()
                 .when().get("/api/life/tasks/{id}", taskId)
@@ -184,9 +184,9 @@ class LifeCommitmentResourceTest {
                           "purchaseCategory":"furniture"
                         }
                         """.formatted(Instant.now().plus(24, ChronoUnit.HOURS)))
-                .when().post("/life-oversight-gates")
+                .when().post("/api/life/dashboard/oversight-gates")
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("mode", equalTo("OVERSIGHT"))
                 .body("status", equalTo("PENDING_RESPONSE"))
                 .body("recordId", notNullValue());
@@ -205,11 +205,11 @@ class LifeCommitmentResourceTest {
                 """.formatted(Instant.now().plus(24, ChronoUnit.HOURS));
 
         given().contentType("application/json").body(body)
-                .when().post("/life-oversight-gates")
-                .then().statusCode(201);
+                .when().post("/api/life/dashboard/oversight-gates")
+                .then().statusCode(200);
 
         given().contentType("application/json").body(body)
-                .when().post("/life-oversight-gates")
+                .when().post("/api/life/dashboard/oversight-gates")
                 .then().statusCode(409);
     }
 
@@ -221,8 +221,8 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"templateRef":"%s","title":"%s"}
                         """.formatted(templateRef, title))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .extract().path("workItemId");
     }
 
@@ -232,8 +232,8 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"templateRef":"%s","title":"%s","externalActorId":"%s"}
                         """.formatted(templateRef, title, actorId))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .extract().path("workItemId");
     }
 
@@ -243,8 +243,8 @@ class LifeCommitmentResourceTest {
                 .body("""
                         {"name":"%s","actorType":"EXTERNAL_HUMAN","contactMethod":"phone","contactValue":"+44-7700-900999"}
                         """.formatted(name))
-                .when().post("/api/life/actors")
-                .then().statusCode(201)
+                .when().post("/api/life/actors/")
+                .then().statusCode(200)
                 .extract().path("id");
     }
 }

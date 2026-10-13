@@ -79,9 +79,9 @@ class LifeCaseResourceTest {
                 .contentType(ContentType.JSON)
                 .body("{\"caseType\": \"APPOINTMENT_CYCLE\", \"context\": {\"appointmentType\": \"GP\"}}")
                 .when()
-                .post("/api/life/cases")
+                .post("/api/life/cases/")
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("caseType", equalTo("APPOINTMENT_CYCLE"))
                 .body("status", equalTo("ACTIVE"))
                 .body("caseId", notNullValue());

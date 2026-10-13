@@ -68,8 +68,8 @@ class CommitmentLifecycleScenarioTest {
                         {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
                          "contactMethod":"phone","contactValue":"+44-7700-900300"}
                         """)
-                .when().post("/api/life/actors")
-                .then().statusCode(201)
+                .when().post("/api/life/actors/")
+                .then().statusCode(200)
                 .extract().path("id");
 
         boilerTaskId = given()
@@ -78,8 +78,8 @@ class CommitmentLifecycleScenarioTest {
                         {"templateRef":"contractor-coordination","title":"Fix boiler",
                          "externalActorId":"%s"}
                         """.formatted(bobActorId))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .body("workItemId", notNullValue())
                 .extract().path("workItemId");
     }
@@ -98,7 +98,7 @@ class CommitmentLifecycleScenarioTest {
                         """.formatted(bobActorId, deadline))
                 .when().post("/api/life/tasks/{id}/commit", boilerTaskId)
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("mode", equalTo("CONTRACTOR"))
                 .body("status", equalTo("PENDING_RESPONSE"))
                 .extract().path("correlationId");
@@ -124,8 +124,8 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"templateRef":"household-task","title":"School pickup - past deadline"}
                         """)
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .extract().path("workItemId");
 
         final Instant pastDeadline = Instant.now().minus(1, ChronoUnit.SECONDS);
@@ -135,7 +135,7 @@ class CommitmentLifecycleScenarioTest {
                         {"delegateTo":"charlie","deadline":"%s"}
                         """.formatted(pastDeadline))
                 .when().post("/api/life/tasks/{id}/commit", pickupTaskId)
-                .then().statusCode(201);
+                .then().statusCode(200);
 
         // Commitment is in PENDING_RESPONSE with a past deadline — this is the condition that
         // triggers the Watchdog alert. evaluateAll() fires the WatchdogAlertEvent asynchronously.
@@ -171,9 +171,9 @@ class CommitmentLifecycleScenarioTest {
                           "purchaseCategory":"vehicle"
                         }
                         """.formatted(Instant.now().plus(48, ChronoUnit.HOURS)))
-                .when().post("/life-oversight-gates")
+                .when().post("/api/life/dashboard/oversight-gates")
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("mode", equalTo("OVERSIGHT"))
                 .body("status", equalTo("PENDING_RESPONSE"));
     }
@@ -186,8 +186,8 @@ class CommitmentLifecycleScenarioTest {
                 .body("""
                         {"templateRef":"household-task","title":"Weekly grocery run"}
                         """)
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .extract().path("workItemId");
 
         given()
@@ -197,7 +197,7 @@ class CommitmentLifecycleScenarioTest {
                         """.formatted(Instant.now().plus(4, ChronoUnit.HOURS)))
                 .when().post("/api/life/tasks/{id}/commit", groceryTaskId)
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("mode", equalTo("DELEGATION"))
                 .body("status", equalTo("PENDING_RESPONSE"));
     }
