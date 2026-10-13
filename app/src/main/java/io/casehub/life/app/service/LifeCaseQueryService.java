@@ -47,6 +47,9 @@ public class LifeCaseQueryService {
                                                      LifeCaseStatus status,
                                                      LifeCaseType caseType,
                                                      int page, int size) {
+        page = Math.max(page, 0);
+        if (size <= 0) size = 20;
+        size = Math.min(size, 100);
         QueryParts query = buildListQuery(domain, status, caseType);
         String jpql = "SELECT t FROM LifeCaseTracker t"
                 + (query.hql().isEmpty() ? "" : " WHERE " + query.hql())

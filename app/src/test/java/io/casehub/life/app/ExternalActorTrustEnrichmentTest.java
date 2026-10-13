@@ -72,8 +72,8 @@ class ExternalActorTrustEnrichmentTest {
                       "contactValue": "test@example.com"
                     }
                     """)
-                .when().post("/api/life/actors")
-                .then().statusCode(201)
+                .when().post("/api/life/actors/")
+                .then().statusCode(200)
                 .extract().path("id"));
     }
 }

@@ -56,7 +56,7 @@ class PendingActionsActionTypeTest {
         given()
             .queryParam("size", 100)
         .when()
-            .get("/pending-actions")
+            .get("/api/life/dashboard/pending-actions")
         .then()
             .statusCode(200)
             .body("items.find { it.workItemId == '" + standardWiId + "' }.actionType",
@@ -68,7 +68,7 @@ class PendingActionsActionTypeTest {
         given()
             .queryParam("size", 100)
         .when()
-            .get("/pending-actions")
+            .get("/api/life/dashboard/pending-actions")
         .then()
             .statusCode(200)
             .body("items.find { it.workItemId == '" + oversightWiId + "' }.actionType",
@@ -80,7 +80,7 @@ class PendingActionsActionTypeTest {
         given()
             .queryParam("size", 100)
         .when()
-            .get("/pending-actions")
+            .get("/api/life/dashboard/pending-actions")
         .then()
             .statusCode(200)
             .body("items.find { it.workItemId == '" + delegationWiId + "' }.actionType",
@@ -92,7 +92,7 @@ class PendingActionsActionTypeTest {
         given()
                 .queryParam("size", 100)
                 .when()
-                .get("/pending-actions")
+                .get("/api/life/dashboard/pending-actions")
                 .then()
                 .statusCode(200)
                 .body("items.find { it.workItemId == '" + escalationWiId + "' }.actionType",

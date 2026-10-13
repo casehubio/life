@@ -29,7 +29,8 @@ public class ExternalActorHistoryService {
     @Transactional
     public PagedResponse<TrustHistoryEntry> trustHistory(UUID actorId, int page, int size) {
         page = Math.max(page, 0);
-        size = Math.max(Math.min(size, 100), 1);
+        if (size <= 0) size = 20;
+        size = Math.min(size, 100);
 
         TypedQuery<Long> countQuery = qhorusEm.createQuery(
                 "SELECT COUNT(a) FROM LedgerAttestation a WHERE a.subjectId = :subjectId",
@@ -57,7 +58,8 @@ public class ExternalActorHistoryService {
     @SuppressWarnings("unchecked")
     public PagedResponse<ActorActivityEntry> activityTimeline(UUID actorId, int page, int size) {
         page = Math.max(page, 0);
-        size = Math.max(Math.min(size, 100), 1);
+        if (size <= 0) size = 20;
+        size = Math.min(size, 100);
 
         long total = em.createQuery(
                         "SELECT COUNT(ctx) FROM LifeTaskContext ctx WHERE ctx.externalActorId = :actorId"

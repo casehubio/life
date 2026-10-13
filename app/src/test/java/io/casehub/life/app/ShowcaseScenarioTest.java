@@ -62,8 +62,8 @@ class ShowcaseScenarioTest {
                         {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
                          "contactMethod":"phone","contactValue":"+44-7700-900100"}
                         """)
-                .when().post("/api/life/actors")
-                .then().statusCode(201)
+                .when().post("/api/life/actors/")
+                .then().statusCode(200)
                 .body("name", equalTo("Bob's Plumbing"))
                 .extract().path("id");
 
@@ -74,8 +74,8 @@ class ShowcaseScenarioTest {
                         {"templateRef":"contractor-coordination","title":"Fix boiler",
                          "externalActorId":"%s"}
                         """.formatted(bobActorId))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .body("workItemId", notNullValue())
                 .body("domain", equalTo("CONTRACTOR_COORDINATION"))
                 .body("externalActorId", equalTo(bobActorId))
@@ -101,8 +101,8 @@ class ShowcaseScenarioTest {
                                        {"name":"Bob's Plumbing","actorType":"EXTERNAL_HUMAN",
                                         "contactMethod":"phone","contactValue":"+44-7700-900200"}
                                        """)
-                                 .when().post("/api/life/actors")
-                                 .then().statusCode(201)
+                                 .when().post("/api/life/actors/")
+                                 .then().statusCode(200)
                                  .extract().path("id");
         }
 
@@ -112,8 +112,8 @@ class ShowcaseScenarioTest {
                       {"templateRef":"contractor-coordination","title":"Overdue boiler quote",
                        "externalActorId":"%s","deadline":"%s"}
                       """.formatted(bobActorId, Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201);
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200);
 
         expiryLifecycleService.checkExpired();
     }
@@ -127,8 +127,8 @@ class ShowcaseScenarioTest {
                 .body("""
                         {"templateRef":"health-appointment","title":"GP follow-up call"}
                         """)
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .body("domain", equalTo("HEALTH"))
                 .body("status", equalTo("PENDING"));
     }
@@ -143,8 +143,8 @@ class ShowcaseScenarioTest {
                         {"templateRef":"health-appointment","title":"Overdue GP call",
                          "deadline":"%s"}
                         """.formatted(Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201);
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200);
 
         // Layer 1: task would remain silently overdue indefinitely.
         // Layer 2: breach fires, escalates, then terminates on second breach.
@@ -157,7 +157,7 @@ class ShowcaseScenarioTest {
     void actorDeletion_blockedByActiveTask() {
         if (bobActorId == null) {return;}
         given()
-                .when().delete("/api/life/actors/{id}", bobActorId)
+                .when().post("/api/life/actors/{id}/delete", bobActorId)
                 .then()
                 .statusCode(409);
     }

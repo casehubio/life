@@ -55,7 +55,7 @@ class ExternalActorGdprResourceTest {
         final UUID actorId = createActor();
 
         given()
-                .when().delete("/api/life/actors/" + actorId + "/personal-data")
+                .when().post("/api/life/actors/" + actorId + "/personal-data/erase")
                 .then()
                 .statusCode(200)
                 .body("erasedActorId", equalTo(actorId.toString()))
@@ -75,7 +75,7 @@ class ExternalActorGdprResourceTest {
         final UUID actorId = createActor();
 
         given()
-                .when().delete("/api/life/actors/" + actorId + "/personal-data")
+                .when().post("/api/life/actors/" + actorId + "/personal-data/erase")
                 .then().statusCode(200);
 
         var entry = ledgerRepository.findLatestBySubjectId(actorId, TenancyConstants.DEFAULT_TENANT_ID).orElseThrow();
@@ -90,15 +90,15 @@ class ExternalActorGdprResourceTest {
     @Test
     void eraseActor_404_whenNotFound() {
         given()
-                .when().delete("/api/life/actors/" + UUID.randomUUID() + "/personal-data")
+                .when().post("/api/life/actors/" + UUID.randomUUID() + "/personal-data/erase")
                 .then().statusCode(404);
     }
 
     @Test
     void eraseActor_409_whenAlreadyErased() {
         final UUID actorId = createActor();
-        given().when().delete("/api/life/actors/" + actorId + "/personal-data").then().statusCode(200);
-        given().when().delete("/api/life/actors/" + actorId + "/personal-data").then().statusCode(409);
+        given().when().post("/api/life/actors/" + actorId + "/personal-data/erase").then().statusCode(200);
+        given().when().post("/api/life/actors/" + actorId + "/personal-data/erase").then().statusCode(409);
     }
 
     @Test
@@ -107,7 +107,7 @@ class ExternalActorGdprResourceTest {
         createActiveTaskForActor(actorId);
 
         given()
-                .when().delete("/api/life/actors/" + actorId + "/personal-data")
+                .when().post("/api/life/actors/" + actorId + "/personal-data/erase")
                 .then().statusCode(409);
     }
 
@@ -117,14 +117,14 @@ class ExternalActorGdprResourceTest {
         createCompletedTaskForActor(actorId);
 
         given()
-                .when().delete("/api/life/actors/" + actorId + "/personal-data")
+                .when().post("/api/life/actors/" + actorId + "/personal-data/erase")
                 .then().statusCode(200);
     }
 
     @Test
     void getActor_includesGdprErasedAt_afterErasure() {
         final UUID actorId = createActor();
-        given().when().delete("/api/life/actors/" + actorId + "/personal-data").then().statusCode(200);
+        given().when().post("/api/life/actors/" + actorId + "/personal-data/erase").then().statusCode(200);
 
         given()
                 .when().get("/api/life/actors/" + actorId)

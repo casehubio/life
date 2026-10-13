@@ -1,7 +1,7 @@
 package io.casehub.life.app;
 
 import io.casehub.ledger.api.model.AttestationVerdict;
-import io.casehub.ledger.api.model.LedgerAttestation;
+import io.casehub.ledger.jpa.LedgerAttestation;
 import io.casehub.life.api.LifeActorType;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.entity.ExternalActor;

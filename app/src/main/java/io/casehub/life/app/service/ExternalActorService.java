@@ -55,7 +55,8 @@ public class ExternalActorService {
             final String name, final LifeActorType actorType, final String contactMethod,
             final boolean erasedOnly, int page, int size) {
         page = Math.max(page, 0);
-        size = Math.max(Math.min(size, 100), 1);
+        if (size <= 0) size = 20;
+        size = Math.min(size, 100);
         var params     = new HashMap<String, Object>();
         var conditions = new ArrayList<String>();
 

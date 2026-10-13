@@ -40,9 +40,9 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Grocery order"}
                         """)
-                .when().post("/api/life/tasks")
+                .when().post("/api/life/tasks/")
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("workItemId", notNullValue())
                 .body("templateRef", equalTo("household-task"))
                 .body("domain", equalTo("HOUSEHOLD"))
@@ -56,8 +56,8 @@ class LifeTaskResourceTest {
                 .body("""
                         {"name":"Dr. Smith","actorType":"EXTERNAL_HUMAN","contactMethod":"phone","contactValue":"+44-7700-900200"}
                         """)
-                .when().post("/api/life/actors")
-                .then().statusCode(201)
+                .when().post("/api/life/actors/")
+                .then().statusCode(200)
                 .extract().path("id");
 
         given()
@@ -65,9 +65,9 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"health-appointment","title":"GP checkup","externalActorId":"%s"}
                         """.formatted(actorId))
-                .when().post("/api/life/tasks")
+                .when().post("/api/life/tasks/")
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .body("workItemId", notNullValue())
                 .body("domain", equalTo("HEALTH"))
                 .body("externalActorId", equalTo(actorId));
@@ -80,7 +80,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"nonexistent-template","title":"Something"}
                         """)
-                .when().post("/api/life/tasks")
+                .when().post("/api/life/tasks/")
                 .then()
                 .statusCode(422);
     }
@@ -92,7 +92,7 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Fix boiler","externalActorId":"00000000-0000-0000-0000-000000000099"}
                         """)
-                .when().post("/api/life/tasks")
+                .when().post("/api/life/tasks/")
                 .then()
                 .statusCode(422);
     }
@@ -104,8 +104,8 @@ class LifeTaskResourceTest {
                 .body("""
                         {"templateRef":"household-task","title":"Overdue task","deadline":"%s"}
                         """.formatted(Instant.now().minus(1, ChronoUnit.HOURS)))
-                .when().post("/api/life/tasks")
-                .then().statusCode(201)
+                .when().post("/api/life/tasks/")
+                .then().statusCode(200)
                 .extract().path("workItemId");
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->

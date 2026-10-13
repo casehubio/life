@@ -39,7 +39,7 @@ class PendingActionsTest {
                 "household-admin", Instant.now().plus(2, ChronoUnit.DAYS), LifeDomain.HOUSEHOLD);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].title", equalTo("Approve quote"))
@@ -52,7 +52,7 @@ class PendingActionsTest {
                 "household-admin", Instant.now().plus(1, ChronoUnit.DAYS), LifeDomain.HOUSEHOLD);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(0));
     }
@@ -63,7 +63,7 @@ class PendingActionsTest {
                 "household-admin", null, LifeDomain.HOUSEHOLD);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(0));
     }
@@ -74,7 +74,7 @@ class PendingActionsTest {
                 "admin", null, null);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(0));
     }
@@ -85,7 +85,7 @@ class PendingActionsTest {
                 "household-member", Instant.now().minus(3, ChronoUnit.DAYS), LifeDomain.HEALTH);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].urgency", equalTo("OVERDUE"))
                 .body("items[0].daysOverdue", greaterThanOrEqualTo(2));
@@ -97,7 +97,7 @@ class PendingActionsTest {
                 "household-admin", Instant.now().plus(6, ChronoUnit.HOURS), LifeDomain.FINANCE);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].urgency", equalTo("DUE_SOON"));
     }
@@ -111,7 +111,7 @@ class PendingActionsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("domain", "HEALTH")
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].title", equalTo("Health task"));
@@ -126,7 +126,7 @@ class PendingActionsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("candidateGroup", "household-admin")
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(1))
                 .body("items[0].title", equalTo("Admin task"));
@@ -139,13 +139,13 @@ class PendingActionsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("dueSoonHours", 4)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].urgency", equalTo("NORMAL"));
 
         given().contentType(ContentType.JSON)
                 .queryParam("dueSoonHours", 8)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].urgency", equalTo("DUE_SOON"));
     }
@@ -158,7 +158,7 @@ class PendingActionsTest {
                 "household-admin", Instant.now().minus(1, ChronoUnit.DAYS), LifeDomain.HOUSEHOLD);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].title", equalTo("Overdue"))
                 .body("items[1].title", equalTo("Normal"));
@@ -175,7 +175,7 @@ class PendingActionsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("page", 0).queryParam("size", 2)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(2))
                 .body("items[0].title", equalTo("Overdue"));
@@ -188,7 +188,7 @@ class PendingActionsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("page", -1)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(1));
     }
@@ -200,7 +200,7 @@ class PendingActionsTest {
 
         given().contentType(ContentType.JSON)
                 .queryParam("size", 0)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items", hasSize(1));
     }
@@ -211,7 +211,7 @@ class PendingActionsTest {
                 "household-admin", null, LifeDomain.HOUSEHOLD);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].urgency", equalTo("NO_DEADLINE"))
                 .body("items[0].daysOverdue", nullValue());
@@ -223,7 +223,7 @@ class PendingActionsTest {
                 "household-admin", null, null);
 
         given().contentType(ContentType.JSON)
-                .when().get("/pending-actions")
+                .when().get("/api/life/dashboard/pending-actions")
                 .then().statusCode(200)
                 .body("items[0].domain", equalTo("HOUSEHOLD"));
     }
