@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.casehub</groupId>
     <artifactId>casehub-life-parent</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3</version>
   </parent>
 
   <artifactId>casehub-life-app</artifactId>
@@ -20,20 +20,20 @@
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-api</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3</version>
         </dependency>
 
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-cbr-inmem</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3</version>
             <scope>test</scope>
         </dependency>
 
@@ -267,13 +267,13 @@
                 <artifactItem>
                   <groupId>io.casehub</groupId>
                   <artifactId>casehub-pages-npm</artifactId>
-                  <version>0.2-SNAPSHOT</version>
+                  <version>0.3</version>
                   <outputDirectory>${project.basedir}/../life-ui/.casehub-packages</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>io.casehub</groupId>
                   <artifactId>casehub-blocks-ui-npm</artifactId>
-                  <version>0.1-SNAPSHOT</version>
+                  <version>0.3</version>
                   <outputDirectory>${project.basedir}/../life-ui/.casehub-packages</outputDirectory>
                 </artifactItem>
               </artifactItems>
