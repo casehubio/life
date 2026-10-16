@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.casehub</groupId>
     <artifactId>casehub-parent</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
 
   <artifactId>casehub-life-parent</artifactId>
@@ -25,6 +25,7 @@
   </modules>
 
   <properties>
+    <revision>0.4-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Alias for app/pom.xml quarkus-maven-plugin version reference -->
     <version.quarkus.platform>${quarkus.platform.version}</version.quarkus.platform>
