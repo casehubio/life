@@ -20,20 +20,20 @@
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-api</artifactId>
-            <version>0.3</version>
+            <version>${casehub.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory</artifactId>
-            <version>0.3</version>
+            <version>${casehub.version}</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-cbr-inmem</artifactId>
-            <version>0.3</version>
+            <version>${casehub.version}</version>
             <scope>test</scope>
         </dependency>
 
