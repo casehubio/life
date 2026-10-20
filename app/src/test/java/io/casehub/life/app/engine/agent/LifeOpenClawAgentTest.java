@@ -1,13 +1,11 @@
 package io.casehub.life.app.engine.agent;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import io.casehub.api.model.ai.Agent;
-import io.casehub.api.model.ai.ChatModelProvider;
-import io.casehub.api.model.ai.ModelType;
+import io.casehub.api.model.ai.WorkerAgentInvoker;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentEvent;
+import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.life.app.engine.LifeAgent;
+import io.smallrye.mutiny.Multi;
 import io.casehub.worker.api.WorkerResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,65 +13,43 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-// AiMessage and ChatResponse have public constructors/builders and must NOT be mocked
-// (their methods are final in LangChain4J 1.14.1 — Mockito cannot intercept them).
-
-/**
- * Unit test for the booking agent's LLM integration.
- *
- * <p>No Quarkus — tests Agent.execute() directly via a ChatModelProvider stub.
- * Verifies structured output parsing for both the booking path and the decline path.
- */
+/** Verifies structured booking output and message templates through the native provider API. */
 class LifeOpenClawAgentTest {
 
-    private ChatModel mockModel;
-    private ChatModelProvider stubProvider;
+    private AgentProvider stubProvider;
 
     @BeforeEach
     void setup() {
-        mockModel = mock(ChatModel.class);
-        stubProvider = new ChatModelProvider() {
-            @Override
-            public ModelType type() {
-                return ModelType.OPENAI;
-            }
+        stubProvider = mock(AgentProvider.class);
+    }
 
+    private static Multi<AgentEvent> stubResponse(String json) {
+        return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+    }
+
+    private WorkerAgentInvoker bookingAgent() {
+        var factory = new LifeOpenClawChatModelFactory() {
             @Override
-            public ChatModel get() {
-                return mockModel;
+            public AgentProvider forAgent(LifeAgent agent) {
+                return stubProvider;
             }
         };
-    }
-
-    private static ChatResponse stubResponse(final String json) {
-        return ChatResponse.builder()
-                .aiMessage(new AiMessage(json))
-                .build();
-    }
-
-    private Agent bookingAgent() {
-        return Agent.builder()
-                .model(stubProvider)
-                .systemPrompt("""
-                        You are a healthcare appointment booking agent for a UK household.
-                        Book medical appointments with the requested provider.
-                        If the provider is unavailable, set declined=true and provide a reason.
-                        Respond with valid JSON only — no prose, no explanation.
-                        """)
-                .userMessage("Book a {{appointmentType}} appointment with provider {{provider}}.")
-                .responseSchema(BookingResult.class)
-                .build();
+        return factory.invokerFor(LifeAgent.HEALTH,
+                "You are a healthcare appointment booking agent.",
+                "Book a {{appointmentType}} appointment with provider {{provider}}.",
+                BookingResult.class, java.util.function.UnaryOperator.identity());
     }
 
     @Test
     void execute_booking_returnsPendingAppointment() {
         // confirmed=false is correct: booking step returns PENDING.
         // confirmed=true is set by the later confirm-appointment binding.
-        when(mockModel.chat(any(ChatRequest.class))).thenReturn(stubResponse(
+        when(stubProvider.invoke(any(AgentSessionConfig.class))).thenReturn(stubResponse(
                 "{\"appointmentId\":\"APT-123\",\"provider\":\"Dr Smith\","
                 + "\"confirmed\":false,\"declined\":null,\"reason\":null}"));
 
@@ -88,7 +64,7 @@ class LifeOpenClawAgentTest {
 
     @Test
     void execute_unavailableProvider_returnsDeclined() {
-        when(mockModel.chat(any(ChatRequest.class))).thenReturn(stubResponse(
+        when(stubProvider.invoke(any(AgentSessionConfig.class))).thenReturn(stubResponse(
                 "{\"appointmentId\":null,\"provider\":\"Dr Gone\","
                 + "\"confirmed\":false,\"declined\":true,\"reason\":\"Not accepting new patients\"}"));
 
@@ -106,12 +82,10 @@ class LifeOpenClawAgentTest {
         // what the request-aware mock in integration tests must detect.
         // Template: "Book a {{appointmentType}} appointment with provider {{provider}}."
         // With provider="unavailable" → "Book a GP appointment with provider unavailable."
-        when(mockModel.chat(any(ChatRequest.class))).thenAnswer(invocation -> {
-            final ChatRequest req = invocation.getArgument(0);
-            final String userText = req.messages().stream()
-                    .filter(m -> m instanceof UserMessage)
-                    .map(m -> ((UserMessage) m).singleText())
-                    .findFirst().orElse("");
+        when(stubProvider.invoke(any(AgentSessionConfig.class))).thenAnswer(invocation -> {
+            final AgentSessionConfig req = invocation.getArgument(0);
+            final String userText = req.userPrompt();
+            assertThat(req.systemPrompt()).contains("appointmentId", "calendarEventId", "toolsUsed", "boolean");
             assertThat(userText).contains("Dr Smith");
             assertThat(userText).contains("GP checkup");
             return stubResponse("{\"appointmentId\":\"APT-999\",\"provider\":\"Dr Smith\","
@@ -120,4 +94,19 @@ class LifeOpenClawAgentTest {
 
         bookingAgent().execute(Map.of("appointmentType", "GP checkup", "provider", "Dr Smith"));
     }
+    @Test
+    void execute_providerFailure_isReported() {
+        when(stubProvider.invoke(any())).thenReturn(
+                Multi.createFrom().failure(new IllegalStateException("gateway unavailable")));
+        assertThatThrownBy(() -> bookingAgent().execute(Map.of("appointmentType", "GP", "provider", "Dr Smith")))
+                .hasMessageContaining("gateway unavailable");
+    }
+
+    @Test
+    void execute_invalidJson_isRejected() {
+        when(stubProvider.invoke(any())).thenReturn(stubResponse("not JSON"));
+        assertThatThrownBy(() -> bookingAgent().execute(Map.of("appointmentType", "GP", "provider", "Dr Smith")))
+                .hasMessageContaining("invalid JSON");
+    }
+
 }

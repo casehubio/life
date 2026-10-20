@@ -22,10 +22,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import dev.langchain4j.model.chat.ChatModel;
 import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
-import io.casehub.api.model.ai.ChatModelProvider;
+import io.casehub.platform.agent.AgentProvider;
 import io.casehub.life.api.LifeCaseType;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
@@ -41,10 +40,10 @@ class LifeTypedCaseHubTest {
 
     @BeforeEach
     void setUp() {
-        mockFactory = mock(LifeOpenClawChatModelFactory.class);
-        var mockProvider = mock(ChatModelProvider.class);
-        when(mockProvider.get()).thenReturn(mock(ChatModel.class));
-        when(mockFactory.forAgent(any())).thenReturn(mockProvider);
+        mockFactory = mock(LifeOpenClawChatModelFactory.class, org.mockito.Mockito.withSettings()
+                .useConstructor().defaultAnswer(org.mockito.Mockito.CALLS_REAL_METHODS));
+        var mockProvider = mock(AgentProvider.class);
+        org.mockito.Mockito.doReturn(mockProvider).when(mockFactory).forAgent(any());
         mockDescriptorFactory = mock(LifeAgentDescriptorFactory.class);
         when(mockDescriptorFactory.descriptorFor(any()))
                 .thenReturn(mock(io.casehub.eidos.api.AgentDescriptor.class));

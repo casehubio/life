@@ -17,7 +17,7 @@ package io.casehub.life.app.engine;
 
 import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
-import io.casehub.api.model.ai.Agent;
+import io.casehub.api.model.ai.WorkerAgentInvoker;
 import io.casehub.life.api.LifeCaseType;
 import io.casehub.life.app.engine.agent.BookingResult;
 import io.casehub.life.app.engine.agent.ConfirmAppointmentResult;
@@ -31,7 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
  * Appointment cycle case hub — loads the YAML definition and augments it with workers.
  *
  * <p>book-appointment-agent is the first real LLM-backed worker (casehubio/life#25):
- * it uses WorkerFunction.AgentExec(Agent) with OpenClaw's /v1/chat/completions as the
+ * it uses AgentWorkerFunction with OpenClaw's /hooks/agent as the
  * LLM backend. Agent identity follows the {model-family}:{persona}@{major} convention
  * from docs/specs/life-actor-model.md. Refs engine#463 (settled function-as-worker design).
  *
@@ -76,9 +76,9 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
                                                                           to the tamper-evident ledger.""", RecordHealthDecisionResult.class));}
 
     /**
-     * Books an appointment via OpenClaw's LLM API (/v1/chat/completions).
+     * Books an appointment via OpenClaw's /hooks/agent endpoint.
      *
-     * <p>First real LLM-backed worker in casehub-life. Uses WorkerFunction.AgentExec(Agent)
+     * <p>First real LLM-backed worker in casehub-life. Uses AgentWorkerFunction
      * per the engine#463 settled abstraction. OpenClaw returns structured JSON conforming
      * to BookingResult — confirmed=false indicates a PENDING booking; the confirm-appointment
      * binding fires when .booking != null and .booking.declined != true.
@@ -88,20 +88,17 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
      * casehub-openclaw-casehub config map key when WorkerProvisioner is wired (life#37).
      */
     private Worker bookAppointmentWorker() {
-        final Agent bookingAgent = Agent.builder()
-                                        .model(openClawFactory.forAgent(agent()))
-                                        .systemPrompt("You are a healthcare appointment booking agent for a UK household. " +
-                                                      "Book medical appointments with the requested provider. " +
-                                                      "Use calendar_create_event to create the appointment in the calendar. " +
-                                                      "Include the calendar event ID in your response. " +
-                                                      "If the provider is unavailable, set declined=true and provide a reason. " +
-                                                      "If cbrCalibration is provided, use historicalSuccessRate to inform " +
-                                                      "booking confidence and featureStats for appointment patterns. " +
-                                                      "Respond with valid JSON only — no prose, no explanation. " + CBR_SYSTEM_PROMPT_SUFFIX)
-                                        .userMessage("Book a {{appointmentType}} appointment with provider {{provider}}.")
-                                        .inputTransformer(cbrInputTransformer)
-                                        .responseSchema(BookingResult.class)
-                                        .build();
+        final WorkerAgentInvoker bookingAgent = openClawFactory.invokerFor(agent(),
+                "You are a healthcare appointment booking agent for a UK household. " +
+                "Book medical appointments with the requested provider. " +
+                "Use calendar_create_event to create the appointment in the calendar. " +
+                "Include the calendar event ID in your response. " +
+                "If the provider is unavailable, set declined=true and provide a reason. " +
+                "If cbrCalibration is provided, use historicalSuccessRate to inform " +
+                "booking confidence and featureStats for appointment patterns. " +
+                "Respond with valid JSON only — no prose, no explanation. " + CBR_SYSTEM_PROMPT_SUFFIX,
+                "Book a {{appointmentType}} appointment with provider {{provider}}.", BookingResult.class,
+                cbrInputTransformer);
 
         return Worker.builder()
                      .name("book-appointment-agent")
