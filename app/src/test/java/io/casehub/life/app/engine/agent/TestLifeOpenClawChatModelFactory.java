@@ -1,12 +1,11 @@
 package io.casehub.life.app.engine.agent;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import io.casehub.api.model.ai.ChatModelProvider;
-import io.casehub.api.model.ai.ModelType;
+import io.casehub.platform.agent.AgentEvent;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSessionInit;
+import io.smallrye.mutiny.Multi;
 import io.casehub.life.app.engine.LifeAgent;
 import io.casehub.openclaw.casehub.DirectCallBridge;
 import io.casehub.openclaw.client.OpenClawClientConfig;
@@ -20,7 +19,7 @@ import java.util.Map;
 /**
  * Test replacement for {@link LifeOpenClawChatModelFactory}.
  *
- * <p>Returns a {@link ChatModel} that matches system prompt content against a canned
+ * <p>Returns an {@link AgentProvider} that matches system prompt content against a canned
  * response map. No OpenClaw HTTP calls are made.
  *
  * <p>Registered in {@code quarkus.arc.selected-alternatives} in test config.
@@ -30,7 +29,7 @@ import java.util.Map;
  * and {@link OpenClawClientConfig} — beans which may not be available in tests because
  * the OpenClaw REST client (openclaw-gateway) points at a non-existent URL.
  * The test factory's protected no-arg constructor passes nulls to the super constructor —
- * it overrides {@link #forAgent(String)} entirely and never touches the bridge/hookClient.
+ * it overrides {@link #forAgent(LifeAgent)} entirely and never touches the bridge/hookClient.
  *
  * <p>RESPONSE map entries are keyed by system prompt substrings (case-insensitive).
  * Decline path: if the user message contains "unavailable" and the system prompt contains
@@ -198,57 +197,38 @@ public class TestLifeOpenClawChatModelFactory extends LifeOpenClawChatModelFacto
     }
 
     @Override
-    public ChatModelProvider forAgent(LifeAgent agent) {
-        return new ChatModelProvider() {
+    public AgentProvider forAgent(LifeAgent agent) {
+        return new AgentProvider() {
             @Override
-            public ModelType type() {
-                return ModelType.OPENAI;
+            public Multi<AgentEvent> invoke(AgentSessionConfig request) {
+                String sysPrompt = request.systemPrompt().toLowerCase();
+                // Match decline path for appointment booking
+                boolean decline = request.userPrompt().toLowerCase().contains("unavailable");
+                if (decline && sysPrompt.contains("appointment booking")) {
+                    return respond("{\"appointmentId\":null,\"provider\":\"Dr Gone\","
+                            + "\"confirmed\":false,\"declined\":true,"
+                            + "\"reason\":\"Provider unavailable\","
+                            + "\"calendarEventId\":null,"
+                            + "\"toolsUsed\":[]}");
+                }
+
+                for (var entry : RESPONSES.entrySet()) {
+                    if (sysPrompt.contains(entry.getKey())) {
+                        return respond(entry.getValue());
+                    }
+                }
+
+                return respond("{\"ok\":true}");
             }
 
             @Override
-            public ChatModel get() {
-                return new TestChatModel();
+            public AgentSession openSession(AgentSessionInit init) {
+                throw new UnsupportedOperationException();
+            }
+
+            private Multi<AgentEvent> respond(String json) {
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
             }
         };
-    }
-
-    private static final class TestChatModel implements ChatModel {
-        @Override
-        public ChatResponse doChat(ChatRequest request) {
-            String sysPrompt = request.messages().stream()
-                    .filter(m -> m instanceof SystemMessage)
-                    .map(m -> ((SystemMessage) m).text().toLowerCase())
-                    .findFirst()
-                    .orElse("");
-
-            // Match decline path for appointment booking
-            boolean decline = request.messages().stream()
-                    .filter(m -> m instanceof dev.langchain4j.data.message.UserMessage)
-                    .map(m -> ((dev.langchain4j.data.message.UserMessage) m).singleText())
-                    .findFirst()
-                    .map(t -> t.toLowerCase().contains("unavailable"))
-                    .orElse(false);
-            if (decline && sysPrompt.contains("appointment booking")) {
-                return respond("{\"appointmentId\":null,\"provider\":\"Dr Gone\","
-                        + "\"confirmed\":false,\"declined\":true,"
-                        + "\"reason\":\"Provider unavailable\","
-                        + "\"calendarEventId\":null,"
-                        + "\"toolsUsed\":[]}");
-            }
-
-            for (var entry : RESPONSES.entrySet()) {
-                if (sysPrompt.contains(entry.getKey())) {
-                    return respond(entry.getValue());
-                }
-            }
-
-            return respond("{\"ok\":true}");
-        }
-
-        private static ChatResponse respond(String json) {
-            return ChatResponse.builder()
-                    .aiMessage(new AiMessage(json))
-                    .build();
-        }
     }
 }

@@ -16,7 +16,7 @@
 package io.casehub.life.app.engine;
 
 import io.casehub.api.engine.CaseHubRuntime;
-import io.casehub.api.model.ai.Agent;
+import io.casehub.api.model.ai.WorkerAgentInvoker;
 import io.casehub.life.app.engine.agent.AnomalySentinelReport;
 import io.casehub.life.app.engine.agent.BookingSentinelReport;
 import io.casehub.life.app.engine.agent.CareQualitySentinelReport;
@@ -37,6 +37,7 @@ import org.quartz.JobExecutionException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.UnaryOperator;
 
 @ApplicationScoped
 public class LifeHeartbeatJob implements Job {
@@ -70,11 +71,10 @@ public class LifeHeartbeatJob implements Job {
             LOG.warnf(e, "Channel context gathering failed for case %s — proceeding with case context only", caseId);
         }
 
-        Agent sentinelAgent = Agent.builder()
-                .model(openClawFactory.forAgent(agent))
-                .systemPrompt(sentinelSystemPrompt(capabilityName))
-                .responseSchema(sentinelResponseSchema(capabilityName))
-                .build();
+        WorkerAgentInvoker sentinelAgent = openClawFactory.invokerFor(agent,
+                sentinelSystemPrompt(capabilityName),
+                null, sentinelResponseSchema(capabilityName),
+                UnaryOperator.identity());
 
         WorkerResult result = sentinelAgent.execute(enrichedContext);
 

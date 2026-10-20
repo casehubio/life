@@ -15,13 +15,10 @@
  */
 package io.casehub.life.app.engine;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
 import io.casehub.api.engine.CaseHubRuntime;
-import io.casehub.api.model.ai.ChatModelProvider;
-import io.casehub.api.model.ai.ModelType;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentEvent;
+import io.smallrye.mutiny.Multi;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,21 +46,15 @@ class LifeHeartbeatJobTest {
 
     @BeforeEach
     void setup() {
-        mockFactory = mock(LifeOpenClawChatModelFactory.class);
+        mockFactory = mock(LifeOpenClawChatModelFactory.class, org.mockito.Mockito.withSettings()
+                .useConstructor().defaultAnswer(org.mockito.Mockito.CALLS_REAL_METHODS));
         mockRuntime = mock(CaseHubRuntime.class);
 
-        ChatModel mockModel = mock(ChatModel.class);
-        AiMessage aiMessage = AiMessage.from(
+        AgentProvider provider = mock(AgentProvider.class);
+        when(provider.invoke(any())).thenReturn(Multi.createFrom().item(new AgentEvent.TextDelta(
                 "{\"progressPercent\":75,\"status\":\"on-track\","
-                + "\"concerns\":null,\"recommendedAction\":null,\"escalationRequired\":false}");
-        ChatResponse response = ChatResponse.builder().aiMessage(aiMessage).build();
-        when(mockModel.chat(any(ChatRequest.class))).thenReturn(response);
-
-        ChatModelProvider provider = new ChatModelProvider() {
-            @Override public ModelType type() { return ModelType.OPENAI; }
-            @Override public ChatModel get() { return mockModel; }
-        };
-        when(mockFactory.forAgent(any(LifeAgent.class))).thenReturn(provider);
+                + "\"concerns\":null,\"recommendedAction\":null,\"escalationRequired\":false}")));
+        org.mockito.Mockito.doReturn(provider).when(mockFactory).forAgent(any(LifeAgent.class));
 
         when(mockRuntime.query(any(UUID.class), eq(".")))
                 .thenReturn(Map.of("contractorRequest", Map.of("contractor", "AcmeBuild")));

@@ -18,7 +18,7 @@ package io.casehub.life.app.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
-import io.casehub.api.model.ai.Agent;
+import io.casehub.api.model.ai.WorkerAgentInvoker;
 import io.casehub.life.api.LifeCaseType;
 import io.casehub.life.app.cbr.CbrInputTransformer;
 import io.casehub.life.app.cbr.LifeCbrExperienceFormatter;
@@ -72,12 +72,10 @@ public abstract class LifeTypedCaseHub extends YamlCaseHub {
 
     protected Worker agentWorker(String capabilityName, String systemPrompt,
                                  Class<?> responseSchema) {
-        Agent a = Agent.builder()
-                       .model(openClawFactory.forAgent(agent))
-                       .systemPrompt(systemPrompt + "\n\n" + CBR_SYSTEM_PROMPT_SUFFIX)
-                       .inputTransformer(cbrInputTransformer)
-                       .responseSchema(responseSchema)
-                       .build();
+        WorkerAgentInvoker a = openClawFactory.invokerFor(agent,
+                systemPrompt + "\n\n" + CBR_SYSTEM_PROMPT_SUFFIX,
+                null, responseSchema,
+                cbrInputTransformer);
         return Worker.builder()
                      .name(capabilityName + "-agent")
                      .capabilityName(capabilityName)
