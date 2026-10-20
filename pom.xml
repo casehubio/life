@@ -25,6 +25,7 @@
   </modules>
 
   <properties>
+    <version.blocks-ui>0.3-SNAPSHOT</version.blocks-ui>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Alias for app/pom.xml quarkus-maven-plugin version reference -->
     <version.quarkus.platform>${quarkus.platform.version}</version.quarkus.platform>
