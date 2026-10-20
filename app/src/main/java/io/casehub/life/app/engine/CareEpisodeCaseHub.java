@@ -18,7 +18,7 @@ package io.casehub.life.app.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
-import io.casehub.api.model.ai.Agent;
+import io.casehub.api.model.ai.WorkerAgentInvoker;
 import io.casehub.life.app.engine.agent.AssessPatientResult;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
@@ -29,6 +29,7 @@ import jakarta.inject.Inject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 /**
  * Care episode case hub — child case spawned by care-coordination via SubCase binding.
@@ -74,16 +75,15 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
      * mobility status, and cognitive state.
      */
     private Worker assessPatientWorker() {
-        final Agent agent = Agent.builder()
-                                 .model(openClawFactory.forAgent(AGENT))
-                                 .systemPrompt("""
-                                               You are a care episode agent. Assess patient condition including
-                                               vital signs, mobility status, and cognitive state.
-                                               Use iot_get_state to read patient monitoring sensors (movement,
-                                               temperature, medical devices) if available.
-                                               Include sensor readings in your response.""")
-                                 .responseSchema(AssessPatientResult.class)
-                                 .build();
+        final WorkerAgentInvoker agent = openClawFactory.invokerFor(AGENT,
+                """
+                You are a care episode agent. Assess patient condition including
+                vital signs, mobility status, and cognitive state.
+                Use iot_get_state to read patient monitoring sensors (movement,
+                temperature, medical devices) if available.
+                Include sensor readings in your response.""",
+                null, AssessPatientResult.class,
+                UnaryOperator.identity());
 
         return Worker.builder()
                      .name("assess-patient-agent")
@@ -98,15 +98,14 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
      * assigned tasks and recording observations.
      */
     private Worker provideCareWorker() {
-        final Agent agent = Agent.builder()
-                                 .model(openClawFactory.forAgent(AGENT))
-                                 .systemPrompt("""
-                                               You are a care episode agent. Provide care to the patient, completing
-                                               assigned tasks and recording observations.
-                                               Use send_chat to notify the family when care is complete.
-                                               Include the notification message ID in your response.""")
-                                 .responseSchema(ProvideCareResult.class)
-                                 .build();
+        final WorkerAgentInvoker agent = openClawFactory.invokerFor(AGENT,
+                """
+                You are a care episode agent. Provide care to the patient, completing
+                assigned tasks and recording observations.
+                Use send_chat to notify the family when care is complete.
+                Include the notification message ID in your response.""",
+                null, ProvideCareResult.class,
+                UnaryOperator.identity());
 
         return Worker.builder()
                      .name("provide-care-agent")
