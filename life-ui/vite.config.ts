@@ -8,8 +8,8 @@ export default defineConfig({
   root: __dirname,
   resolve: {
     alias: [
-      { find: /^@casehubio\/blocks-ui-core\/(.*)/, replacement: resolve(blocksUi, 'blocks-ui-core/dist/$1') },
-      { find: '@casehubio/mosaic-core', replacement: resolve(blocksUi, 'blocks-ui-core') },
+      { find: /^@casehubio\/mosaic-core\/(.*)/, replacement: resolve(blocksUi, 'mosaic-core/dist/$1') },
+      { find: '@casehubio/mosaic-core', replacement: resolve(blocksUi, 'mosaic-core') },
       { find: '@casehubio/mosaic-work-item-workbench', replacement: resolve(blocksUi, 'work-item-workbench') },
       { find: '@casehubio/mosaic-work-item-inbox', replacement: resolve(blocksUi, 'work-item-inbox') },
       { find: '@casehubio/mosaic-work-item-detail', replacement: resolve(blocksUi, 'work-item-detail') },
