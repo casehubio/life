@@ -448,7 +448,7 @@ app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmen
           event (io.casehub.life.app.event — LifeEventBroadcaster, LifeEventBridge,
           LifeEventSseResource; SSE CDI→broadcaster→stream bridge for real-time UI updates).
 
-life-ui/ — Lit 3.x SPA. Vite build with aliases to Maven-resolved @casehubio/blocks-ui-*
+life-ui/ — Lit 3.x SPA. Vite build with aliases to Maven-resolved @casehubio/casehub-mosaic-*
            and @casehubio/pages-* packages (extracted to .casehub-packages/ via Maven SNAPSHOT).
            app-shell (hash routing, theme toggle, user identity, notification badge via
            PagesBadge from pages-ui-components), 5 views:
@@ -673,15 +673,15 @@ quarkus.arc.selected-alternatives=\
 
 ## Frontend Dependencies
 
-This project consumes frontend packages from casehub-pages and blocks-ui via **Maven SNAPSHOT** artifacts (WebJar pattern).
+This project consumes frontend packages from casehub-pages and casehub-mosaic via **Maven SNAPSHOT** artifacts (WebJar pattern).
 See [casehub-pages ADR-0001](https://github.com/casehubio/casehub-pages/blob/main/docs/adr/0001-cross-repo-frontend-dependency-management.md).
 
 | Source | Mechanism |
 |--------|-----------|
 | casehub-pages | Maven SNAPSHOT (`META-INF/resources/`) |
-| blocks-ui | Maven SNAPSHOT (`META-INF/resources/`) |
+| casehub-mosaic | Maven SNAPSHOT (`META-INF/resources/`) |
 
-**Local development:** after changing pages or blocks-ui, run `yarn build && mvn install` in the source repo to publish the SNAPSHOT to `~/.m2`.
+**Local development:** after changing pages or casehub-mosaic, run `yarn build && mvn install` in the source repo to publish the SNAPSHOT to `~/.m2`.
 
 **Do not use npm `file:` references for cross-repo dependencies** — they break in CI. See ADR-0001.
 
@@ -710,7 +710,7 @@ npm run build --prefix life-ui
 
 **Important:** `mvn test -pl app` requires `api` to be installed in the local Maven repo first. Run `mvn install -pl api` if you get ClassNotFound errors for `io.casehub.life.api.*`.
 
-**Frontend:** life-ui uses Vite aliases to resolve `@casehubio/blocks-ui-*` and `@casehubio/pages-*` from Maven SNAPSHOT artifacts (extracted to `.casehub-packages/`). Run `mvn initialize -pl app` to unpack packages before the Vite build. See ADR-0001 in casehub-pages.
+**Frontend:** life-ui uses Vite aliases to resolve `@casehubio/casehub-mosaic-*` and `@casehubio/pages-*` from Maven SNAPSHOT artifacts (extracted to `.casehub-packages/`). Run `mvn initialize -pl app` to unpack packages before the Vite build. See ADR-0001 in casehub-pages.
 
 ---
 
