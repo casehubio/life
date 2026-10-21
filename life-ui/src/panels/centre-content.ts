@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import '@casehubio/blocks-ui-kpi-metric-row';
+import '@casehubio/mosaic-kpi-metric-row';
 import { LifeEventController, ALL_EVENT_TYPES } from '../events/life-event-controller.js';
 import './morning-briefing.js';
 import './action-items.js';

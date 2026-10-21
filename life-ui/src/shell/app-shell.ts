@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import '@casehubio/pages-ui-tokens/dist/init.js';
-import { applyTheme } from '@casehubio/blocks-ui-core';
+import { applyTheme } from '@casehubio/mosaic-core';
 import { LifeEventController, INBOX_EVENT_TYPES } from '../events/life-event-controller.js';
 import '@casehubio/pages-ui-components/badge/pages-badge.js';
 
