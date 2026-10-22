@@ -30,7 +30,7 @@ export default defineConfig({
       { find: '@casehubio/mosaic-approval-gate', replacement: resolve(blocksUi, 'approval-gate') },
       { find: '@casehubio/mosaic-trust-score-panel', replacement: resolve(blocksUi, 'trust-score-panel') },
       { find: '@casehubio/mosaic-compliance-summary', replacement: resolve(blocksUi, 'compliance-summary') },
-      { find: '@casehubio/mosaic-blocks-timeline', replacement: resolve(blocksUi, 'blocks-timeline') },
+      { find: '@casehubio/mosaic-blocks-timeline', replacement: resolve(blocksUi, 'agency-timeline') },
       { find: /^@casehubio\/pages-ui-tokens\/dist\/(.*)/, replacement: resolve(pages, 'pages-ui-tokens/dist/$1') },
       { find: '@casehubio/pages-ui-tokens', replacement: resolve(pages, 'pages-ui-tokens') },
       { find: /^@casehubio\/pages-ui\/dist\/(.*)/, replacement: resolve(pages, 'pages-ui/dist/$1') },
