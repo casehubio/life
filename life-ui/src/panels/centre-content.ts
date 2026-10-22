@@ -36,7 +36,7 @@ export class CentreContent extends LitElement {
     return html`
       <life-morning-briefing></life-morning-briefing>
 
-      <blocks-kpi-metric-row
+      <agency-kpi-metric-row
         density="compact"
         .metrics=${[
           { key: 'active-cases', label: 'Active Cases', value: '—', status: 'normal' as const },
@@ -45,7 +45,7 @@ export class CentreContent extends LitElement {
           { key: 'due-today', label: 'Due Today', value: '—', status: 'normal' as const },
           { key: 'trust-avg', label: 'Trust Avg', value: '—', status: 'normal' as const },
         ]}
-      ></blocks-kpi-metric-row>
+      ></agency-kpi-metric-row>
 
       <life-action-items></life-action-items>
 
@@ -58,7 +58,7 @@ export class CentreContent extends LitElement {
   }
 
   private async _loadKpiData(): Promise<void> {
-    const kpi = this.renderRoot.querySelector('blocks-kpi-metric-row');
+    const kpi = this.renderRoot.querySelector('agency-kpi-metric-row');
     if (!kpi) return;
 
     try {
