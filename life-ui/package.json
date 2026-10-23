@@ -30,7 +30,7 @@
     "@casehubio/mosaic-approval-gate": "*",
     "@casehubio/mosaic-trust-score-panel": "*",
     "@casehubio/mosaic-compliance-summary": "*",
-    "@casehubio/mosaic-blocks-timeline": "*",
+    "@casehubio/mosaic-agency-timeline": "*",
     "@casehubio/pages-component": "*",
     "@casehubio/pages-data": "*",
     "@casehubio/pages-primitives": "*",
