@@ -59,9 +59,10 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
                                                                     an alternative appointment.
                                                                     Use search_contacts to find providers by name or specialty.
                                                                     Use list_contacts to browse available providers if search returns no results.
+                                                                    Use search_places to find nearby alternative providers by location.
                                                                     Use calendar_list_events to check availability for alternative dates.
                                                                     Use calendar_create_event to book the alternative appointment.
-                                                                    Include the contact ID and calendar event ID in your response.""", FindAlternativeResult.class));
+                                                                    Include the contact ID, place ID, and calendar event ID in your response.""", FindAlternativeResult.class));
         definition.getWorkers().add(agentWorker("confirm-appointment", """
                                                                        You are a healthcare appointment agent. Send appointment confirmation
                                                                        to the patient and schedule a reminder for 24 hours before.

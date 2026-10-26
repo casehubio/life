@@ -29,9 +29,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("find an alternative",
                       "{\"alternativeFound\":true,\"appointmentId\":\"APT-ALT-MOCK\","
                       + "\"provider\":\"Dr Alternative\",\"confirmed\":false,"
-                      + "\"contactId\":\"CTK-MOCK-ALT\","
+                      + "\"contactId\":\"CTK-MOCK-ALT\",\"placeId\":\"PLC-MOCK-ALT\","
                       + "\"calendarEventId\":\"evt_MOCK_ALT\","
-                      + "\"toolsUsed\":[\"search_contacts\",\"list_contacts\",\"calendar_list_events\",\"calendar_create_event\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"list_contacts\",\"search_places\",\"calendar_list_events\",\"calendar_create_event\"]}"),
             Map.entry("send appointment confirmation",
                       "{\"confirmed\":true,\"reminderSent\":true,"
                       + "\"calendarEventId\":\"evt_MOCK_REM\",\"notificationMessageId\":\"msg_MOCK_CONF\","
@@ -80,9 +80,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("gather contractor quotes",
                       "{\"quoteCount\":2,\"quotes\":[{\"contractor\":\"ABC\",\"amount\":500,"
                       + "\"available\":true},{\"contractor\":\"DEF\",\"amount\":650,\"available\":true}],"
-                      + "\"contactId\":\"CTK-MOCK-001\","
+                      + "\"contactId\":\"CTK-MOCK-001\",\"placeId\":\"PLC-MOCK-001\","
                       + "\"notificationMessageId\":\"msg_MOCK_001\","
-                      + "\"toolsUsed\":[\"search_contacts\",\"list_contacts\",\"send_chat\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"list_contacts\",\"search_places\",\"send_chat\"]}"),
             Map.entry("issue a commitment to the selected contractor",
                       "{\"commitmentIssued\":true,\"channel\":\"life/contractor/mock\","
                       + "\"notificationMessageId\":\"msg_MOCK_002\","
@@ -145,9 +145,11 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
 
             // --- Travel domain (travel-agent) ---
             Map.entry("research destination options",
-                      "{\"options\":[{\"name\":\"Paris\",\"cost\":1200,\"rating\":\"4.5\"},"
-                      + "{\"name\":\"Barcelona\",\"cost\":900,\"rating\":\"4.3\"}],"
-                      + "\"toolsUsed\":[\"calendar_list_events\"]}"),
+                      "{\"options\":[{\"name\":\"Paris\",\"cost\":1200,\"rating\":\"4.5\","
+                      + "\"address\":\"Paris, France\",\"distance\":\"344 km\",\"travelTime\":\"2h 15m\"},"
+                      + "{\"name\":\"Barcelona\",\"cost\":900,\"rating\":\"4.3\","
+                      + "\"address\":\"Barcelona, Spain\",\"distance\":\"1138 km\",\"travelTime\":\"6h 30m\"}],"
+                      + "\"toolsUsed\":[\"search_places\",\"get_directions\",\"calendar_list_events\"]}"),
             Map.entry("search for flights",
                       "{\"flights\":[{\"airline\":\"BA\",\"price\":450,\"stops\":0},"
                       + "{\"airline\":\"RY\",\"price\":280,\"stops\":1}],"

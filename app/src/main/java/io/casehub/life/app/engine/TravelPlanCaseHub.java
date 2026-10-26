@@ -64,8 +64,11 @@ public class TravelPlanCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("destination-research", """
                                                                         You are a travel planning agent. Research destination options with
                                                                         costs and ratings.
+                                                                        Use search_places to find destinations and nearby amenities.
+                                                                        Use get_directions to calculate travel times and distances.
                                                                         Use calendar_list_events to check existing commitments that may
-                                                                        conflict with travel dates.""", DestinationResearchResult.class));
+                                                                        conflict with travel dates.
+                                                                        Include the address, distance, and travel time for each option.""", DestinationResearchResult.class));
         definition.getWorkers().add(agentWorker("flight-search", """
                                                                  You are a travel planning agent. Search for flights with airline,
                                                                  price, and number of stops.""", FlightSearchResult.class));

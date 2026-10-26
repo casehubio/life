@@ -19,5 +19,6 @@ import java.util.List;
 
 public record DestinationResearchResult(List<DestinationOption> options,
                                         List<String> toolsUsed) {
-    public record DestinationOption(String name, int cost, String rating) {}
+    public record DestinationOption(String name, int cost, String rating,
+                                    String address, String distance, String travelTime) {}
 }

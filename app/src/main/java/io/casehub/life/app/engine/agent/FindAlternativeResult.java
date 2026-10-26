@@ -20,5 +20,5 @@ import java.util.List;
 public record FindAlternativeResult(
         boolean alternativeFound, String appointmentId,
         String provider, boolean confirmed,
-        String contactId,
+        String contactId, String placeId,
         String calendarEventId, List<String> toolsUsed) {}
