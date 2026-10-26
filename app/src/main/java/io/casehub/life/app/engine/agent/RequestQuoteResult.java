@@ -18,5 +18,6 @@ package io.casehub.life.app.engine.agent;
 import java.util.List;
 
 public record RequestQuoteResult(boolean quoteRequested, String channel,
-                                 boolean deadlinePassed, String notificationMessageId,
+                                 boolean deadlinePassed, String contactId,
+                                 String notificationMessageId,
                                  List<String> toolsUsed) {}

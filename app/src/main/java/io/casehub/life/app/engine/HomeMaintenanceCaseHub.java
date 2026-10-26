@@ -63,8 +63,10 @@ public class HomeMaintenanceCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("get-quotes", """
                                                               You are a home maintenance agent. Gather contractor quotes for the
                                                               required maintenance work.
+                                                              Use search_contacts to find contractors by trade or specialty.
+                                                              Use list_contacts to browse available contractors if search returns no results.
                                                               Use send_chat to contact contractors for quotes.
-                                                              Include the message ID from send_chat in your response.
+                                                              Include the contact ID and message ID from send_chat in your response.
                                                               If cbrCalibration is provided, use featureStats.estimatedCost for
                                                               historical cost ranges to assess quote reasonableness.""", GetQuotesResult.class));
         definition.getWorkers().add(agentWorker("issue-commitment", """

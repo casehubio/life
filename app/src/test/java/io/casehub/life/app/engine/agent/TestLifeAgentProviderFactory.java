@@ -23,13 +23,15 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("healthcare appointment booking",
                       "{\"appointmentId\":\"APT-MOCK\",\"provider\":\"Dr Smith\","
                       + "\"confirmed\":false,\"declined\":null,\"reason\":null,"
+                      + "\"contactId\":\"CTK-MOCK-APT\","
                       + "\"calendarEventId\":\"evt_MOCK_APT\","
-                      + "\"toolsUsed\":[\"calendar_create_event\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"calendar_create_event\"]}"),
             Map.entry("find an alternative",
                       "{\"alternativeFound\":true,\"appointmentId\":\"APT-ALT-MOCK\","
                       + "\"provider\":\"Dr Alternative\",\"confirmed\":false,"
+                      + "\"contactId\":\"CTK-MOCK-ALT\","
                       + "\"calendarEventId\":\"evt_MOCK_ALT\","
-                      + "\"toolsUsed\":[\"calendar_list_events\",\"calendar_create_event\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"list_contacts\",\"calendar_list_events\",\"calendar_create_event\"]}"),
             Map.entry("send appointment confirmation",
                       "{\"confirmed\":true,\"reminderSent\":true,"
                       + "\"calendarEventId\":\"evt_MOCK_REM\",\"notificationMessageId\":\"msg_MOCK_CONF\","
@@ -44,13 +46,15 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("assess care needs",
                       "{\"careLevel\":\"moderate\",\"recommendedFrequency\":\"weekly\","
                       + "\"specialRequirements\":[\"mobility support\"],"
+                      + "\"contactId\":\"CTK-MOCK-CARE\","
                       + "\"sensorReadings\":[\"movement:detected\",\"temp:36.6\"],"
-                      + "\"toolsUsed\":[\"iot_get_state\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"iot_get_state\"]}"),
             Map.entry("create a care plan",
                       "{\"schedule\":[\"Mon 9am\",\"Wed 2pm\"],\"duration\":\"2 hours\","
                       + "\"tasks\":[\"medication\",\"mobility exercises\"],"
+                      + "\"contactId\":\"CTK-MOCK-CPLAN\","
                       + "\"calendarEventId\":\"evt_MOCK_CARE\","
-                      + "\"toolsUsed\":[\"calendar_create_event\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"calendar_create_event\"]}"),
             Map.entry("periodic health check",
                       "{\"reviewed\":true,\"healthConcern\":false,\"notes\":\"Stable condition\","
                       + "\"sensorReadings\":[\"temp:36.5\",\"movement:normal\"],"
@@ -75,8 +79,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("gather contractor quotes",
                       "{\"quoteCount\":2,\"quotes\":[{\"contractor\":\"ABC\",\"amount\":500,"
                       + "\"available\":true},{\"contractor\":\"DEF\",\"amount\":650,\"available\":true}],"
+                      + "\"contactId\":\"CTK-MOCK-001\","
                       + "\"notificationMessageId\":\"msg_MOCK_001\","
-                      + "\"toolsUsed\":[\"send_chat\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"list_contacts\",\"send_chat\"]}"),
             Map.entry("issue a commitment to the selected contractor",
                       "{\"commitmentIssued\":true,\"channel\":\"life/contractor/mock\","
                       + "\"notificationMessageId\":\"msg_MOCK_002\","
@@ -91,8 +96,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"toolsUsed\":[\"send_chat\"]}"),
             Map.entry("request a quote",
                       "{\"quoteRequested\":true,\"channel\":\"life/contractor/mock\","
-                      + "\"deadlinePassed\":false,\"notificationMessageId\":\"msg_MOCK_004\","
-                      + "\"toolsUsed\":[\"send_chat\"]}"),
+                      + "\"deadlinePassed\":false,\"contactId\":\"CTK-MOCK-004\","
+                      + "\"notificationMessageId\":\"msg_MOCK_004\","
+                      + "\"toolsUsed\":[\"search_contacts\",\"send_chat\"]}"),
             Map.entry("escalate an overdue",
                       "{\"escalated\":true,\"reminderSent\":true,"
                       + "\"notificationMessageId\":\"msg_MOCK_005\","
@@ -102,8 +108,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"validUntil\":\"2026-07-30\",\"toolsUsed\":[]}"),
             Map.entry("monitor an active contractor job",
                       "{\"progress\":\"50% complete\",\"estimatedCompletion\":\"2026-07-20\","
+                      + "\"contactId\":\"CTK-MOCK-006\","
                       + "\"notificationMessageId\":\"msg_MOCK_006\","
-                      + "\"toolsUsed\":[\"send_chat\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"send_chat\"]}"),
             Map.entry("record a contractor payment",
                       "{\"paymentRecorded\":true,\"amount\":500,\"ledgerEntryId\":\"LEDGER-MOCK\","
                       + "\"crossCaseSignal\":\"payment-complete\","
@@ -183,8 +190,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                     return respond("{\"appointmentId\":null,\"provider\":\"Dr Gone\","
                             + "\"confirmed\":false,\"declined\":true,"
                             + "\"reason\":\"Provider unavailable\","
+                            + "\"contactId\":null,"
                             + "\"calendarEventId\":null,"
-                            + "\"toolsUsed\":[]}");
+                            + "\"toolsUsed\":[\"search_contacts\"]}");
                 }
 
                 for (var entry : RESPONSES.entrySet()) {

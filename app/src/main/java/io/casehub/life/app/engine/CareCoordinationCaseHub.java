@@ -55,13 +55,15 @@ public class CareCoordinationCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("needs-assessment", """
                                                                     You are a care coordination agent. Assess care needs for the patient,
                                                                     determining care level, recommended frequency, and any special requirements.
+                                                                    Use search_contacts to look up the care provider's contact details.
                                                                     Use iot_get_state to read patient monitoring sensors if available.
-                                                                    Include sensor readings in your response.""", NeedsAssessmentResult.class));
+                                                                    Include the contact ID and sensor readings in your response.""", NeedsAssessmentResult.class));
         definition.getWorkers().add(agentWorker("care-plan", """
                                                              You are a care coordination agent. Create a care plan with schedule,
                                                              duration, and task list based on the needs assessment.
+                                                             Use search_contacts to look up the care provider's contact details.
                                                              Use calendar_create_event to schedule care sessions.
-                                                             Include the calendar event ID in your response.
+                                                             Include the contact ID and calendar event ID in your response.
                                                              If cbrCalibration is provided, use featureStats for historical care
                                                              duration and frequency patterns.""", CarePlanResult.class));
         definition.getWorkers().add(agentWorker("health-check", """

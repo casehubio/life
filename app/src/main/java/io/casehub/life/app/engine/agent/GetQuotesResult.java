@@ -18,6 +18,7 @@ package io.casehub.life.app.engine.agent;
 import java.util.List;
 
 public record GetQuotesResult(int quoteCount, List<QuoteItem> quotes,
+                              String contactId,
                               String notificationMessageId, List<String> toolsUsed) {
 
     public record QuoteItem(String contractor, int amount, boolean available) {}

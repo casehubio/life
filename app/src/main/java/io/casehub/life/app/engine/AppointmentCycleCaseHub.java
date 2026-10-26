@@ -57,9 +57,11 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
                                                                     You are a healthcare appointment agent. Find an alternative provider
                                                                     after a booking was declined. Search available providers and propose
                                                                     an alternative appointment.
+                                                                    Use search_contacts to find providers by name or specialty.
+                                                                    Use list_contacts to browse available providers if search returns no results.
                                                                     Use calendar_list_events to check availability for alternative dates.
                                                                     Use calendar_create_event to book the alternative appointment.
-                                                                    Include the calendar event ID in your response.""", FindAlternativeResult.class));
+                                                                    Include the contact ID and calendar event ID in your response.""", FindAlternativeResult.class));
         definition.getWorkers().add(agentWorker("confirm-appointment", """
                                                                        You are a healthcare appointment agent. Send appointment confirmation
                                                                        to the patient and schedule a reminder for 24 hours before.
@@ -91,8 +93,9 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
         final WorkerAgentInvoker bookingAgent = agentProviderFactory.invokerFor(agent(),
                 "You are a healthcare appointment booking agent for a UK household. " +
                 "Book medical appointments with the requested provider. " +
+                "Use search_contacts to look up the provider's contact details. " +
                 "Use calendar_create_event to create the appointment in the calendar. " +
-                "Include the calendar event ID in your response. " +
+                "Include the contact ID and calendar event ID in your response. " +
                 "If the provider is unavailable, set declined=true and provide a reason. " +
                 "If cbrCalibration is provided, use historicalSuccessRate to inform " +
                 "booking confidence and featureStats for appointment patterns. " +

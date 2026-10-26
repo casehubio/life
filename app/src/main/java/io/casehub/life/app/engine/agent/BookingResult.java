@@ -5,4 +5,5 @@ import java.util.List;
 public record BookingResult(
         String appointmentId, String provider,
         boolean confirmed, Boolean declined, String reason,
+        String contactId,
         String calendarEventId, List<String> toolsUsed) {}

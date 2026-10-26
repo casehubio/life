@@ -20,4 +20,5 @@ import java.util.List;
 public record NeedsAssessmentResult(
         String careLevel, String recommendedFrequency,
         List<String> specialRequirements,
+        String contactId,
         List<String> sensorReadings, List<String> toolsUsed) {}

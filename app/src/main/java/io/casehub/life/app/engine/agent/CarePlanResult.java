@@ -19,4 +19,5 @@ import java.util.List;
 
 public record CarePlanResult(
         List<String> schedule, String duration, List<String> tasks,
+        String contactId,
         String calendarEventId, List<String> toolsUsed) {}

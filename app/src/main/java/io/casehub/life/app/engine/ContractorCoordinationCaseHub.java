@@ -59,8 +59,9 @@ public class ContractorCoordinationCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("request-quote", """
                                                                  You are a contractor coordination agent. Request a quote from the
                                                                  contractor via the appropriate messaging channel.
+                                                                 Use search_contacts to look up the contractor's contact details.
                                                                  Use send_chat to send the quote request to the contractor.
-                                                                 Include the notification message ID in your response.
+                                                                 Include the contact ID and notification message ID in your response.
                                                                  If cbrCalibration is provided, use featureStats.estimatedCost for
                                                                  typical cost ranges in similar jobs.""", RequestQuoteResult.class));
         definition.getWorkers().add(agentWorker("watchdog-escalation", """
@@ -74,8 +75,9 @@ public class ContractorCoordinationCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("job-monitoring", """
                                                                   You are a contractor coordination agent. Monitor an active contractor
                                                                   job and report progress.
+                                                                  Use search_contacts to look up the contractor's contact details.
                                                                   Use send_chat to request a progress update from the contractor.
-                                                                  Include the notification message ID in your response.""", JobMonitoringResult.class));
+                                                                  Include the contact ID and notification message ID in your response.""", JobMonitoringResult.class));
         definition.getWorkers().add(agentWorker("record-payment", """
                                                                   You are a contractor coordination agent. Record a contractor payment
                                                                   to the tamper-evident ledger and emit a cross-case signal.
