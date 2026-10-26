@@ -9,5 +9,6 @@ Rules specific to the casehub-life application repo.
 | [non-jpa-tables-sql-load-script.md](non-jpa-tables-sql-load-script.md) | Non-JPA tables required at test time must be created via sql-load-script | app/src/test — named or default PU needing a plain SQL table with no JPA entity |
 | [actor-channel-name-prefix.md](actor-channel-name-prefix.md) | Never use a raw UUID as a qhorus channel name segment — prefix with a letter-starting label | Any app/ code constructing a channel name from a UUID |
 | [current-principal-cdi-exclusion.md](current-principal-cdi-exclusion.md) | **RETIRED** — CDI `@Alternative @Priority` resolution handles CurrentPrincipal disambiguation since platform#112 | N/A |
-| [openclaw-agent-worker-pattern.md](openclaw-agent-worker-pattern.md) | Use WorkerFunction.AgentExec(Agent) + AgentDescriptor for LLM-backed workers; agentId = {model-family}:{persona}@{major}; responseSchema required | Any app/ worker backed by OpenClaw or an LLM API |
+| [openclaw-agent-worker-pattern.md](openclaw-agent-worker-pattern.md) | **SUPERSEDED** by no-openclaw-dependencies — OpenClaw removed in life#138 | N/A |
+| [no-openclaw-dependencies.md](no-openclaw-dependencies.md) | No OpenClaw deps — use platform RoutingChatModel + connector SPIs + eidos | All modules, dependency changes, worker wiring |
 | [case-scoped-endpoint-optional-list.md](case-scoped-endpoint-optional-list.md) | Case-scoped endpoints return Optional\<List\<T\>\> — 404 for unknown case, 200 empty for no data | All GET /life-cases/{id}/{resource} endpoints |
