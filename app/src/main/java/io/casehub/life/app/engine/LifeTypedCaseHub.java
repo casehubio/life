@@ -23,14 +23,14 @@ import io.casehub.life.api.LifeCaseType;
 import io.casehub.life.app.cbr.CbrInputTransformer;
 import io.casehub.life.app.cbr.LifeCbrExperienceFormatter;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
-import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
+import io.casehub.life.app.engine.agent.LifeAgentProviderFactory;
 import io.casehub.worker.api.Worker;
 import jakarta.inject.Inject;
 
 import java.util.Map;
 
 /**
- * Template method base class for Life case definitions backed by YAML and OpenClaw agents.
+ * Template method base class for Life case definitions backed by YAML and LLM agents.
  * Subclasses override {@link #configureCase(CaseDefinition)} to add workers and bindings.
  * AgentDescriptor registration is handled automatically by {@link #augment(CaseDefinition)}.
  * Use {@link #agentWorker(String, String, Class)} for standard LLM-backed workers.
@@ -40,7 +40,7 @@ public abstract class LifeTypedCaseHub extends YamlCaseHub {
     static final  String              CBR_SYSTEM_PROMPT_SUFFIX = "If a _cbrContext section is present in the input, it contains summaries of similar past cases. Use these to calibrate your response — adjust cost estimates, timeline predictions, and risk assessments based on historical patterns. If no _cbrContext is present, proceed with your best judgment.";
     private final LifeAgent           agent;
     @Inject
-    LifeOpenClawChatModelFactory openClawFactory;
+    LifeAgentProviderFactory agentProviderFactory;
     @Inject
     LifeAgentDescriptorFactory descriptorFactory;
     @Inject
@@ -72,7 +72,7 @@ public abstract class LifeTypedCaseHub extends YamlCaseHub {
 
     protected Worker agentWorker(String capabilityName, String systemPrompt,
                                  Class<?> responseSchema) {
-        WorkerAgentInvoker a = openClawFactory.invokerFor(agent,
+        WorkerAgentInvoker a = agentProviderFactory.invokerFor(agent,
                 systemPrompt + "\n\n" + CBR_SYSTEM_PROMPT_SUFFIX,
                 null, responseSchema,
                 cbrInputTransformer);

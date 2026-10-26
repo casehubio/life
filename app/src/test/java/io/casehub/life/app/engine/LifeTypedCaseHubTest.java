@@ -27,7 +27,7 @@ import io.casehub.api.model.CaseDefinition;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.life.api.LifeCaseType;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
-import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
+import io.casehub.life.app.engine.agent.LifeAgentProviderFactory;
 import io.casehub.worker.api.Worker;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,12 +35,12 @@ import org.junit.jupiter.api.Test;
 
 class LifeTypedCaseHubTest {
 
-    private LifeOpenClawChatModelFactory mockFactory;
+    private LifeAgentProviderFactory mockFactory;
     private LifeAgentDescriptorFactory mockDescriptorFactory;
 
     @BeforeEach
     void setUp() {
-        mockFactory = mock(LifeOpenClawChatModelFactory.class, org.mockito.Mockito.withSettings()
+        mockFactory = mock(LifeAgentProviderFactory.class, org.mockito.Mockito.withSettings()
                 .useConstructor().defaultAnswer(org.mockito.Mockito.CALLS_REAL_METHODS));
         var mockProvider = mock(AgentProvider.class);
         org.mockito.Mockito.doReturn(mockProvider).when(mockFactory).forAgent(any());
@@ -108,7 +108,7 @@ class LifeTypedCaseHubTest {
 
     private TestCaseHub createHub() {
         var hub = new TestCaseHub();
-        hub.openClawFactory = mockFactory;
+        hub.agentProviderFactory = mockFactory;
         hub.descriptorFactory = mockDescriptorFactory;
         hub.cbrFormatter = new io.casehub.life.app.cbr.LifeCbrExperienceFormatter();
         hub.initCbrTransformer();
@@ -117,7 +117,7 @@ class LifeTypedCaseHubTest {
 
     private TestCaseHubWithWorker createHubWithWorker() {
         var hub = new TestCaseHubWithWorker();
-        hub.openClawFactory = mockFactory;
+        hub.agentProviderFactory = mockFactory;
         hub.descriptorFactory = mockDescriptorFactory;
         hub.cbrFormatter = new io.casehub.life.app.cbr.LifeCbrExperienceFormatter();
         hub.initCbrTransformer();

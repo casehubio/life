@@ -22,7 +22,7 @@ import io.casehub.life.app.engine.agent.BookingSentinelReport;
 import io.casehub.life.app.engine.agent.CareQualitySentinelReport;
 import io.casehub.life.app.engine.agent.ContractorSentinelReport;
 import io.casehub.life.app.engine.agent.FollowUpSentinelReport;
-import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
+import io.casehub.life.app.engine.agent.LifeAgentProviderFactory;
 import io.casehub.life.app.engine.agent.MaintenanceSentinelReport;
 import io.casehub.life.app.engine.agent.PatientStatusSentinelReport;
 import io.casehub.worker.api.WorkerResult;
@@ -45,7 +45,7 @@ public class LifeHeartbeatJob implements Job {
     private static final Logger LOG = Logger.getLogger(LifeHeartbeatJob.class);
 
     @Inject
-    LifeOpenClawChatModelFactory openClawFactory;
+    LifeAgentProviderFactory agentProviderFactory;
 
     @Inject
     CaseHubRuntime caseHubRuntime;
@@ -71,7 +71,7 @@ public class LifeHeartbeatJob implements Job {
             LOG.warnf(e, "Channel context gathering failed for case %s — proceeding with case context only", caseId);
         }
 
-        WorkerAgentInvoker sentinelAgent = openClawFactory.invokerFor(agent,
+        WorkerAgentInvoker sentinelAgent = agentProviderFactory.invokerFor(agent,
                 sentinelSystemPrompt(capabilityName),
                 null, sentinelResponseSchema(capabilityName),
                 UnaryOperator.identity());

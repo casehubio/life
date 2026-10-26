@@ -142,17 +142,6 @@
       <artifactId>casehub-connectors-core</artifactId>
     </dependency>
 
-    <!-- ================================================================ -->
-    <!-- OpenClaw — skill ecosystem + AgentProvider (Layer 7)              -->
-    <!-- ================================================================ -->
-    <dependency>
-      <groupId>io.casehub</groupId>
-      <artifactId>casehub-openclaw-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.casehub</groupId>
-      <artifactId>casehub-openclaw-casehub</artifactId>
-    </dependency>
 
     <!-- ================================================================ -->
     <!-- Platform — CDI mocks + expression evaluator                       -->

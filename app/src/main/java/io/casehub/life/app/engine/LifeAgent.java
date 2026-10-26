@@ -16,16 +16,16 @@
 package io.casehub.life.app.engine;
 
 public enum LifeAgent {
-    HEALTH("health-agent", "OpenClaw Health Agent",
+    HEALTH("health-agent", "Life Health Agent",
             "casehubio/life/health", "Health domain coordination agent"),
-    HOME("home-agent", "OpenClaw Home Agent",
+    HOME("home-agent", "Life Home Agent",
             "casehubio/life/household", "Household maintenance agent"),
-    FINANCE("finance-agent", "OpenClaw Finance Agent",
+    FINANCE("finance-agent", "Life Finance Agent",
             "casehubio/life/finance", "Financial review and governance agent"),
-    TRAVEL("travel-agent", "OpenClaw Travel Agent",
+    TRAVEL("travel-agent", "Life Travel Agent",
             "casehubio/life/travel", "Travel planning and booking agent");
 
-    public static final String MODEL_FAMILY = "openclaw";
+    public static final String MODEL_FAMILY = "life";
     public static final int MAJOR_VERSION = 1;
 
     private final String persona;

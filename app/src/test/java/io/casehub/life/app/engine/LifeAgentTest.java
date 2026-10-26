@@ -24,8 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LifeAgentTest {
 
     @Test
-    void modelFamilyIsOpenclaw() {
-        assertThat(LifeAgent.MODEL_FAMILY).isEqualTo("openclaw");
+    void modelFamilyIsLife() {
+        assertThat(LifeAgent.MODEL_FAMILY).isEqualTo("life");
     }
 
     @Test
@@ -37,7 +37,7 @@ class LifeAgentTest {
     @EnumSource(LifeAgent.class)
     void agentIdFollowsConvention(LifeAgent agent) {
         assertThat(agent.agentId())
-                .matches("openclaw:[a-z-]+@1")
+                .matches("life:[a-z-]+@1")
                 .startsWith(LifeAgent.MODEL_FAMILY + ":")
                 .endsWith("@" + LifeAgent.MAJOR_VERSION);
     }
@@ -51,8 +51,8 @@ class LifeAgentTest {
     @Test
     void healthIdentity() {
         assertThat(LifeAgent.HEALTH.persona()).isEqualTo("health-agent");
-        assertThat(LifeAgent.HEALTH.agentId()).isEqualTo("openclaw:health-agent@1");
-        assertThat(LifeAgent.HEALTH.displayName()).isEqualTo("OpenClaw Health Agent");
+        assertThat(LifeAgent.HEALTH.agentId()).isEqualTo("life:health-agent@1");
+        assertThat(LifeAgent.HEALTH.displayName()).isEqualTo("Life Health Agent");
         assertThat(LifeAgent.HEALTH.slot()).isEqualTo("casehubio/life/health");
         assertThat(LifeAgent.HEALTH.briefing()).isEqualTo("Health domain coordination agent");
     }
@@ -60,8 +60,8 @@ class LifeAgentTest {
     @Test
     void homeIdentity() {
         assertThat(LifeAgent.HOME.persona()).isEqualTo("home-agent");
-        assertThat(LifeAgent.HOME.agentId()).isEqualTo("openclaw:home-agent@1");
-        assertThat(LifeAgent.HOME.displayName()).isEqualTo("OpenClaw Home Agent");
+        assertThat(LifeAgent.HOME.agentId()).isEqualTo("life:home-agent@1");
+        assertThat(LifeAgent.HOME.displayName()).isEqualTo("Life Home Agent");
         assertThat(LifeAgent.HOME.slot()).isEqualTo("casehubio/life/household");
         assertThat(LifeAgent.HOME.briefing()).isEqualTo("Household maintenance agent");
     }
@@ -69,8 +69,8 @@ class LifeAgentTest {
     @Test
     void financeIdentity() {
         assertThat(LifeAgent.FINANCE.persona()).isEqualTo("finance-agent");
-        assertThat(LifeAgent.FINANCE.agentId()).isEqualTo("openclaw:finance-agent@1");
-        assertThat(LifeAgent.FINANCE.displayName()).isEqualTo("OpenClaw Finance Agent");
+        assertThat(LifeAgent.FINANCE.agentId()).isEqualTo("life:finance-agent@1");
+        assertThat(LifeAgent.FINANCE.displayName()).isEqualTo("Life Finance Agent");
         assertThat(LifeAgent.FINANCE.slot()).isEqualTo("casehubio/life/finance");
         assertThat(LifeAgent.FINANCE.briefing()).isEqualTo("Financial review and governance agent");
     }
@@ -78,8 +78,8 @@ class LifeAgentTest {
     @Test
     void travelIdentity() {
         assertThat(LifeAgent.TRAVEL.persona()).isEqualTo("travel-agent");
-        assertThat(LifeAgent.TRAVEL.agentId()).isEqualTo("openclaw:travel-agent@1");
-        assertThat(LifeAgent.TRAVEL.displayName()).isEqualTo("OpenClaw Travel Agent");
+        assertThat(LifeAgent.TRAVEL.agentId()).isEqualTo("life:travel-agent@1");
+        assertThat(LifeAgent.TRAVEL.displayName()).isEqualTo("Life Travel Agent");
         assertThat(LifeAgent.TRAVEL.slot()).isEqualTo("casehubio/life/travel");
         assertThat(LifeAgent.TRAVEL.briefing()).isEqualTo("Travel planning and booking agent");
     }

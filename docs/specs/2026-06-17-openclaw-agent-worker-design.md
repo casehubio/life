@@ -340,7 +340,7 @@ new `@ApplicationScoped` bean with no engine no-op conflicts.
 
 ## 5. Test Strategy
 
-### 5.1 Unit test — `LifeOpenClawAgentTest`
+### 5.1 Unit test — `LifeAgentProviderTest`
 
 Pure JUnit 5, no Quarkus. Constructs `Agent` via a `ChatModelProvider` stub backed by a mock
 `ChatModel`. Verifies `Agent.execute()` → correct `WorkerResult` output.

@@ -21,7 +21,7 @@ import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.WorkerAgentInvoker;
 import io.casehub.life.app.engine.agent.AssessPatientResult;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
-import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
+import io.casehub.life.app.engine.agent.LifeAgentProviderFactory;
 import io.casehub.life.app.engine.agent.ProvideCareResult;
 import io.casehub.worker.api.Worker;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -49,7 +49,7 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
     private static final LifeAgent AGENT = LifeAgent.HEALTH;
 
     @Inject
-    LifeOpenClawChatModelFactory openClawFactory;
+    LifeAgentProviderFactory agentProviderFactory;
 
     @Inject
     LifeAgentDescriptorFactory descriptorFactory;
@@ -71,11 +71,11 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
     /**
      * Assesses patient condition at start of care episode.
      *
-     * <p>Uses OpenClaw's LLM API to assess patient condition including vital signs,
+     * <p>Assesses patient condition including vital signs,
      * mobility status, and cognitive state.
      */
     private Worker assessPatientWorker() {
-        final WorkerAgentInvoker agent = openClawFactory.invokerFor(AGENT,
+        final WorkerAgentInvoker agent = agentProviderFactory.invokerFor(AGENT,
                 """
                 You are a care episode agent. Assess patient condition including
                 vital signs, mobility status, and cognitive state.
@@ -94,11 +94,11 @@ public class CareEpisodeCaseHub extends YamlCaseHub {
     /**
      * Provides care based on patient assessment and care plan.
      *
-     * <p>Uses OpenClaw's LLM API to provide care to the patient, completing
+     * <p>Provides care to the patient, completing
      * assigned tasks and recording observations.
      */
     private Worker provideCareWorker() {
-        final WorkerAgentInvoker agent = openClawFactory.invokerFor(AGENT,
+        final WorkerAgentInvoker agent = agentProviderFactory.invokerFor(AGENT,
                 """
                 You are a care episode agent. Provide care to the patient, completing
                 assigned tasks and recording observations.

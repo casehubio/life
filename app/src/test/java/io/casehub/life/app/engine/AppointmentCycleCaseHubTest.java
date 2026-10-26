@@ -39,7 +39,7 @@ import java.util.Set;
  * <p>Verifies that the YAML loads correctly and the augmented workers are present.
  * Does not start a case — that is covered by {@link AppointmentCycleIntegrationTest}.
  *
- * <p>TestLifeOpenClawChatModelProvider is active via quarkus.arc.selected-alternatives.
+ * <p>TestLifeAgentProviderFactory is active via quarkus.arc.selected-alternatives.
  * This avoids @InjectMock which would force a Quarkus CDI restart between test classes,
  * causing codec re-registration failures (BlackboardEventCodecRegistrar).
  */

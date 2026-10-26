@@ -31,7 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
  * Appointment cycle case hub — loads the YAML definition and augments it with workers.
  *
  * <p>book-appointment-agent is the first real LLM-backed worker (casehubio/life#25):
- * it uses AgentWorkerFunction with OpenClaw's /hooks/agent as the
+ * it uses AgentWorkerFunction with the platform AgentProvider as the
  * LLM backend. Agent identity follows the {model-family}:{persona}@{major} convention
  * from docs/specs/life-actor-model.md. Refs engine#463 (settled function-as-worker design).
  *
@@ -76,19 +76,19 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
                                                                           to the tamper-evident ledger.""", RecordHealthDecisionResult.class));}
 
     /**
-     * Books an appointment via OpenClaw's /hooks/agent endpoint.
+     * Books an appointment via the platform agent provider.
      *
      * <p>First real LLM-backed worker in casehub-life. Uses AgentWorkerFunction
-     * per the engine#463 settled abstraction. OpenClaw returns structured JSON conforming
+     * per the engine#463 settled abstraction. The agent returns structured JSON conforming
      * to BookingResult — confirmed=false indicates a PENDING booking; the confirm-appointment
      * binding fires when .booking != null and .booking.declined != true.
      *
-     * <p>AgentDescriptor.agentId "openclaw:health-agent@1" follows the
+     * <p>AgentDescriptor.agentId "life:health-agent@1" follows the
      * {model-family}:{persona}@{major} convention. This value MUST match the
-     * casehub-openclaw-casehub config map key when WorkerProvisioner is wired (life#37).
+     * platform agent config map key.
      */
     private Worker bookAppointmentWorker() {
-        final WorkerAgentInvoker bookingAgent = openClawFactory.invokerFor(agent(),
+        final WorkerAgentInvoker bookingAgent = agentProviderFactory.invokerFor(agent(),
                 "You are a healthcare appointment booking agent for a UK household. " +
                 "Book medical appointments with the requested provider. " +
                 "Use calendar_create_event to create the appointment in the calendar. " +

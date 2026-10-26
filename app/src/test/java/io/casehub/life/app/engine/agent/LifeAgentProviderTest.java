@@ -19,7 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /** Verifies structured booking output and message templates through the native provider API. */
-class LifeOpenClawAgentTest {
+class LifeAgentProviderTest {
 
     private AgentProvider stubProvider;
 
@@ -33,7 +33,7 @@ class LifeOpenClawAgentTest {
     }
 
     private WorkerAgentInvoker bookingAgent() {
-        var factory = new LifeOpenClawChatModelFactory() {
+        var factory = new LifeAgentProviderFactory() {
             @Override
             public AgentProvider forAgent(LifeAgent agent) {
                 return stubProvider;

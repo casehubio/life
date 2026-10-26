@@ -19,7 +19,7 @@ import io.casehub.api.engine.CaseHubRuntime;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentEvent;
 import io.smallrye.mutiny.Multi;
-import io.casehub.life.app.engine.agent.LifeOpenClawChatModelFactory;
+import io.casehub.life.app.engine.agent.LifeAgentProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 class LifeHeartbeatJobTest {
 
-    private LifeOpenClawChatModelFactory mockFactory;
+    private LifeAgentProviderFactory mockFactory;
     private CaseHubRuntime mockRuntime;
     private LifeChannelContextProvider mockChannelProvider;
     private LifeHeartbeatJob job;
@@ -46,7 +46,7 @@ class LifeHeartbeatJobTest {
 
     @BeforeEach
     void setup() {
-        mockFactory = mock(LifeOpenClawChatModelFactory.class, org.mockito.Mockito.withSettings()
+        mockFactory = mock(LifeAgentProviderFactory.class, org.mockito.Mockito.withSettings()
                 .useConstructor().defaultAnswer(org.mockito.Mockito.CALLS_REAL_METHODS));
         mockRuntime = mock(CaseHubRuntime.class);
 
@@ -64,7 +64,7 @@ class LifeHeartbeatJobTest {
                 .thenReturn(Map.of("channelContext", Map.of()));
 
         job = new LifeHeartbeatJob();
-        job.openClawFactory = mockFactory;
+        job.agentProviderFactory = mockFactory;
         job.caseHubRuntime = mockRuntime;
         job.channelContextProvider = mockChannelProvider;
     }

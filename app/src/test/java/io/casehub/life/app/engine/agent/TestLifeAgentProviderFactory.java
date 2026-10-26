@@ -7,40 +7,16 @@ import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import io.casehub.life.app.engine.LifeAgent;
-import io.casehub.openclaw.casehub.DirectCallBridge;
-import io.casehub.openclaw.client.OpenClawClientConfig;
-import io.casehub.openclaw.client.OpenClawHookClient;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 
 import java.util.Map;
 
-/**
- * Test replacement for {@link LifeOpenClawChatModelFactory}.
- *
- * <p>Returns an {@link AgentProvider} that matches system prompt content against a canned
- * response map. No OpenClaw HTTP calls are made.
- *
- * <p>Registered in {@code quarkus.arc.selected-alternatives} in test config.
- *
- * <p>This is an {@code @Alternative} bean that extends the production factory. The
- * production factory constructor requires {@link DirectCallBridge}, {@link OpenClawHookClient},
- * and {@link OpenClawClientConfig} — beans which may not be available in tests because
- * the OpenClaw REST client (openclaw-gateway) points at a non-existent URL.
- * The test factory's protected no-arg constructor passes nulls to the super constructor —
- * it overrides {@link #forAgent(LifeAgent)} entirely and never touches the bridge/hookClient.
- *
- * <p>RESPONSE map entries are keyed by system prompt substrings (case-insensitive).
- * Decline path: if the user message contains "unavailable" and the system prompt contains
- * "appointment booking", returns a declined booking response.
- *
- * <p>Refs casehubio/life#38 — Phase 2 test infrastructure.
- */
 @Alternative
 @Priority(10)
 @ApplicationScoped
-public class TestLifeOpenClawChatModelFactory extends LifeOpenClawChatModelFactory {
+public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
 
     private static final Map<String, String> RESPONSES = Map.ofEntries(
             // --- Health domain (health-agent) ---
@@ -189,10 +165,10 @@ public class TestLifeOpenClawChatModelFactory extends LifeOpenClawChatModelFacto
                       + "\"calendarEventId\":\"evt_MOCK_ITIN\","
                       + "\"notificationMessageId\":\"msg_MOCK_TRAV\","
                       + "\"toolsUsed\":[\"calendar_create_event\",\"send_chat\"]}")
-                                                                      );
+    );
 
     @SuppressWarnings("unused")
-    protected TestLifeOpenClawChatModelFactory() {
+    protected TestLifeAgentProviderFactory() {
         super();
     }
 
@@ -202,7 +178,6 @@ public class TestLifeOpenClawChatModelFactory extends LifeOpenClawChatModelFacto
             @Override
             public Multi<AgentEvent> invoke(AgentSessionConfig request) {
                 String sysPrompt = request.systemPrompt().toLowerCase();
-                // Match decline path for appointment booking
                 boolean decline = request.userPrompt().toLowerCase().contains("unavailable");
                 if (decline && sysPrompt.contains("appointment booking")) {
                     return respond("{\"appointmentId\":null,\"provider\":\"Dr Gone\","
