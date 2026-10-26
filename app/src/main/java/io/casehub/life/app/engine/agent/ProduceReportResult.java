@@ -18,6 +18,7 @@ package io.casehub.life.app.engine.agent;
 import java.util.List;
 
 public record ProduceReportResult(boolean reportGenerated, String summary,
-                                  String ledgerEntryId, String emailMessageId,
+                                  String ledgerEntryId, String documentId,
+                                  String emailMessageId,
                                   String notificationMessageId,
                                   List<String> toolsUsed) {}

@@ -62,8 +62,9 @@ public class CareCoordinationCaseHub extends LifeTypedCaseHub {
                                                              You are a care coordination agent. Create a care plan with schedule,
                                                              duration, and task list based on the needs assessment.
                                                              Use search_contacts to look up the care provider's contact details.
+                                                             Use sync_documents to store the care plan as a document.
                                                              Use calendar_create_event to schedule care sessions.
-                                                             Include the contact ID and calendar event ID in your response.
+                                                             Include the contact ID, document ID, and calendar event ID in your response.
                                                              If cbrCalibration is provided, use featureStats for historical care
                                                              duration and frequency patterns.""", CarePlanResult.class));
         definition.getWorkers().add(agentWorker("health-check", """

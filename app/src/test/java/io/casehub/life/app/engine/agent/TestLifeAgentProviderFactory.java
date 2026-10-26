@@ -53,9 +53,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("create a care plan",
                       "{\"schedule\":[\"Mon 9am\",\"Wed 2pm\"],\"duration\":\"2 hours\","
                       + "\"tasks\":[\"medication\",\"mobility exercises\"],"
-                      + "\"contactId\":\"CTK-MOCK-CPLAN\","
+                      + "\"contactId\":\"CTK-MOCK-CPLAN\",\"documentId\":\"DOC-MOCK-CARE\","
                       + "\"calendarEventId\":\"evt_MOCK_CARE\","
-                      + "\"toolsUsed\":[\"search_contacts\",\"calendar_create_event\"]}"),
+                      + "\"toolsUsed\":[\"search_contacts\",\"sync_documents\",\"calendar_create_event\"]}"),
             Map.entry("periodic health check",
                       "{\"reviewed\":true,\"healthConcern\":false,\"notes\":\"Stable condition\","
                       + "\"sensorReadings\":[\"temp:36.5\",\"movement:normal\"],"
@@ -93,9 +93,9 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"toolsUsed\":[\"iot_get_state\"]}"),
             Map.entry("record job completion",
                       "{\"recorded\":true,\"ledgerEntryId\":\"LEDGER-MOCK\","
-                      + "\"emailMessageId\":\"eml_MOCK_003\","
+                      + "\"documentId\":\"DOC-MOCK-003\",\"emailMessageId\":\"eml_MOCK_003\","
                       + "\"notificationMessageId\":\"msg_MOCK_003\","
-                      + "\"toolsUsed\":[\"send_email\",\"send_chat\"]}"),
+                      + "\"toolsUsed\":[\"sync_documents\",\"send_email\",\"send_chat\"]}"),
             Map.entry("request a quote",
                       "{\"quoteRequested\":true,\"channel\":\"life/contractor/mock\","
                       + "\"deadlinePassed\":false,\"contactId\":\"CTK-MOCK-004\","
@@ -138,9 +138,10 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"toolsUsed\":[]}"),
             Map.entry("produce a monthly financial report",
                       "{\"reportGenerated\":true,\"summary\":\"Within budget\","
-                      + "\"ledgerEntryId\":\"LEDGER-MOCK\",\"emailMessageId\":\"eml_MOCK_RPT\","
+                      + "\"ledgerEntryId\":\"LEDGER-MOCK\",\"documentId\":\"DOC-MOCK-RPT\","
+                      + "\"emailMessageId\":\"eml_MOCK_RPT\","
                       + "\"notificationMessageId\":\"msg_MOCK_RPT\","
-                      + "\"toolsUsed\":[\"send_email\",\"send_chat\"]}"),
+                      + "\"toolsUsed\":[\"sync_documents\",\"send_email\",\"send_chat\"]}"),
 
             // --- Travel domain (travel-agent) ---
             Map.entry("research destination options",
@@ -171,9 +172,10 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
             Map.entry("confirm the travel itinerary",
                       "{\"confirmed\":true,\"itinerarySent\":true,"
                       + "\"confirmationRef\":\"CONF-MOCK\","
-                      + "\"calendarEventId\":\"evt_MOCK_ITIN\",\"emailMessageId\":\"eml_MOCK_ITIN\","
+                      + "\"calendarEventId\":\"evt_MOCK_ITIN\",\"documentId\":\"DOC-MOCK-ITIN\","
+                      + "\"emailMessageId\":\"eml_MOCK_ITIN\","
                       + "\"notificationMessageId\":\"msg_MOCK_TRAV\","
-                      + "\"toolsUsed\":[\"calendar_create_event\",\"send_email\",\"send_chat\"]}")
+                      + "\"toolsUsed\":[\"calendar_create_event\",\"sync_documents\",\"send_email\",\"send_chat\"]}")
     );
 
     @SuppressWarnings("unused")

@@ -18,5 +18,5 @@ package io.casehub.life.app.engine.agent;
 import java.util.List;
 
 public record RecordCompletionResult(boolean recorded, String ledgerEntryId,
-                                     String emailMessageId,
+                                     String documentId, String emailMessageId,
                                      String notificationMessageId, List<String> toolsUsed) {}

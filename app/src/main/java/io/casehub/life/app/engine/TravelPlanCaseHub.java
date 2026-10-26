@@ -93,9 +93,10 @@ public class TravelPlanCaseHub extends LifeTypedCaseHub {
                                                                 You are a travel planning agent. Confirm the travel itinerary and
                                                                 send confirmation details.
                                                                 Use calendar_create_event to create the final itinerary event.
+                                                                Use sync_documents to store the itinerary as a document.
                                                                 Use send_email to email the full itinerary with booking references.
                                                                 Use send_chat to send a quick confirmation to all travellers.
-                                                                Include the calendar event ID, email message ID, and notification message ID.""", ConfirmationResult.class));
+                                                                Include the calendar event ID, document ID, email message ID, and notification message ID.""", ConfirmationResult.class));
 
         definition.getBindings().addAll(List.of(
                 familyVoteBinding("family-vote-a"),
