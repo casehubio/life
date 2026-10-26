@@ -19,4 +19,5 @@ import java.util.List;
 
 public record PreVisitPrepResult(
         boolean checklistSent, String instructions,
+        String emailMessageId,
         String notificationMessageId, List<String> toolsUsed) {}

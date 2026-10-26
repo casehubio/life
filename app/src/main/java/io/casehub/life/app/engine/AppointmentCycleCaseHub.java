@@ -71,8 +71,9 @@ public class AppointmentCycleCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("pre-visit-prep", """
                                                                   You are a healthcare appointment agent. Send pre-visit preparation
                                                                   checklist and instructions to the patient.
-                                                                  Use send_chat to send the preparation instructions.
-                                                                  Include the notification message ID in your response.""", PreVisitPrepResult.class));
+                                                                  Use send_email to email the preparation documents and checklist.
+                                                                  Use send_chat to send a quick reminder with the appointment details.
+                                                                  Include the email message ID and notification message ID in your response.""", PreVisitPrepResult.class));
         definition.getWorkers().add(agentWorker("record-health-decision", """
                                                                           You are a healthcare records agent. Record health decision outcomes
                                                                           to the tamper-evident ledger.""", RecordHealthDecisionResult.class));}

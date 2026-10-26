@@ -82,6 +82,7 @@ public class FinancialReviewCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("produce-report", """
                                                                   You are a financial review agent. Produce a monthly financial report
                                                                   summarising spending and recording it to the ledger.
-                                                                  Use send_chat to distribute the report to household members.
-                                                                  Include the notification message ID in your response.""", ProduceReportResult.class));}
+                                                                  Use send_email to email the full report to household members.
+                                                                  Use send_chat to send a brief summary notification.
+                                                                  Include the email message ID and notification message ID in your response.""", ProduceReportResult.class));}
 }

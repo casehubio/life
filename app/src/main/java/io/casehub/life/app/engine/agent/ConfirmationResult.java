@@ -19,5 +19,6 @@ import java.util.List;
 
 public record ConfirmationResult(
         boolean confirmed, boolean itinerarySent, String confirmationRef,
-        String calendarEventId, String notificationMessageId,
+        String calendarEventId, String emailMessageId,
+        String notificationMessageId,
         List<String> toolsUsed) {}

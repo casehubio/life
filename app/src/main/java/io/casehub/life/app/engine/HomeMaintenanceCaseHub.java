@@ -83,6 +83,7 @@ public class HomeMaintenanceCaseHub extends LifeTypedCaseHub {
         definition.getWorkers().add(agentWorker("record-completion", """
                                                                      You are a home maintenance agent. Record job completion to the
                                                                      tamper-evident ledger.
-                                                                     Use send_chat to send completion confirmation to the household.
-                                                                     Include the notification message ID in your response.""", RecordCompletionResult.class));}
+                                                                     Use send_email to email the completion summary with photos and invoices.
+                                                                     Use send_chat to send a quick completion notification to the household.
+                                                                     Include the email message ID and notification message ID in your response.""", RecordCompletionResult.class));}
 }
