@@ -1,0 +1,30 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Travel Research
+  description: Search transport, accommodation, and places
+  tags: [travel, pre-processing]
+  domain: travel
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/travel/searchTransport
+      body:
+        mode: any
+    timeout: 15s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/travel/searchAccommodation
+      body:
+        type: hotel
+    timeout: 15s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/location/searchPlaces
+      body:
+        query: destination-lookup
+    timeout: 10s

@@ -19,14 +19,20 @@ import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.AgentWorkerFunction;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.ai.WorkerAgentInvoker;
+import io.casehub.engine.flow.PlaybookWorkerFunction;
 import io.casehub.life.api.LifeCaseType;
+import io.casehub.life.api.coordination.CoordinationPlan;
 import io.casehub.life.app.cbr.CbrInputTransformer;
 import io.casehub.life.app.cbr.LifeCbrExperienceFormatter;
+import io.casehub.life.app.coordination.CoordinationTemplateCatalog;
+import io.casehub.life.app.coordination.CoordinationTemplateValidator;
 import io.casehub.life.app.engine.agent.LifeAgentDescriptorFactory;
 import io.casehub.life.app.engine.agent.LifeAgentProviderFactory;
+import io.casehub.platform.compiler.CompilationResult;
 import io.casehub.worker.api.Worker;
 import jakarta.inject.Inject;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -86,6 +92,69 @@ public abstract class LifeTypedCaseHub extends YamlCaseHub {
     @jakarta.annotation.PostConstruct
     void initCbrTransformer() {
         this.cbrInputTransformer = new CbrInputTransformer(cbrFormatter, objectMapper);
+    }
+
+    public static CaseDefinition buildFreshDefinition(
+            CaseDefinition base,
+            CoordinationPlan plan,
+            CoordinationTemplateCatalog catalog,
+            CoordinationTemplateValidator validator) {
+        var workers = new ArrayList<>(base.getWorkers());
+
+        if (plan.workerActivation() != null && plan.workerActivation().skipWorkers() != null) {
+            workers.removeIf(w ->
+                plan.workerActivation().skipWorkers().contains(w.name()));
+        }
+
+        if (plan.preTemplate() != null) {
+            PlaybookWorkerFunction preWf = catalog.resolveToPlaybookWorker(plan.preTemplate());
+            workers.addFirst(Worker.builder()
+                .name("pre-stage-data")
+                .capabilityName("mechanical-pre-staging")
+                .function(preWf)
+                .build());
+        }
+
+        if (plan.postTemplate() != null) {
+            PlaybookWorkerFunction postWf = catalog.resolveToPlaybookWorker(plan.postTemplate());
+            workers.add(Worker.builder()
+                .name("post-process-results")
+                .capabilityName("mechanical-post-processing")
+                .function(postWf)
+                .build());
+        }
+
+        if (plan.generatedTemplates() != null) {
+            for (var gen : plan.generatedTemplates()) {
+                var validation = validator.validate(gen.templateYaml());
+                if (validation.valid()) {
+                    CompilationResult result = CoordinationTemplateCatalog.compilePlaybook(gen.templateYaml());
+                    workers.add(Worker.builder()
+                        .name(gen.name())
+                        .capabilityName(gen.name())
+                        .function(new PlaybookWorkerFunction(result.workflow(), result))
+                        .build());
+                }
+            }
+        }
+
+        CaseDefinition fresh = CaseDefinition.builder()
+            .namespace(base.getNamespace())
+            .name(base.getName())
+            .version(base.getVersion())
+            .title(base.getTitle())
+            .summary(base.getSummary())
+            .workers(workers)
+            .capabilities(base.getCapabilities())
+            .bindings(base.getBindings())
+            .milestones(base.getMilestones())
+            .goals(base.getGoals())
+            .semanticData(base.getSemanticData())
+            .build();
+
+        fresh.setDsl(base.getDsl());
+        fresh.setCompletion(base.getCompletion());
+        return fresh;
     }
 }
 

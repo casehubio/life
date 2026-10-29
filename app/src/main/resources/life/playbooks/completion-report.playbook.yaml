@@ -1,0 +1,30 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Completion Report
+  description: Upload report, email summary, send chat notification
+  tags: [cross-domain, post-processing]
+  domain: cross-domain
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/documents/uploadFile
+      body:
+        fileName: completion-report
+    timeout: 15s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/messaging/sendEmail
+      body:
+        subject: completion-summary
+    timeout: 10s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/chat/sendChat
+      body:
+        message: completion-notification
+    timeout: 10s

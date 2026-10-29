@@ -1,0 +1,29 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Appointment Prep
+  description: Search providers, check available slots, pull calendar events
+  tags: [health, pre-processing]
+  domain: health
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/health/searchProviders
+      body:
+        specialty: general-practice
+    timeout: 10s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/health/searchAvailableSlots
+      body:
+        providerId: provider-lookup
+    timeout: 10s
+  - rest-request:
+      method: POST
+      url: /api/connectors/calendar/listEvents
+      body:
+        range: next-14-days
+    timeout: 10s

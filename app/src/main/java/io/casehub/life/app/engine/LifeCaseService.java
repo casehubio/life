@@ -17,19 +17,26 @@ package io.casehub.life.app.engine;
 
 import io.casehub.api.engine.CaseHub;
 import io.casehub.api.engine.CaseHubRuntime;
+import io.casehub.api.model.CaseDefinition;
+import io.casehub.api.model.ai.WorkerAgentInvoker;
 import io.casehub.life.api.LifeCaseStatus;
 import io.casehub.life.api.LifeCaseType;
+import io.casehub.life.api.coordination.CoordinationPlan;
 import io.casehub.life.api.request.CreateLifeCaseRequest;
 import io.casehub.life.api.response.CbrPrecedentResponse;
 import io.casehub.life.api.response.LifeCaseResponse;
 import io.casehub.life.app.cbr.LifeCbrRetrievalResult;
 import io.casehub.life.app.cbr.LifeCbrSuggestionService;
+import io.casehub.life.app.coordination.CoordinationPlanResult;
+import io.casehub.life.app.coordination.CoordinationTemplateCatalog;
+import io.casehub.life.app.coordination.CoordinationTemplateValidator;
 import io.casehub.life.app.entity.LifeCaseTracker;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationTrace;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.worker.api.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
@@ -43,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service for starting engine cases using the three-phase pattern to avoid Agroal connection pool
@@ -77,6 +85,10 @@ public class LifeCaseService {
     io.casehub.life.app.cbr.LifeTrustFeatureEnricher                                      trustFeatureEnricher;
     @Inject
     EntityManager                                                                          em;
+    @Inject
+    CoordinationTemplateCatalog                                                             coordinationCatalog;
+    @Inject
+    CoordinationTemplateValidator                                                           coordinationValidator;
 
 
     public LifeCaseResponse startCase(CreateLifeCaseRequest request) {
@@ -118,8 +130,26 @@ public class LifeCaseService {
 
             String precedentsJson = serializePrecedents(retrieval.cases());
 
-            CaseHub caseHub = resolve(request.caseType());
-            UUID    caseId  = caseHub.startCase(initialContext);
+            LifeTypedCaseHub hub = (LifeTypedCaseHub) resolve(request.caseType());
+
+            CoordinationPlan coordinationPlan = invokePlanningWorker(hub, initialContext);
+
+            CaseDefinition freshDefinition;
+            if (coordinationPlan != null) {
+                freshDefinition = LifeTypedCaseHub.buildFreshDefinition(
+                    hub.getDefinition(), coordinationPlan,
+                    coordinationCatalog, coordinationValidator);
+                if (coordinationPlan.workerActivation() != null
+                        && coordinationPlan.workerActivation().workerParams() != null) {
+                    coordinationPlan.workerActivation().workerParams()
+                        .forEach((k, v) -> initialContext.put(k, v));
+                }
+                initialContext.put("coordinationPlan", coordinationPlan);
+            } else {
+                freshDefinition = hub.getDefinition();
+            }
+
+            UUID caseId = caseHubRuntime.startCase(freshDefinition, initialContext);
 
             persistCaseId(trackerId, caseId, precedentsJson);
             caseHubRuntime.signal(caseId, "caseId", caseId.toString());
@@ -195,6 +225,39 @@ public class LifeCaseService {
             LOG.warnf(e, "Failed to serialize CBR precedents");
             return null;
         }
+    }
+
+    private CoordinationPlan invokePlanningWorker(
+            LifeTypedCaseHub hub, Map<String, Object> context) {
+        try {
+            String planningPrompt = buildPlanningPrompt(hub);
+            WorkerAgentInvoker invoker = hub.agentProviderFactory.invokerFor(
+                hub.agent(), planningPrompt, null,
+                CoordinationPlanResult.class, hub.cbrInputTransformer);
+            WorkerResult<Map<String, Object>> result = invoker.execute(context);
+            CoordinationPlanResult planResult = objectMapper.convertValue(
+                result.output(), CoordinationPlanResult.class);
+            return planResult.plan();
+        } catch (Exception e) {
+            LOG.warn("Planning worker failed, proceeding without coordination", e);
+            return null;
+        }
+    }
+
+    private String buildPlanningPrompt(LifeTypedCaseHub hub) {
+        var templates = coordinationCatalog.all();
+        var templateListing = templates.stream()
+            .map(t -> "- " + t.getName() + " (" + t.getDomain() + "): " + t.getDescription())
+            .collect(Collectors.joining("\n"));
+        return "You are a coordination planner for " + hub.lifeCaseType().name() + " cases.\n\n"
+            + "Available coordination templates:\n" + templateListing + "\n\n"
+            + "Based on the input context and CBR data, select:\n"
+            + "1. A pre-processing template name (or null if none needed)\n"
+            + "2. A post-processing template name (or null if none needed)\n"
+            + "3. Any workers to skip (if pre-processing makes them redundant)\n"
+            + "4. If no existing template matches, generate a new one\n\n"
+            + "Output a CoordinationPlan JSON object with fields: "
+            + "preTemplate, preParams, postTemplate, postParams, generatedTemplates, workerActivation.";
     }
 
 }

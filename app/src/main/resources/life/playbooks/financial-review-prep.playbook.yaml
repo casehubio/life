@@ -1,0 +1,30 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Financial Review Prep
+  description: List accounts, pull transactions, search documents
+  tags: [finance, pre-processing]
+  domain: finance
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/bank/listAccounts
+      body:
+        scope: all
+    timeout: 10s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/bank/listTransactions
+      body:
+        limit: 50
+    timeout: 15s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/documents/searchDocuments
+      body:
+        type: financial
+    timeout: 10s

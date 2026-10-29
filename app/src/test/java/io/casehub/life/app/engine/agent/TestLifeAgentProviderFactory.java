@@ -177,7 +177,13 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"calendarEventId\":\"evt_MOCK_ITIN\",\"documentId\":\"DOC-MOCK-ITIN\","
                       + "\"emailMessageId\":\"eml_MOCK_ITIN\","
                       + "\"notificationMessageId\":\"msg_MOCK_TRAV\","
-                      + "\"toolsUsed\":[\"calendar_create_event\",\"sync_documents\",\"send_email\",\"send_chat\"]}")
+                      + "\"toolsUsed\":[\"calendar_create_event\",\"sync_documents\",\"send_email\",\"send_chat\"]}"),
+
+            // --- Coordination planner ---
+            Map.entry("coordination planner",
+                      "{\"plan\":{\"preTemplate\":null,\"preParams\":null,"
+                      + "\"postTemplate\":null,\"postParams\":null,"
+                      + "\"generatedTemplates\":[],\"workerActivation\":null}}")
     );
 
     @SuppressWarnings("unused")

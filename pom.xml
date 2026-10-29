@@ -45,6 +45,22 @@
         <artifactId>jackson-jq</artifactId>
         <version>1.6.0</version>
       </dependency>
+      <!-- convergence: engine-support-core (via playbook-compiler) 7.35.3 vs quarkus-flow 7.25.1 -->
+      <dependency>
+        <groupId>io.serverlessworkflow</groupId>
+        <artifactId>serverlessworkflow-types</artifactId>
+        <version>7.35.3.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.serverlessworkflow</groupId>
+        <artifactId>serverlessworkflow-impl-core</artifactId>
+        <version>7.35.3.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.serverlessworkflow</groupId>
+        <artifactId>serverlessworkflow-annotations</artifactId>
+        <version>7.35.3.Final</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

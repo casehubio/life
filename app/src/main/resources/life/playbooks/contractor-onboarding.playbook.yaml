@@ -1,0 +1,30 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Contractor Onboarding
+  description: Search contacts, geocode site, pull recent transactions
+  tags: [contractor-coordination, pre-processing]
+  domain: contractor-coordination
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/contacts/searchContacts
+      body:
+        query: contractor-lookup
+    timeout: 10s
+    retry: 3
+  - rest-request:
+      method: POST
+      url: /api/connectors/location/searchPlaces
+      body:
+        query: site-lookup
+    timeout: 10s
+  - rest-request:
+      method: POST
+      url: /api/connectors/bank/listTransactions
+      body:
+        limit: 10
+    timeout: 15s
+    retry: 2

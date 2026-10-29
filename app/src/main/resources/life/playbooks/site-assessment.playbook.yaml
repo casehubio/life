@@ -1,0 +1,29 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Site Assessment
+  description: Search places, find nearby services, look up contacts
+  tags: [home-maintenance, pre-processing]
+  domain: home-maintenance
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/location/searchPlaces
+      body:
+        query: site-lookup
+    timeout: 10s
+  - rest-request:
+      method: POST
+      url: /api/connectors/location/searchNearby
+      body:
+        type: contractor
+    timeout: 10s
+  - rest-request:
+      method: POST
+      url: /api/connectors/contacts/searchContacts
+      body:
+        query: contractor-lookup
+    timeout: 10s
+    retry: 2

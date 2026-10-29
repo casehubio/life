@@ -1,0 +1,24 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Appointment Follow-up
+  description: Create follow-up calendar event, send email reminder
+  tags: [health, post-processing]
+  domain: health
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/calendar/createEvent
+      body:
+        title: follow-up-appointment
+    timeout: 10s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/messaging/sendEmail
+      body:
+        subject: appointment-reminder
+    timeout: 10s
+    retry: 2
