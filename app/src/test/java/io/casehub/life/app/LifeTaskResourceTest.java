@@ -2,13 +2,13 @@ package io.casehub.life.app;
 
 import io.casehub.life.app.entity.LifeTaskContext;
 import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.runtime.service.ExpiryLifecycleService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -16,7 +16,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -25,6 +24,7 @@ import static org.hamcrest.Matchers.*;
 class LifeTaskResourceTest {
 
     @Inject EntityManager em;
+    @Inject ExpiryLifecycleService expiryLifecycleService;
 
     @BeforeEach
     @Transactional
@@ -99,7 +99,6 @@ class LifeTaskResourceTest {
     }
 
     @Test
-    @Disabled("CI SLA escalation does not reach household-admin within 10s; see #128")
     void createLifeTask_withPastDeadline_slaBreachEscalatesToAdmin() {
         String workItemId = given()
                 .contentType("application/json")
@@ -110,11 +109,13 @@ class LifeTaskResourceTest {
                 .then().statusCode(200)
                 .extract().path("workItemId");
 
-        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
-                given()
-                        .when().get("/api/life/tasks/" + workItemId)
-                        .then()
-                        .statusCode(200)
-                        .body("candidateGroups", hasItem("household-admin")));
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            expiryLifecycleService.checkExpired();
+            given()
+                    .when().get("/api/life/tasks/" + workItemId)
+                    .then()
+                    .statusCode(200)
+                    .body("candidateGroups", hasItem("household-admin"));
+        });
     }
 }
