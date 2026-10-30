@@ -6,6 +6,7 @@ import io.casehub.life.api.commitment.CommitmentStatus;
 import io.casehub.life.api.request.CreateLifeTaskRequest;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeCommitmentRecord;
+import io.casehub.life.app.notification.LifeNotificationService;
 import io.casehub.life.app.service.LifeTaskService;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.qhorus.api.watchdog.WatchdogAlertEvent;
@@ -51,6 +52,9 @@ public class LifeWatchdogAlertObserver {
     @Inject
     EntityManager em;
 
+    @Inject
+    LifeNotificationService notificationService;
+
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onAlert(@ObservesAsync final WatchdogAlertEvent event) {
         if (event.conditionType() != WatchdogConditionType.APPROVAL_PENDING) return;
@@ -68,13 +72,16 @@ public class LifeWatchdogAlertObserver {
                         .findFirst()
                         .ifPresent(h -> h.writeEntry(LifeDecisionEventType.SLA_BREACH, record));
             }
-            createEscalationTask(record);
+            String escalationTitle = createEscalationTask(record);
+            if (record.domain != null) {
+                notificationService.notifyWatchdogEscalation(record.domain, escalationTitle);
+            }
             record.status = CommitmentStatus.EXPIRED;
             record.updatedAt = Instant.now();
         }
     }
 
-    private void createEscalationTask(final LifeCommitmentRecord record) {
+    private String createEscalationTask(final LifeCommitmentRecord record) {
         final String title;
         if (record.mode == CommitmentMode.DELEGATION) {
             title = record.mode.escalationTemplate().formatted(
@@ -83,8 +90,7 @@ public class LifeWatchdogAlertObserver {
             title = record.mode.escalationTemplate();
         }
 
-        // "life-escalation" WorkItemTemplate seeded at V104.
-        // CreateLifeTaskRequest(templateRef, title, externalActorId, deadline, jurisdiction)
         lifeTaskService.create(new CreateLifeTaskRequest("life-escalation", title, null, null, null));
+        return title;
     }
 }

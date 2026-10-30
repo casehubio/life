@@ -3,6 +3,7 @@ package io.casehub.life.app.observer;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.app.LifeDecisionEventType;
 import io.casehub.life.app.entity.LifeTaskContext;
+import io.casehub.life.app.notification.LifeNotificationService;
 import io.casehub.life.app.service.ledger.DomainLedgerHandler;
 import io.casehub.work.runtime.event.SlaBreachEvent;
 import io.casehub.work.api.WorkItemLifecycleEvent;
@@ -27,6 +28,9 @@ public class LifeDecisionLedgerObserver {
 
     @Inject
     EntityManager em;
+
+    @Inject
+    LifeNotificationService notificationService;
 
     static LifeDomain domainFromScope(String scope) {
         if (scope == null || scope.isEmpty()) return null;
@@ -62,10 +66,13 @@ public class LifeDecisionLedgerObserver {
         WorkItemEntity workItem = em.find(WorkItemEntity.class, workItemId);
         if (workItem == null) return;
         LifeDomain domain = resolveDomain(workItemId, workItem);
-        if (domain == null) return; // unresolvable domain — deliberate no-op
+        if (domain == null) return;
         handlers.stream()
                 .filter(h -> h.domain() == domain)
                 .findFirst()
                 .ifPresent(h -> h.writeEntry(eventType, workItemId, workItem));
+        if (eventType == LifeDecisionEventType.SLA_BREACH) {
+            notificationService.notifySlaBreachEscalation(domain, workItem.title, workItemId);
+        }
     }
 }

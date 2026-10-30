@@ -22,6 +22,12 @@
             <artifactId>casehub-neocortex-memory-api</artifactId>
             <version>${casehub.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.casehub</groupId>
+            <artifactId>casehub-neocortex-annotation</artifactId>
+            <version>${casehub.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <groupId>io.casehub</groupId>
@@ -140,6 +146,19 @@
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-connectors-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-connectors-notification-bridge</artifactId>
+    </dependency>
+
+    <!-- ================================================================ -->
+    <!-- Platform — notification delivery channel registry                 -->
+    <!-- ================================================================ -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-platform-delivery-channel-inmem</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
 
