@@ -79,8 +79,11 @@ public class ContractorCoordinationCaseHub extends LifeTypedCaseHub {
                                                                   Use send_chat to request a progress update from the contractor.
                                                                   Include the contact ID and notification message ID in your response.""", JobMonitoringResult.class));
         definition.getWorkers().add(agentWorker("record-payment", """
-                                                                  You are a contractor coordination agent. Record a contractor payment
-                                                                  to the tamper-evident ledger and emit a cross-case signal.
+                                                                  You are a contractor coordination agent. Initiate a contractor payment
+                                                                  via bank transfer and record it to the tamper-evident ledger.
+                                                                  Use bank_initiate_payment to start the payment transfer.
+                                                                  Use bank_get_payment_status to verify the payment was accepted.
                                                                   Use send_chat to send payment confirmation to the contractor.
-                                                                  Include the notification message ID in your response.""", RecordPaymentResult.class));}
+                                                                  Include the payment ID, payment status, and notification message ID
+                                                                  in your response.""", RecordPaymentResult.class));}
 }

@@ -18,5 +18,6 @@ package io.casehub.life.app.engine.agent;
 import java.util.List;
 
 public record RecordPaymentResult(boolean paymentRecorded, int amount,
+                                  String paymentId, String paymentStatus,
                                   String ledgerEntryId, String crossCaseSignal,
                                   String notificationMessageId, List<String> toolsUsed) {}

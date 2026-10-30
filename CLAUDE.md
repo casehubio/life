@@ -289,6 +289,9 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
   `transactionSummary`, `notificationMessageId`, `alertMessageId`, `reminderMessageId`.
 - `List<String> toolsUsed` on all 39 schemas — LLM self-reported, convenience for UI
   and debugging (not authoritative for audit).
+- `RecordPaymentResult` gained `paymentId` (String) and `paymentStatus` (String) for
+  BankPlatform PISP integration — record-payment worker now initiates bank transfers
+  via `bank_initiate_payment` and `bank_get_payment_status` MCP tools (life#136).
 - `casehub-iot-api` dependency for `DeviceEntity` types in sensor readings.
 - Banking data uses `Map<String, Object>` (OPENCLAW tier — no CaseHub type).
 - Skill tier config: `casehub.life.skills.{domain}.tier` in application.properties.

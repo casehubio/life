@@ -113,11 +113,13 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"contactId\":\"CTK-MOCK-006\","
                       + "\"notificationMessageId\":\"msg_MOCK_006\","
                       + "\"toolsUsed\":[\"search_contacts\",\"send_chat\"]}"),
-            Map.entry("record a contractor payment",
-                      "{\"paymentRecorded\":true,\"amount\":500,\"ledgerEntryId\":\"LEDGER-MOCK\","
+            Map.entry("initiate a contractor payment",
+                      "{\"paymentRecorded\":true,\"amount\":500,"
+                      + "\"paymentId\":\"PAY-MOCK-001\",\"paymentStatus\":\"ACCEPTED\","
+                      + "\"ledgerEntryId\":\"LEDGER-MOCK\","
                       + "\"crossCaseSignal\":\"payment-complete\","
                       + "\"notificationMessageId\":\"msg_MOCK_007\","
-                      + "\"toolsUsed\":[\"send_chat\"]}"),
+                      + "\"toolsUsed\":[\"bank_initiate_payment\",\"bank_get_payment_status\",\"send_chat\"]}"),
 
             // --- Finance domain (finance-agent) ---
             Map.entry("gather financial data",

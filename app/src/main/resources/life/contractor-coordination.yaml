@@ -51,7 +51,7 @@ spec:
       outputSchema: "{ jobStatus: . }"
 
     - name: record-payment
-      description: "Record payment to tamper-evident ledger and signal active financial-review case"
+      description: "Initiate bank payment via PISP, record to tamper-evident ledger, and signal active financial-review case"
       inputSchema: "{ paymentConfirmation: .paymentConfirmation, quoteResponse: .quoteResponse }"
       outputSchema: "{ paymentRecorded: . }"
 
