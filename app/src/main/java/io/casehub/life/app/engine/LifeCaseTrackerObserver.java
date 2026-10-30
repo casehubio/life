@@ -27,15 +27,6 @@ import org.jboss.logging.Logger;
 
 import java.time.Instant;
 
-/**
- * CDI observer that updates LifeCaseTracker status when engine cases complete.
- *
- * <p>Observes {@link CaseLifecycleEvent} fired asynchronously by casehub-engine and updates
- * the corresponding {@link LifeCaseTracker} record when a case reaches COMPLETED status.
- *
- * <p>Uses {@link Transactional.TxType#REQUIRES_NEW} to ensure the status update is persisted
- * independently of the engine's transaction.
- */
 @ApplicationScoped
 public class LifeCaseTrackerObserver {
 
@@ -44,18 +35,25 @@ public class LifeCaseTrackerObserver {
     @Inject
     EntityManager em;
 
+    @Inject
+    io.casehub.life.app.coordination.recovery.TriageRoundTracker triageRoundTracker;
+
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onCaseCompleted(@ObservesAsync CaseLifecycleEvent event) {
-        if (!"CaseCompleted".equals(event.eventType())) return;
+        if (!"CaseCompleted".equals(event.eventType()) && !"CaseFaulted".equals(event.eventType())) {return;}
 
-        em.createNamedQuery("LifeCaseTracker.findByEngineCaseId", LifeCaseTracker.class)
-                .setParameter("engineCaseId", event.caseId())
-                .getResultStream().findFirst().ifPresentOrElse(
-                tracker -> {
-                    tracker.status = LifeCaseStatus.COMPLETED;
-                    tracker.completedAt = Instant.now();
-                },
-                () -> LOG.debugf("No LifeCaseTracker for caseId=%s — not a life case", event.caseId())
-        );
+        triageRoundTracker.clearForCase(event.caseId());
+
+        if ("CaseCompleted".equals(event.eventType())) {
+            em.createNamedQuery("LifeCaseTracker.findByEngineCaseId", LifeCaseTracker.class)
+              .setParameter("engineCaseId", event.caseId())
+              .getResultStream().findFirst().ifPresentOrElse(
+                      tracker -> {
+                          tracker.status      = LifeCaseStatus.COMPLETED;
+                          tracker.completedAt = Instant.now();
+                      },
+                      () -> LOG.debugf("No LifeCaseTracker for caseId=%s — not a life case", event.caseId())
+                                                            );
+        }
     }
 }

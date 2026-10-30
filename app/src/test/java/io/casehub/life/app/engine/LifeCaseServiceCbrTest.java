@@ -57,6 +57,9 @@ class LifeCaseServiceCbrTest {
     @Mock LifePlanAdapter planAdapter;
     @Mock CaseHubRuntime caseHubRuntime;
     @Mock @SuppressWarnings("rawtypes") Event adaptationEvent;
+    @Mock @SuppressWarnings("rawtypes") Event playbookTriageEvent;
+    @Mock io.casehub.life.app.coordination.CoordinationTemplateCatalog coordinationCatalog;
+    @Mock io.casehub.life.app.coordination.CoordinationTemplateValidator coordinationValidator;
     @Mock Instance<LifeTypedCaseHub> caseHubs;
     @Mock LifeTypedCaseHub mockCaseHub;
     @Captor ArgumentCaptor<CbrAdaptationRecorded> eventCaptor;
@@ -77,12 +80,16 @@ class LifeCaseServiceCbrTest {
         setField("planAdapter", planAdapter);
         setField("trustFeatureEnricher", trustFeatureEnricher);
         setField("adaptationEvent", adaptationEvent);
+        setField("playbookTriageEvent", playbookTriageEvent);
+        setField("coordinationCatalog", coordinationCatalog);
+        setField("coordinationValidator", coordinationValidator);
         setField("caseHubs", caseHubs);
 
+        when(coordinationCatalog.all()).thenReturn(List.of());
         when(mockCaseHub.lifeCaseType()).thenReturn(LifeCaseType.CONTRACTOR_COORDINATION);
+        when(mockCaseHub.getDefinition()).thenReturn(new io.casehub.api.model.CaseDefinition("test-case", "test-case", "test-case"));
         when(caseHubs.stream()).thenAnswer(inv -> java.util.stream.Stream.of(mockCaseHub));
-        when(mockCaseHub.startCase(any()))
-                .thenReturn(engineCaseId);
+        when(caseHubRuntime.startCase(any(), any())).thenReturn(engineCaseId);
 
         doReturn(new HashMap<>(Map.of("lifeCaseType", "contractor-coordination")))
                 .when(service).prepareAndTrack(any(), any());
@@ -103,7 +110,7 @@ class LifeCaseServiceCbrTest {
                 LifeCaseType.CONTRACTOR_COORDINATION, Map.of("description", "test"));
         service.startCase(request);
 
-        verify(mockCaseHub).startCase(contextCaptor.capture());
+        verify(caseHubRuntime).startCase(any(), contextCaptor.capture());
         Map<String, Object> ctx = contextCaptor.getValue();
         assertTrue(ctx.containsKey("cbrCalibration"), "should contain cbrCalibration");
         assertTrue(ctx.containsKey("adaptedPlan"), "should contain adaptedPlan");
@@ -123,7 +130,7 @@ class LifeCaseServiceCbrTest {
                 LifeCaseType.CONTRACTOR_COORDINATION, Map.of("description", "test"));
         service.startCase(request);
 
-        verify(mockCaseHub).startCase(contextCaptor.capture());
+        verify(caseHubRuntime).startCase(any(), contextCaptor.capture());
         Map<String, Object> ctx = contextCaptor.getValue();
         assertTrue(ctx.containsKey("cbrCalibration"), "should contain cbrCalibration");
         assertFalse(ctx.containsKey("adaptedPlan"), "should not contain adaptedPlan when steps empty");
@@ -139,7 +146,7 @@ class LifeCaseServiceCbrTest {
                 LifeCaseType.CONTRACTOR_COORDINATION, Map.of("description", "test"));
         service.startCase(request);
 
-        verify(mockCaseHub).startCase(contextCaptor.capture());
+        verify(caseHubRuntime).startCase(any(), contextCaptor.capture());
         Map<String, Object> ctx = contextCaptor.getValue();
         assertFalse(ctx.containsKey("cbrCalibration"));
         assertFalse(ctx.containsKey("adaptedPlan"));

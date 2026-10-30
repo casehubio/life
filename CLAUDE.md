@@ -369,6 +369,27 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - 8 workers gain domain-specific CBR calibration instructions in system prompts.
 - 8 YAML capabilities gain `cbrCalibration` in `inputProjection`.
 
+**Playbook failure recovery (life#141):**
+- `LifePlaybookTriageHandler` — `app/coordination/recovery/` `@ApplicationScoped`; implements
+  platform `TriageHandler` SPI. Called by engine's `DefaultRecoveryCoordinator` after structural
+  recovery exhausts. Re-invokes planning worker with failure context, returns structured
+  `TriageDecision` mapped to engine's `TriageDecision.Retry/Abandon`.
+- `TriageExecutor` — applies four-action `TriageDecision`: `RETRY_MODIFIED` (same playbook,
+  adjusted params), `SWITCH_PLAYBOOK` (alternate from catalog), `GENERATE_FIX` (new YAML
+  validated+persisted), `FALLBACK_MCP` (abandon playbooks). Protects curated templates.
+- `TriageRoundTracker` — supplementary in-memory per-(caseId, workerName) round counting.
+  Engine manages authoritative round counting via `BindingRecoveryState`. Cleaned up by
+  `LifeCaseTrackerObserver` on terminal case events.
+- `LifePlaybookCbrWriter` — CDI observer for `PlaybookTriageEvent`; writes per-failure
+  `CbrPlanRecord` with playbook features (templateName, failedStepCount, connectorErrorType,
+  triageAction, triageRound). `playbook-triage` feature schema in `LifeCbrFeatureSchemaRegistrar`.
+- `LifeCaseService.invokePlanningWorker()` hardened: fires `PlaybookTriageEvent` on planning
+  worker exception (was silent catch+return null).
+- Engine dependency: engine#1268 (`FlowWorkerFunctionHandler` PartialSuccess detection) — OPEN.
+- Design pivot: spec said `RecoveryCoordinator` SPI; implementation uses `TriageHandler` SPI
+  instead — `DefaultRecoveryCoordinator` already handles 3-level structural recovery (transient,
+  compound adaptation, replan). `TriageHandler` is the designed application-level extension point.
+
 **Capability tags:**
 - `household-management` — routine household coordination: grocery ordering, maintenance scheduling, contractor liaison
 - `health-coordination` — appointment booking, medication reminders, follow-up tracking, GP escalation

@@ -26,6 +26,7 @@ public class LifeCbrFeatureSchemaRegistrar {
         cbrStore.registerSchema(careCoordination());
         cbrStore.registerSchema(financialReview());
         cbrStore.registerSchema(travelPlan());
+        cbrStore.registerSchema(playbookTriage());
     }
 
     private static final SimilaritySpec SEASON_TABLE = SimilaritySpec.categoricalTableBuilder()
@@ -99,4 +100,14 @@ public class LifeCbrFeatureSchemaRegistrar {
                 FeatureField.numeric("durationDays", 1, 90, TIME_DECAY),
                 FeatureField.numeric("partySize", 1, 20));
     }
+
+    private static CbrRecordSchema playbookTriage() {
+        return CbrRecordSchema.of("playbook-triage",
+                                  FeatureField.categorical("templateName"),
+                                  FeatureField.categorical("triageAction"),
+                                  FeatureField.numeric("failedStepCount", 0, 20, COST_DECAY),
+                                  FeatureField.categorical("connectorErrorType"),
+                                  FeatureField.numeric("triageRound", 1, 5, COST_DECAY));
+    }
+
 }

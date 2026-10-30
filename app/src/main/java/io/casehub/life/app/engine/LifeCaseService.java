@@ -30,10 +30,12 @@ import io.casehub.life.app.cbr.LifeCbrSuggestionService;
 import io.casehub.life.app.coordination.CoordinationPlanResult;
 import io.casehub.life.app.coordination.CoordinationTemplateCatalog;
 import io.casehub.life.app.coordination.CoordinationTemplateValidator;
+import io.casehub.life.app.coordination.recovery.PlaybookTriageEvent;
+import io.casehub.life.app.coordination.recovery.TriageAction;
 import io.casehub.life.app.entity.LifeCaseTracker;
-import io.casehub.neocortex.memory.cbr.CbrAdaptationTrace;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
+import io.casehub.neocortex.memory.cbr.CbrAdaptationTrace;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import io.casehub.worker.api.WorkerResult;
@@ -89,6 +91,8 @@ public class LifeCaseService {
     CoordinationTemplateCatalog                                                             coordinationCatalog;
     @Inject
     CoordinationTemplateValidator                                                           coordinationValidator;
+    @Inject
+    jakarta.enterprise.event.Event<PlaybookTriageEvent>                                     playbookTriageEvent;
 
 
     public LifeCaseResponse startCase(CreateLifeCaseRequest request) {
@@ -232,14 +236,18 @@ public class LifeCaseService {
         try {
             String planningPrompt = buildPlanningPrompt(hub);
             WorkerAgentInvoker invoker = hub.agentProviderFactory.invokerFor(
-                hub.agent(), planningPrompt, null,
-                CoordinationPlanResult.class, hub.cbrInputTransformer);
+                    hub.agent(), planningPrompt, null,
+                    CoordinationPlanResult.class, hub.cbrInputTransformer);
             WorkerResult<Map<String, Object>> result = invoker.execute(context);
             CoordinationPlanResult planResult = objectMapper.convertValue(
-                result.output(), CoordinationPlanResult.class);
+                    result.output(), CoordinationPlanResult.class);
             return planResult.plan();
         } catch (Exception e) {
             LOG.warn("Planning worker failed, proceeding without coordination", e);
+            playbookTriageEvent.fire(new PlaybookTriageEvent(
+                    null, null, "planning-worker", null, null,
+                    TriageAction.FALLBACK_MCP, "planning worker exception: " + e.getMessage(),
+                    0, null, Map.of()));
             return null;
         }
     }
