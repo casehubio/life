@@ -11,7 +11,7 @@ interface DockPanel {
 const LEFT_PANELS: DockPanel[] = [
   { key: 'inbox', label: 'Inbox', tag: 'life-inbox-dock' },
   { key: 'cases', label: 'Cases', tag: 'life-cases-dock' },
-  { key: 'calendar', label: 'Calendar', tag: 'life-calendar-mock' },
+  { key: 'calendar', label: 'Calendar', tag: 'life-calendar-panel' },
 ];
 
 const RIGHT_PANELS: DockPanel[] = [
