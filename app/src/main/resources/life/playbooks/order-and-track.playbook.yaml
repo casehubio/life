@@ -1,0 +1,30 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Order and Track
+  description: Add to cart, checkout, and send confirmation
+  tags: [household-procurement, post-processing]
+  domain: household-procurement
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/commerce/addToCart
+      body:
+        reference: cart-ref
+    timeout: 10s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/commerce/checkout
+      body:
+        reference: order-ref
+    timeout: 15s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/chat/sendChat
+      body:
+        message: order-confirmation
+    timeout: 10s

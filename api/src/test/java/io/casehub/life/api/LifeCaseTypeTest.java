@@ -5,14 +5,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class LifeCaseTypeTest {
     @Test
-    void allSixTypesExist() {
-        assertThat(LifeCaseType.values()).hasSize(6);
+    void allTypesExist() {
+        assertThat(LifeCaseType.values()).hasSize(7);
         assertThat(LifeCaseType.valueOf("TRAVEL_PLAN")).isNotNull();
         assertThat(LifeCaseType.valueOf("HOME_MAINTENANCE")).isNotNull();
         assertThat(LifeCaseType.valueOf("CARE_COORDINATION")).isNotNull();
         assertThat(LifeCaseType.valueOf("APPOINTMENT_CYCLE")).isNotNull();
         assertThat(LifeCaseType.valueOf("CONTRACTOR_COORDINATION")).isNotNull();
         assertThat(LifeCaseType.valueOf("FINANCIAL_REVIEW")).isNotNull();
+        assertThat(LifeCaseType.valueOf("HOUSEHOLD_PROCUREMENT")).isNotNull();
     }
 
     @Test
@@ -23,6 +24,7 @@ class LifeCaseTypeTest {
         assertThat(LifeCaseType.APPOINTMENT_CYCLE.caseName()).isEqualTo("appointment-cycle");
         assertThat(LifeCaseType.CONTRACTOR_COORDINATION.caseName()).isEqualTo("contractor-coordination");
         assertThat(LifeCaseType.FINANCIAL_REVIEW.caseName()).isEqualTo("financial-review");
+        assertThat(LifeCaseType.HOUSEHOLD_PROCUREMENT.caseName()).isEqualTo("household-procurement");
     }
 
     @Test
@@ -33,6 +35,7 @@ class LifeCaseTypeTest {
         assertThat(LifeCaseType.APPOINTMENT_CYCLE.domain()).isEqualTo(LifeDomain.HEALTH);
         assertThat(LifeCaseType.CONTRACTOR_COORDINATION.domain()).isEqualTo(LifeDomain.CONTRACTOR_COORDINATION);
         assertThat(LifeCaseType.FINANCIAL_REVIEW.domain()).isEqualTo(LifeDomain.FINANCE);
+        assertThat(LifeCaseType.HOUSEHOLD_PROCUREMENT.domain()).isEqualTo(LifeDomain.HOUSEHOLD);
     }
 
     @Test

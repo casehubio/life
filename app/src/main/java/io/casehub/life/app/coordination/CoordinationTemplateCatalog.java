@@ -40,7 +40,8 @@ public class CoordinationTemplateCatalog {
         String[] templates = {
             "contractor-onboarding", "appointment-prep", "site-assessment",
             "financial-review-prep", "travel-research", "completion-report",
-            "appointment-followup", "payment-and-close"
+            "appointment-followup", "payment-and-close",
+            "product-search", "order-and-track"
         };
         for (String name : templates) {
             String resourcePath = basePath + name + ".playbook.yaml";

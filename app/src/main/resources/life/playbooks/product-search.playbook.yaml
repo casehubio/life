@@ -1,0 +1,24 @@
+playbook: "1.0"
+schema: client
+---
+meta:
+  title: Product Search
+  description: Search products and check order history
+  tags: [household-procurement, pre-processing]
+  domain: household-procurement
+---
+steps:
+  - rest-request:
+      method: POST
+      url: /api/connectors/commerce/searchProducts
+      body:
+        query: product-lookup
+    timeout: 15s
+    retry: 2
+  - rest-request:
+      method: POST
+      url: /api/connectors/commerce/listOrders
+      body:
+        limit: 5
+    timeout: 10s
+    retry: 2

@@ -194,13 +194,13 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 
 **Layer 5 additions:**
 - `LifeCaseTracker` — JPA entity tracking active engine cases by type for cross-case signal lookup: `{id, caseType, engineCaseId, status, createdAt, completedAt}`. Default datasource.
-- `LifeCaseType` enum in `api/`: TRAVEL_PLAN, HOME_MAINTENANCE, CARE_COORDINATION, APPOINTMENT_CYCLE, CONTRACTOR_COORDINATION, FINANCIAL_REVIEW. FAMILY_VOTE is not a LifeCaseType — spawned only as sub-case.
+- `LifeCaseType` enum in `api/`: TRAVEL_PLAN, HOME_MAINTENANCE, CARE_COORDINATION, APPOINTMENT_CYCLE, CONTRACTOR_COORDINATION, FINANCIAL_REVIEW, HOUSEHOLD_PROCUREMENT. FAMILY_VOTE is not a LifeCaseType — spawned only as sub-case.
 - `LifeCaseStatus` enum in `api/`: ACTIVE, COMPLETED, FAILED.
 - `LifeCaseService` — three-phase case start (PP-20260529-3ffe28). Direct injection of each YamlCaseHub, switch on LifeCaseType.
 - `LifeCaseTrackerObserver` — `@ObservesAsync CaseLifecycleEvent` updates tracker status.
 - `LifeDecisionLedgerObserver` — refactored: domain resolution now uses `WorkItem.scope` Path (primary), LifeTaskContext (fallback).
 - `LifeTypedCaseHub` — abstract base in `io.casehub.life.app.engine` extending `YamlCaseHub`; template method `augment()` (final) calls `configureCase()` (abstract) then registers agent descriptors. `agentWorker(capabilityName, systemPrompt, responseSchema)` helper builds Agent→Worker→AgentWorkerFunction. `lifeCaseType()` abstract method carries case-type identity. 6 subclasses extend it; CareEpisodeCaseHub extends YamlCaseHub directly (sub-case only, no LifeCaseType); FamilyVoteCaseHub extends YamlCaseHub (no augmentation). 8 YAML case definitions at `app/src/main/resources/life/`.
-- 8 YAML case definitions at `app/src/main/resources/life/`.
+- 9 YAML case definitions at `app/src/main/resources/life/`.
 - `POST /life-cases` endpoint — `LifeCaseResource`.
 - Scope retrofit: WorkItem scope changed from `"life"` to `"casehubio/life/{domain}"` (hierarchical Path format).
 
@@ -417,6 +417,7 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 - `travel-plan` — research options, approval gate for bookings above threshold, confirm itinerary
 - `contractor-coordination` — issue COMMAND for quote by date, Watchdog follow-up if no ETA, payment gate on completion
 - `care-coordination` — recurring care schedule, health status monitoring, family delegation for availability
+- `household-procurement` — analyse need (gift/supply), search products, oversight gate, order, track delivery; playbook-driven via CommercePlatform MCP tools (search_products, add_to_cart, checkout, list_orders)
 
 ### Permission Topology
 

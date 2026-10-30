@@ -181,6 +181,28 @@ public class TestLifeAgentProviderFactory extends LifeAgentProviderFactory {
                       + "\"notificationMessageId\":\"msg_MOCK_TRAV\","
                       + "\"toolsUsed\":[\"calendar_create_event\",\"sync_documents\",\"send_email\",\"send_chat\"]}"),
 
+            // --- Procurement domain (home-agent) ---
+            Map.entry("analyse the procurement request",
+                      "{\"category\":\"household-supplies\",\"itemType\":\"cleaning\","
+                      + "\"intent\":\"reorder\",\"estimatedBudget\":50,\"quantity\":3,"
+                      + "\"urgency\":\"normal\",\"recipientName\":null,\"occasion\":null,"
+                      + "\"toolsUsed\":[]}"),
+            Map.entry("search the product catalogue",
+                      "{\"resultCount\":3,\"recommendedProductId\":\"PROD-MOCK-001\","
+                      + "\"recommendedProductName\":\"Multi-Surface Cleaner 3-Pack\","
+                      + "\"recommendedPrice\":15,\"reason\":\"Best value, previously ordered\","
+                      + "\"toolsUsed\":[\"search_products\",\"list_orders\"]}"),
+            Map.entry("place the approved order",
+                      "{\"orderId\":\"ORD-MOCK-001\",\"orderStatus\":\"confirmed\","
+                      + "\"totalAmount\":45,"
+                      + "\"notificationMessageId\":\"msg_MOCK_PROC\","
+                      + "\"toolsUsed\":[\"add_to_cart\",\"checkout\",\"send_chat\"]}"),
+            Map.entry("check the delivery status",
+                      "{\"delivered\":true,\"orderId\":\"ORD-MOCK-001\","
+                      + "\"trackingStatus\":\"delivered\",\"estimatedDelivery\":\"2026-11-02\","
+                      + "\"notificationMessageId\":\"msg_MOCK_DELIV\","
+                      + "\"toolsUsed\":[\"list_orders\",\"send_chat\"]}"),
+
             // --- Coordination planner ---
             Map.entry("coordination planner",
                       "{\"plan\":{\"preTemplate\":null,\"preParams\":null,"

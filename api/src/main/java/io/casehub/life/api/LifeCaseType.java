@@ -6,7 +6,8 @@ public enum LifeCaseType {
     CARE_COORDINATION("care-coordination", LifeDomain.ELDER_CARE),
     APPOINTMENT_CYCLE("appointment-cycle", LifeDomain.HEALTH),
     CONTRACTOR_COORDINATION("contractor-coordination", LifeDomain.CONTRACTOR_COORDINATION),
-    FINANCIAL_REVIEW("financial-review", LifeDomain.FINANCE);
+    FINANCIAL_REVIEW("financial-review", LifeDomain.FINANCE),
+    HOUSEHOLD_PROCUREMENT("household-procurement", LifeDomain.HOUSEHOLD);
 
     private final String     caseName;
     private final LifeDomain domain;
