@@ -8,6 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -45,6 +46,13 @@ public class JpaLifeCalendarMapping {
     @Column(name = "created_at", nullable = false)
     public Instant createdAt;
 
+    @Column(name = "pushed_timing", columnDefinition = "TEXT")
+    public String pushedTiming;
+
     @Column(name = "updated_at", nullable = false)
     public Instant updatedAt;
+
+    @Version
+    @Column(nullable = false)
+    public long version;
 }

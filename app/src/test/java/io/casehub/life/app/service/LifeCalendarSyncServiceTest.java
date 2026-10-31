@@ -5,11 +5,19 @@ import io.casehub.connectors.calendar.model.CalendarEvent;
 import io.casehub.connectors.calendar.model.EventDetails;
 import io.casehub.connectors.calendar.spi.CalendarPlatform;
 import io.casehub.connectors.calendar.spi.EventTiming;
+import io.casehub.life.api.CalendarConflictStatus;
+import io.casehub.life.api.CalendarConflictType;
 import io.casehub.life.api.CalendarEntityType;
+import io.casehub.life.api.LifeCalendarConflict;
+import io.casehub.life.api.LifeCalendarMapping;
 import io.casehub.life.api.LifeDomain;
+import io.casehub.life.app.event.CalendarConflictResolved;
+import io.casehub.life.app.repository.InMemoryLifeCalendarConflictStore;
+import jakarta.enterprise.event.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -26,6 +34,9 @@ class LifeCalendarSyncServiceTest {
 
     CalendarPlatform calendarPlatform;
     InMemoryLifeCalendarMappingStore mappingStore;
+    InMemoryLifeCalendarConflictStore conflictStore;
+    @SuppressWarnings("unchecked")
+    Event<CalendarConflictResolved> resolvedEvent = mock(Event.class);
     LifeCalendarSyncService service;
 
     @BeforeEach
@@ -34,7 +45,9 @@ class LifeCalendarSyncServiceTest {
         var platformService = mock(CalendarPlatformService.class);
         when(platformService.platform("google")).thenReturn(calendarPlatform);
         mappingStore = new InMemoryLifeCalendarMappingStore();
-        service = new LifeCalendarSyncService(platformService, mappingStore, "google", "primary");
+        conflictStore = new InMemoryLifeCalendarConflictStore();
+        service = new LifeCalendarSyncService(platformService, mappingStore, conflictStore,
+                resolvedEvent, "google", "primary");
     }
 
     @Test
@@ -134,5 +147,56 @@ class LifeCalendarSyncServiceTest {
         assertThat(LifeCalendarSyncService.inferDomainFromDescription("casehub:domain:FINANCE")).isEqualTo(LifeDomain.FINANCE);
         assertThat(LifeCalendarSyncService.inferDomainFromDescription(null)).isNull();
         assertThat(LifeCalendarSyncService.inferDomainFromDescription("no domain here")).isNull();
+    }
+
+    @Test
+    void syncWorkItem_autoDismissesExistingConflict() {
+        var workItemId = UUID.randomUUID();
+        var expiresAt = LocalDate.of(2026, 11, 15).atStartOfDay(ZoneOffset.UTC).toInstant();
+        var timing = new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16));
+        var createdEvent = new CalendarEvent("gcal-1", "primary", "[HEALTH] GP check-up",
+                "casehub:domain:HEALTH", null, timing, List.of(), null);
+        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+        when(calendarPlatform.updateEvent(eq("primary"), eq("gcal-1"), any())).thenReturn(createdEvent);
+
+        service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
+
+        var mapping = mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString()).orElseThrow();
+        conflictStore.save(new LifeCalendarConflict(
+                UUID.randomUUID(), mapping.id(), CalendarConflictType.MODIFIED, Instant.now(),
+                "External change", null, CalendarConflictStatus.DETECTED,
+                null, null, LifeDomain.HEALTH));
+
+        service.syncWorkItem(workItemId, "GP check-up — updated", LifeDomain.HEALTH, expiresAt);
+
+        assertThat(conflictStore.countUnresolved()).isZero();
+        verify(resolvedEvent).fire(any(CalendarConflictResolved.class));
+    }
+
+    @Test
+    void removeWorkItem_deletesConflictsBeforeMapping() {
+        var workItemId = UUID.randomUUID();
+        var expiresAt = LocalDate.of(2026, 11, 15).atStartOfDay(ZoneOffset.UTC).toInstant();
+        var timing = new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16));
+        var createdEvent = new CalendarEvent("gcal-1", "primary", "[HEALTH] GP check-up",
+                "casehub:domain:HEALTH", null, timing, List.of(), null);
+        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+
+        service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
+
+        var mapping = mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString()).orElseThrow();
+        conflictStore.save(new LifeCalendarConflict(
+                UUID.randomUUID(), mapping.id(), CalendarConflictType.MODIFIED, Instant.now(),
+                null, null, CalendarConflictStatus.DETECTED,
+                null, null, LifeDomain.HEALTH));
+        conflictStore.save(new LifeCalendarConflict(
+                UUID.randomUUID(), mapping.id(), CalendarConflictType.DELETED, Instant.now(),
+                null, null, CalendarConflictStatus.ACCEPTED,
+                Instant.now(), "admin", LifeDomain.HEALTH));
+
+        service.removeWorkItem(workItemId);
+
+        assertThat(conflictStore.findByMapping(mapping.id())).isEmpty();
+        assertThat(mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString())).isEmpty();
     }
 }

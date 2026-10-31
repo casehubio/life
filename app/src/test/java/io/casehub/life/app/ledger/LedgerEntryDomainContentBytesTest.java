@@ -101,4 +101,26 @@ class LedgerEntryDomainContentBytesTest {
         assertThat(content).contains("SMS");
         assertThat(content).contains("household-admin");
     }
+
+    @Test
+    void calendarConflict_includesAllFields() {
+        var entry = new CalendarConflictLedgerEntry();
+        entry.conflictId = UUID.fromString("eeeeeeee-0000-0000-0000-000000000001");
+        entry.conflictType = "MODIFIED";
+        entry.domain = "HEALTH";
+        entry.resolution = "DETECTED";
+        entry.entityType = "WORK_ITEM";
+        entry.entityId = "wi-123";
+
+        var content = new String(entry.domainContentBytes(), StandardCharsets.UTF_8);
+
+        assertThat(content).contains("eeeeeeee-0000-0000-0000-000000000001");
+        assertThat(content).contains("MODIFIED");
+        assertThat(content).contains("HEALTH");
+        assertThat(content).contains("DETECTED");
+        assertThat(content).contains("WORK_ITEM");
+        assertThat(content).contains("wi-123");
+        var parts = content.split("\\|", -1);
+        assertThat(parts).hasSize(6);
+    }
 }

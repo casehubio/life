@@ -8,6 +8,8 @@ public interface LifeCalendarMappingStore {
 
     LifeCalendarMapping save(LifeCalendarMapping mapping);
 
+    Optional<LifeCalendarMapping> findById(UUID id);
+
     Optional<LifeCalendarMapping> findByEntity(CalendarEntityType entityType, String entityId);
 
     List<LifeCalendarMapping> findByCalendarEventId(String calendarEventId);

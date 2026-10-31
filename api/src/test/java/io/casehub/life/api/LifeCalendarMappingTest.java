@@ -16,7 +16,7 @@ class LifeCalendarMappingTest {
         var mapping = new LifeCalendarMapping(
                 id, CalendarEntityType.WORK_ITEM, "wi-123",
                 "google", "primary", "gcal-event-456",
-                LifeDomain.HEALTH, "GP check-up", now, now);
+                LifeDomain.HEALTH, "GP check-up", null, now, now);
 
         assertThat(mapping.entityType()).isEqualTo(CalendarEntityType.WORK_ITEM);
         assertThat(mapping.entityId()).isEqualTo("wi-123");

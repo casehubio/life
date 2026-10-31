@@ -6,8 +6,11 @@ import io.casehub.connectors.calendar.spi.CalendarPlatform;
 import io.casehub.connectors.calendar.spi.EventTiming;
 import io.casehub.life.api.CalendarEntityType;
 import io.casehub.life.api.LifeDomain;
+import io.casehub.life.app.event.CalendarConflictResolved;
+import io.casehub.life.app.repository.InMemoryLifeCalendarConflictStore;
 import io.casehub.life.app.service.InMemoryLifeCalendarMappingStore;
 import io.casehub.life.app.service.LifeCalendarSyncService;
+import jakarta.enterprise.event.Event;
 import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.WorkItemLifecycleEvent;
 import io.casehub.work.api.WorkItemStatus;
@@ -44,7 +47,10 @@ class LifeCalendarOutboundObserverTest {
         var platformService = mock(CalendarPlatformService.class);
         when(platformService.platform("google")).thenReturn(calendarPlatform);
         mappingStore = new InMemoryLifeCalendarMappingStore();
-        var syncService = new LifeCalendarSyncService(platformService, mappingStore, "google", "primary");
+        @SuppressWarnings("unchecked")
+        Event<CalendarConflictResolved> resolvedEvent = mock(Event.class);
+        var syncService = new LifeCalendarSyncService(platformService, mappingStore,
+                new InMemoryLifeCalendarConflictStore(), resolvedEvent, "google", "primary");
         observer = new LifeCalendarOutboundObserver();
         observer.em = em;
         observer.syncService = syncService;

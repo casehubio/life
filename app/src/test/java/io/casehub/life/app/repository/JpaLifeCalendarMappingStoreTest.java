@@ -26,7 +26,7 @@ class JpaLifeCalendarMappingStoreTest {
         var mapping = new LifeCalendarMapping(
                 UUID.randomUUID(), CalendarEntityType.WORK_ITEM, UUID.randomUUID().toString(),
                 "google", "primary", "gcal-" + UUID.randomUUID(),
-                LifeDomain.HEALTH, "GP check-up", Instant.now(), Instant.now());
+                LifeDomain.HEALTH, "GP check-up", null, Instant.now(), Instant.now());
 
         store.save(mapping);
 
@@ -43,7 +43,7 @@ class JpaLifeCalendarMappingStoreTest {
         var mapping = new LifeCalendarMapping(
                 UUID.randomUUID(), CalendarEntityType.CASE_MILESTONE, "case-1:milestone-a-" + UUID.randomUUID(),
                 "google", "primary", eventId,
-                LifeDomain.TRAVEL, "Trip deadline", Instant.now(), Instant.now());
+                LifeDomain.TRAVEL, "Trip deadline", null, Instant.now(), Instant.now());
 
         store.save(mapping);
 
@@ -60,7 +60,7 @@ class JpaLifeCalendarMappingStoreTest {
         var mapping = new LifeCalendarMapping(
                 id, CalendarEntityType.WORK_ITEM, entityId,
                 "google", "primary", "gcal-" + UUID.randomUUID(),
-                LifeDomain.FINANCE, "Budget review", Instant.now(), Instant.now());
+                LifeDomain.FINANCE, "Budget review", null, Instant.now(), Instant.now());
 
         store.save(mapping);
         assertThat(store.findByEntity(CalendarEntityType.WORK_ITEM, entityId)).isPresent();

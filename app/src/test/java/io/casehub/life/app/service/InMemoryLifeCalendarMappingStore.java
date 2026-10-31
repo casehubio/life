@@ -21,6 +21,11 @@ public class InMemoryLifeCalendarMappingStore implements LifeCalendarMappingStor
     }
 
     @Override
+    public Optional<LifeCalendarMapping> findById(UUID id) {
+        return Optional.ofNullable(store.get(id));
+    }
+
+    @Override
     public Optional<LifeCalendarMapping> findByEntity(CalendarEntityType entityType, String entityId) {
         return store.values().stream()
                 .filter(m -> m.entityType() == entityType && m.entityId().equals(entityId))

@@ -5,12 +5,17 @@ import io.casehub.connectors.calendar.model.CalendarEvent;
 import io.casehub.connectors.calendar.model.EventDetails;
 import io.casehub.connectors.calendar.spi.CalendarPlatform;
 import io.casehub.connectors.calendar.spi.EventTiming;
+import io.casehub.life.api.CalendarConflictStatus;
 import io.casehub.life.api.CalendarEntityType;
+import io.casehub.life.api.LifeCalendarConflict;
+import io.casehub.life.api.LifeCalendarConflictStore;
 import io.casehub.life.api.LifeCalendarMapping;
 import io.casehub.life.api.LifeCalendarMappingStore;
 import io.casehub.life.api.LifeDomain;
 import io.casehub.life.api.response.LifeCalendarEventResponse;
+import io.casehub.life.app.event.CalendarConflictResolved;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -28,6 +33,8 @@ public class LifeCalendarSyncService {
 
     private final CalendarPlatformService platformService;
     private final LifeCalendarMappingStore mappingStore;
+    private final LifeCalendarConflictStore conflictStore;
+    private final Event<CalendarConflictResolved> resolvedEvent;
     private final String defaultPlatformId;
     private final String defaultCalendarId;
 
@@ -35,10 +42,14 @@ public class LifeCalendarSyncService {
     public LifeCalendarSyncService(
             CalendarPlatformService platformService,
             LifeCalendarMappingStore mappingStore,
+            LifeCalendarConflictStore conflictStore,
+            Event<CalendarConflictResolved> resolvedEvent,
             @ConfigProperty(name = "casehub.life.calendar.default-platform-id", defaultValue = "google") String defaultPlatformId,
             @ConfigProperty(name = "casehub.life.calendar.default-calendar-id", defaultValue = "primary") String defaultCalendarId) {
         this.platformService = platformService;
         this.mappingStore = mappingStore;
+        this.conflictStore = conflictStore;
+        this.resolvedEvent = resolvedEvent;
         this.defaultPlatformId = defaultPlatformId;
         this.defaultCalendarId = defaultCalendarId;
     }
@@ -57,13 +68,14 @@ public class LifeCalendarSyncService {
             mappingStore.save(new LifeCalendarMapping(
                     mapping.id(), mapping.entityType(), mapping.entityId(),
                     mapping.calendarPlatformId(), mapping.calendarId(), mapping.calendarEventId(),
-                    domain, summary, mapping.createdAt(), Instant.now()));
+                    domain, summary, timing, mapping.createdAt(), Instant.now()));
+            autoDismissConflict(mapping);
         } else {
             var created = platform.createEvent(defaultCalendarId, details);
             mappingStore.save(new LifeCalendarMapping(
                     UUID.randomUUID(), CalendarEntityType.WORK_ITEM, workItemId.toString(),
                     defaultPlatformId, defaultCalendarId, created.id(),
-                    domain, summary, Instant.now(), Instant.now()));
+                    domain, summary, timing, Instant.now(), Instant.now()));
         }
     }
 
@@ -76,6 +88,8 @@ public class LifeCalendarSyncService {
                     } catch (Exception e) {
                         LOG.warnf(e, "Failed to delete calendar event %s — orphaned event may remain", mapping.calendarEventId());
                     }
+                    autoDismissConflict(mapping);
+                    conflictStore.deleteByMapping(mapping.id());
                     mappingStore.delete(mapping.id());
                 });
     }
@@ -119,6 +133,19 @@ public class LifeCalendarSyncService {
             }
         }
         return null;
+    }
+
+    private void autoDismissConflict(LifeCalendarMapping mapping) {
+        conflictStore.findUnresolvedByMapping(mapping.id()).ifPresent(conflict -> {
+            var dismissed = new LifeCalendarConflict(
+                    conflict.id(), conflict.mappingId(), conflict.conflictType(), conflict.detectedAt(),
+                    conflict.externalSummary(), conflict.externalTiming(), CalendarConflictStatus.DISMISSED,
+                    Instant.now(), "life-system", conflict.domain());
+            conflictStore.save(dismissed);
+            resolvedEvent.fire(new CalendarConflictResolved(
+                    conflict.id(), CalendarConflictStatus.DISMISSED, "life-system",
+                    conflict.domain(), mapping.entityId()));
+        });
     }
 
     private static EventTiming buildTiming(Instant expiresAt) {

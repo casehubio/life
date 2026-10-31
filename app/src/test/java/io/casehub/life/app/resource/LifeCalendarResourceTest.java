@@ -33,4 +33,48 @@ class LifeCalendarResourceTest {
         .then()
             .statusCode(401);
     }
+
+    @Test
+    @TestSecurity(user = "test-user", roles = "household-member")
+    void listConflictsReturnsEmptyList() {
+        given()
+        .when()
+            .get("/life-calendar/conflicts")
+        .then()
+            .statusCode(200)
+            .body("size()", is(0));
+    }
+
+    @Test
+    @TestSecurity(user = "test-user", roles = "household-member")
+    void countConflictsReturnsZero() {
+        given()
+        .when()
+            .get("/life-calendar/conflicts/count")
+        .then()
+            .statusCode(200)
+            .body(is("0"));
+    }
+
+    @Test
+    @TestSecurity(user = "test-user", roles = "household-member")
+    void getConflictNotFound() {
+        given()
+        .when()
+            .get("/life-calendar/conflicts/00000000-0000-0000-0000-000000000001")
+        .then()
+            .statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "test-user", roles = "household-member")
+    void resolveConflictBadAction() {
+        given()
+            .contentType("application/json")
+            .body("{\"action\": \"INVALID\"}")
+        .when()
+            .post("/life-calendar/conflicts/00000000-0000-0000-0000-000000000001/resolve")
+        .then()
+            .statusCode(400);
+    }
 }

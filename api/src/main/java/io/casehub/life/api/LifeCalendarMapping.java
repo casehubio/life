@@ -1,5 +1,7 @@
 package io.casehub.life.api;
 
+import io.casehub.connectors.calendar.spi.EventTiming;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -12,6 +14,7 @@ public record LifeCalendarMapping(
         String calendarEventId,
         LifeDomain domain,
         String summary,
+        EventTiming pushedTiming,
         Instant createdAt,
         Instant updatedAt) {
 }

@@ -396,27 +396,59 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
 **Calendar integration (life#114):**
 - `CalendarEntityType` — `api/` enum: `WORK_ITEM`, `CASE_MILESTONE`.
 - `LifeCalendarMapping` — `api/` record: entity→calendar event mapping
-  `{id, entityType, entityId, calendarPlatformId, calendarId, calendarEventId, domain, summary, createdAt, updatedAt}`.
-- `LifeCalendarMappingStore` — `api/` SPI: CRUD for calendar mappings. JPA implementation
-  (`JpaLifeCalendarMappingStore`, `@Alternative @Priority(1)`) in `app/repository/`.
-  `InMemoryLifeCalendarMappingStore` for tests.
+  `{id, entityType, entityId, calendarPlatformId, calendarId, calendarEventId, domain, summary, pushedTiming, createdAt, updatedAt}`.
+  `pushedTiming` (`EventTiming`) stores the last-pushed timing for conflict detection.
+- `LifeCalendarMappingStore` — `api/` SPI: `findById`, `findByEntity`, `findByCalendarEventId`,
+  `delete`. JPA implementation (`JpaLifeCalendarMappingStore`, `@Alternative @Priority(1)`)
+  in `app/repository/`. `InMemoryLifeCalendarMappingStore` for tests.
+- `LifeCalendarSyncState` — `api/` record: per-(platformId, calendarId) sync token storage
+  `{id, platformId, calendarId, syncToken, lastSyncAt}`.
+- `LifeCalendarSyncStateStore` — `api/` SPI: `findByCalendar`, `save`. JPA implementation
+  in `app/repository/`.
+- `CalendarConflictType` — `api/` enum: `MODIFIED`, `DELETED`.
+- `CalendarConflictStatus` — `api/` enum: `DETECTED`, `ACCEPTED`, `DISMISSED`.
+- `LifeCalendarConflict` — `api/` record: `{id, mappingId, conflictType, detectedAt,
+  externalSummary, externalTiming, status, resolvedAt, resolvedBy, domain}`.
+- `LifeCalendarConflictStore` — `api/` SPI: `save`, `findById`, `findByMapping`,
+  `findUnresolved`, `countUnresolved`, `findUnresolvedByMapping`, `deleteByMapping`.
+  JPA implementation (`JpaLifeCalendarConflictStore`, `@Alternative @Priority(1)`) in
+  `app/repository/`. `InMemoryLifeCalendarConflictStore` for tests.
 - `LifeCalendarSyncService` — `app/service/` `@ApplicationScoped`; outbound push
   (syncWorkItem, removeWorkItem) and inbound read (listEvents with mapping enrichment).
-  Config: `casehub.life.calendar.default-platform-id` (default "google"),
-  `casehub.life.calendar.default-calendar-id` (default "primary").
+  Auto-dismisses stale DETECTED conflicts on outbound push. FK-safe conflict cleanup
+  before mapping deletion. Config: `casehub.life.calendar.default-platform-id` (default
+  "google"), `casehub.life.calendar.default-calendar-id` (default "primary").
   YAML config at `casehub/life/calendar-config.yaml`.
+- `LifeCalendarConflictDetector` — `app/service/` `@ApplicationScoped`; compares
+  sync results against stored pushed state. Echo detection, idempotent conflict
+  creation/update. Fires `CalendarConflictDetected` CDI event.
+- `LifeCalendarConflictService` — `app/service/` `@ApplicationScoped`; accept (updates
+  WorkItem deadline + mapping) and dismiss (pushes CaseHub state back to Google).
+  Fires `CalendarConflictResolved` CDI event.
+- `LifeCalendarInboundSyncJob` — `app/service/` `@ApplicationScoped`; Quartz
+  `@Scheduled(every=PT5M)` incremental sync via `CalendarPlatform.listEventsSync()`.
+  Token expiry recovery. Pagination support. Config: `casehub.life.calendar.sync.interval`,
+  `casehub.life.calendar.sync.page-size`.
+- `CalendarConflictDetected` / `CalendarConflictResolved` — CDI event records in `app/event/`.
+- `CalendarConflictLedgerEntry` — JOINED `LedgerEntry` subclass in `app/ledger/` (qhorus PU).
+  `@DiscriminatorValue("CALENDAR_CONFLICT")`. Flyway V2102.
+- `LifeCalendarConflictLedgerObserver` — `app/observer/` `@ApplicationScoped`; `@Observes`
+  `CalendarConflictDetected` and `CalendarConflictResolved`. `@Transactional(REQUIRES_NEW)`.
 - `LifeCalendarOutboundObserver` — `app/observer/` `@ApplicationScoped`; `@Observes
   WorkItemLifecycleEvent`. Creates calendar events for WorkItems with `expiresAt`,
-  updates on deadline change, deletes on completion/cancellation. Domain resolution
-  via scope Path (primary) + LifeTaskContext (fallback) — same pattern as
-  `LifeDecisionLedgerObserver`.
-- `LifeCalendarResource` — `app/resource/` REST: `GET /life-calendar/events?from=&to=`
-  returns unified view (CaseHub-managed + external events, enriched with domain metadata).
-  `@RolesAllowed("household-member")`.
+  updates on deadline change, deletes on completion/cancellation.
+- `LifeCalendarResource` — `app/resource/` REST: `GET /life-calendar/events`,
+  `GET /life-calendar/conflicts`, `GET /life-calendar/conflicts/count`,
+  `GET /life-calendar/conflicts/{id}`, `POST /life-calendar/conflicts/{id}/resolve`,
+  `POST /life-calendar/sync`. `@RolesAllowed("household-member")`.
 - `JpaLifeCalendarMapping` — JPA entity in `app/entity/` (default PU). Flyway V115.
-- `life-calendar-panel` — `life-ui/` Lit component replacing `life-calendar-mock`.
-  Fetches from REST API, domain colour-coding, CaseHub-managed indicator.
-- Conflict detection deferred to life#142 (CaseHub authoritative for now).
+  `@Version` for optimistic locking. `pushedTiming` stored as JSON TEXT.
+- `JpaLifeCalendarSyncState` — JPA entity in `app/entity/` (default PU). Flyway V116.
+- `JpaLifeCalendarConflict` — JPA entity in `app/entity/` (default PU). Flyway V117.
+  FK to `life_calendar_mapping(id)`.
+- `life-calendar-panel` — `life-ui/` Lit component. Domain colour-coding, CaseHub-managed
+  indicator. Conflict cards with diff view, accept/dismiss buttons, conflict count badge,
+  manual sync button, SSE-driven refresh.
 
 **Capability tags:**
 - `household-management` — routine household coordination: grocery ordering, maintenance scheduling, contractor liaison
@@ -471,7 +503,9 @@ Everything in the foundation:
 api/    — pure Java: LifeDomain enum, ExternalActor request/response records,
           CreateLifeTaskRequest, LifeTaskResponse, CommitmentMode/CommitmentStatus/
           CommitmentOutcome/CommitmentRequest/OversightGateRequest (Layer 3),
-          LifeActorIds (Layer 6), CalendarEntityType/LifeCalendarMapping/LifeCalendarMappingStore
+          LifeActorIds (Layer 6), CalendarEntityType/LifeCalendarMapping/LifeCalendarMappingStore/
+          LifeCalendarSyncState/LifeCalendarSyncStateStore/LifeCalendarConflict/
+          LifeCalendarConflictStore/CalendarConflictType/CalendarConflictStatus
           (calendar SPI), capability tag constants, trust dimension constants.
           PagedResponse<T> (generic pagination), Urgency enum (deadline classification),
           PendingActionResponse, CaseStatisticsResponse, SlaComplianceResponse,
@@ -479,11 +513,12 @@ api/    — pure Java: LifeDomain enum, ExternalActor request/response records,
           Zero framework imports. No JPA.
 
 app/    — Quarkus: JPA entities (ExternalActor, LifeTaskContext, LifeCommitmentRecord,
-          LifeCaseTracker, JpaLifeCalendarMapping), REST resources, Flyway migrations (db/life/migration/, V100–V115),
+          LifeCaseTracker, JpaLifeCalendarMapping, JpaLifeCalendarSyncState, JpaLifeCalendarConflict),
+          REST resources, Flyway migrations (db/life/migration/, V100–V117),
           service layer (LifeGdprErasureService — GDPR erasure pipeline), SPI implementations (LifeSlaBreachPolicy, LifeCommitmentStrategy + 3 impls),
           infrastructure (LifeChannelInitializer), observers (LifeOversightResponseObserver,
           LifeWatchdogAlertObserver, LifeDecisionLedgerObserver, LifeCaseTrackerObserver,
-          LifeCalendarOutboundObserver),
+          LifeCalendarOutboundObserver, LifeCalendarConflictLedgerObserver),
           engine (io.casehub.life.app.engine — LifeTypedCaseHub abstract base + 6 subclasses + CareEpisodeCaseHub (YamlCaseHub) + FamilyVoteCaseHub (YamlCaseHub) +
           LifeCaseService + LifeCaseTrackerObserver),
           routing (io.casehub.life.app.routing — LifeTrustRoutingPolicyProvider +
