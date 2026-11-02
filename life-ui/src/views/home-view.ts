@@ -17,7 +17,7 @@ const LEFT_PANELS: DockPanel[] = [
 const RIGHT_PANELS: DockPanel[] = [
   { key: 'family', label: 'Family', tag: 'life-family-summary' },
   { key: 'money', label: 'Money', tag: 'life-money-mock' },
-  { key: 'comms', label: 'Comms', tag: 'life-comms-mock' },
+  { key: 'avatar', label: 'Avatar', tag: 'life-conversation-panel' },
 ];
 
 @customElement('home-view')

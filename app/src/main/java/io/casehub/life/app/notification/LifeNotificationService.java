@@ -35,7 +35,8 @@ public class LifeNotificationService {
                 "/life-tasks/" + workItemId,
                 new NotificationSource(
                         UUID.randomUUID().toString(), "work-item",
-                        workItemId.toString(), "life-system"));
+                        workItemId.toString(), "life-system"),
+                null);
         deliverToConfiguredChannels(domain, input);
     }
 
@@ -51,7 +52,8 @@ public class LifeNotificationService {
                 null,
                 new NotificationSource(
                         UUID.randomUUID().toString(), "commitment",
-                        UUID.randomUUID().toString(), "life-system"));
+                        UUID.randomUUID().toString(), "life-system"),
+                null);
         deliverToConfiguredChannels(domain, input);
     }
 
