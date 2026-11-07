@@ -8,23 +8,17 @@ meta:
   domain: finance
 ---
 steps:
-  - rest-request:
-      method: POST
-      url: /api/connectors/bank/listAccounts
+  - rest-request POST /api/connectors/bank/listAccounts:
       body:
         scope: all
     timeout: 10s
     retry: 2
-  - rest-request:
-      method: POST
-      url: /api/connectors/bank/listTransactions
+  - rest-request POST /api/connectors/bank/listTransactions:
       body:
         limit: 50
     timeout: 15s
     retry: 2
-  - rest-request:
-      method: POST
-      url: /api/connectors/documents/searchDocuments
+  - rest-request POST /api/connectors/documents/searchDocuments:
       body:
         type: financial
     timeout: 10s

@@ -8,9 +8,7 @@ meta:
   domain: test-domain
 ---
 steps:
-  - rest-request:
-      method: POST
-      url: /api/connectors/contacts/searchContacts
+  - rest-request POST /api/connectors/contacts/searchContacts:
       body:
         query: test
     timeout: 5s
