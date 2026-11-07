@@ -8,21 +8,15 @@ meta:
   domain: home-maintenance
 ---
 steps:
-  - rest-request:
-      method: POST
-      url: /api/connectors/location/searchPlaces
+  - rest-request POST /api/connectors/location/searchPlaces:
       body:
         query: site-lookup
     timeout: 10s
-  - rest-request:
-      method: POST
-      url: /api/connectors/location/searchNearby
+  - rest-request POST /api/connectors/location/searchNearby:
       body:
         type: contractor
     timeout: 10s
-  - rest-request:
-      method: POST
-      url: /api/connectors/contacts/searchContacts
+  - rest-request POST /api/connectors/contacts/searchContacts:
       body:
         query: contractor-lookup
     timeout: 10s

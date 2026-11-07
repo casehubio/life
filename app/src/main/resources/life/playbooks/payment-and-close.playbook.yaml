@@ -8,23 +8,17 @@ meta:
   domain: contractor-coordination
 ---
 steps:
-  - rest-request:
-      method: POST
-      url: /api/connectors/bank/initiatePayment
+  - rest-request POST /api/connectors/bank/initiatePayment:
       body:
         reference: payment-ref
     timeout: 15s
     retry: 2
-  - rest-request:
-      method: POST
-      url: /api/connectors/documents/uploadFile
+  - rest-request POST /api/connectors/documents/uploadFile:
       body:
         fileName: invoice
     timeout: 10s
     retry: 2
-  - rest-request:
-      method: POST
-      url: /api/connectors/chat/sendChat
+  - rest-request POST /api/connectors/chat/sendChat:
       body:
         message: job-completed
     timeout: 10s
