@@ -8,17 +8,17 @@ meta:
   domain: household-procurement
 ---
 steps:
-  - rest-request POST /api/connectors/commerce/addToCart:
-      body:
-        reference: cart-ref
+  - rest-request:POST: /api/connectors/commerce/addToCart
+    body:
+      reference: cart-ref
     timeout: 10s
     retry: 2
-  - rest-request POST /api/connectors/commerce/checkout:
-      body:
-        reference: order-ref
+  - rest-request:POST: /api/connectors/commerce/checkout
+    body:
+      reference: order-ref
     timeout: 15s
     retry: 2
-  - rest-request POST /api/connectors/chat/sendChat:
-      body:
-        message: order-confirmation
+  - rest-request:POST: /api/connectors/chat/sendChat
+    body:
+      message: order-confirmation
     timeout: 10s

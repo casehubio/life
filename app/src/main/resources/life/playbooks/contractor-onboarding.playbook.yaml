@@ -8,17 +8,17 @@ meta:
   domain: contractor-coordination
 ---
 steps:
-  - rest-request POST /api/connectors/contacts/searchContacts:
-      body:
-        query: contractor-lookup
+  - rest-request:POST: /api/connectors/contacts/searchContacts
+    body:
+      query: contractor-lookup
     timeout: 10s
     retry: 3
-  - rest-request POST /api/connectors/location/searchPlaces:
-      body:
-        query: site-lookup
+  - rest-request:POST: /api/connectors/location/searchPlaces
+    body:
+      query: site-lookup
     timeout: 10s
-  - rest-request POST /api/connectors/bank/listTransactions:
-      body:
-        limit: 10
+  - rest-request:POST: /api/connectors/bank/listTransactions
+    body:
+      limit: 10
     timeout: 15s
     retry: 2

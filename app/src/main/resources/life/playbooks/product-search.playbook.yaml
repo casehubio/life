@@ -8,13 +8,13 @@ meta:
   domain: household-procurement
 ---
 steps:
-  - rest-request POST /api/connectors/commerce/searchProducts:
-      body:
-        query: product-lookup
+  - rest-request:POST: /api/connectors/commerce/searchProducts
+    body:
+      query: product-lookup
     timeout: 15s
     retry: 2
-  - rest-request POST /api/connectors/commerce/listOrders:
-      body:
-        limit: 5
+  - rest-request:POST: /api/connectors/commerce/listOrders
+    body:
+      limit: 5
     timeout: 10s
     retry: 2

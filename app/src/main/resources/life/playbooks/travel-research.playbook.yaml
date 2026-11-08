@@ -8,17 +8,17 @@ meta:
   domain: travel
 ---
 steps:
-  - rest-request POST /api/connectors/travel/searchTransport:
-      body:
-        mode: any
+  - rest-request:POST: /api/connectors/travel/searchTransport
+    body:
+      mode: any
     timeout: 15s
     retry: 2
-  - rest-request POST /api/connectors/travel/searchAccommodation:
-      body:
-        type: hotel
+  - rest-request:POST: /api/connectors/travel/searchAccommodation
+    body:
+      type: hotel
     timeout: 15s
     retry: 2
-  - rest-request POST /api/connectors/location/searchPlaces:
-      body:
-        query: destination-lookup
+  - rest-request:POST: /api/connectors/location/searchPlaces
+    body:
+      query: destination-lookup
     timeout: 10s

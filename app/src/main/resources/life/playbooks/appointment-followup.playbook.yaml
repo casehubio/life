@@ -8,13 +8,13 @@ meta:
   domain: health
 ---
 steps:
-  - rest-request POST /api/connectors/calendar/createEvent:
-      body:
-        title: follow-up-appointment
+  - rest-request:POST: /api/connectors/calendar/createEvent
+    body:
+      title: follow-up-appointment
     timeout: 10s
     retry: 2
-  - rest-request POST /api/connectors/messaging/sendEmail:
-      body:
-        subject: appointment-reminder
+  - rest-request:POST: /api/connectors/messaging/sendEmail
+    body:
+      subject: appointment-reminder
     timeout: 10s
     retry: 2

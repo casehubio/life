@@ -8,16 +8,16 @@ meta:
   domain: health
 ---
 steps:
-  - rest-request POST /api/connectors/health/searchProviders:
-      body:
-        specialty: general-practice
+  - rest-request:POST: /api/connectors/health/searchProviders
+    body:
+      specialty: general-practice
     timeout: 10s
     retry: 2
-  - rest-request POST /api/connectors/health/searchAvailableSlots:
-      body:
-        providerId: provider-lookup
+  - rest-request:POST: /api/connectors/health/searchAvailableSlots
+    body:
+      providerId: provider-lookup
     timeout: 10s
-  - rest-request POST /api/connectors/calendar/listEvents:
-      body:
-        range: next-14-days
+  - rest-request:POST: /api/connectors/calendar/listEvents
+    body:
+      range: next-14-days
     timeout: 10s

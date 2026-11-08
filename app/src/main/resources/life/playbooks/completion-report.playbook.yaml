@@ -8,17 +8,17 @@ meta:
   domain: cross-domain
 ---
 steps:
-  - rest-request POST /api/connectors/documents/uploadFile:
-      body:
-        fileName: completion-report
+  - rest-request:POST: /api/connectors/documents/uploadFile
+    body:
+      fileName: completion-report
     timeout: 15s
     retry: 2
-  - rest-request POST /api/connectors/messaging/sendEmail:
-      body:
-        subject: completion-summary
+  - rest-request:POST: /api/connectors/messaging/sendEmail
+    body:
+      subject: completion-summary
     timeout: 10s
     retry: 2
-  - rest-request POST /api/connectors/chat/sendChat:
-      body:
-        message: completion-notification
+  - rest-request:POST: /api/connectors/chat/sendChat
+    body:
+      message: completion-notification
     timeout: 10s
