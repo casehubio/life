@@ -9,6 +9,7 @@ import io.casehub.life.api.response.PendingActionResponse;
 import io.casehub.life.app.commitment.LifeCommitmentService;
 import io.casehub.life.app.service.DashboardService;
 import io.casehub.life.app.service.PendingActionsService;
+import java.util.Optional;
 import io.casehub.platform.api.mcp.McpDomain;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
@@ -31,15 +32,17 @@ public class LifeDashboardApi {
         return dashboardService.buildBriefing();
     }
 
-    @PlatformQuery("List pending actions")
+    @PlatformQuery("List pending actions filtered by domain and candidate group")
     @RestPath("/pending-actions")
     public PagedResponse<PendingActionResponse> pendingActions(
-            @QueryParam("domain") LifeDomain domain,
-            @QueryParam("candidateGroup") String candidateGroup,
-            @QueryParam("dueSoonHours") int dueSoonHours,
-            @QueryParam("page") int page,
-            @QueryParam("size") int size) {
-        return pendingActionsService.findPendingActions(domain, candidateGroup, dueSoonHours, page, size);
+            @QueryParam("domain") Optional<LifeDomain> domain,
+            @QueryParam("candidateGroup") Optional<String> candidateGroup,
+            @QueryParam("dueSoonHours") Optional<Integer> dueSoonHours,
+            @QueryParam("page") Optional<Integer> page,
+            @QueryParam("size") Optional<Integer> size) {
+        return pendingActionsService.findPendingActions(domain.orElse(null),
+                candidateGroup.orElse(null), dueSoonHours.orElse(24),
+                page.orElse(0), size.orElse(20));
     }
 
     @PlatformMutation("Request an oversight gate approval")

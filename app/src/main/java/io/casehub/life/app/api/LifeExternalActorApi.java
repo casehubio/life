@@ -24,6 +24,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.QueryParam;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @McpDomain(value = "life/actors", app = "life", basePath = "/api/life/actors", summary = "Actors — create, delete, erase operations")
@@ -41,16 +42,18 @@ public class LifeExternalActorApi {
         return actorService.create(request);
     }
 
-    @PlatformQuery("Search external actors")
+    @PlatformQuery("Search external actors. actorType: AI_AGENT, HOUSEHOLD_PRINCIPAL, EXTERNAL_HUMAN")
     @RestPath("/")
     public PagedResponse<ExternalActorResponse> listActors(
-            @QueryParam("actorType") LifeActorType actorType,
-            @QueryParam("name") String name,
-            @QueryParam("contactMethod") String contactMethod,
-            @QueryParam("erasedOnly") boolean erasedOnly,
-            @QueryParam("page") int page,
-            @QueryParam("size") int size) {
-        return actorService.search(name, actorType, contactMethod, erasedOnly, page, size);
+            @QueryParam("actorType") Optional<LifeActorType> actorType,
+            @QueryParam("name") Optional<String> name,
+            @QueryParam("contactMethod") Optional<String> contactMethod,
+            @QueryParam("erasedOnly") Optional<Boolean> erasedOnly,
+            @QueryParam("page") Optional<Integer> page,
+            @QueryParam("size") Optional<Integer> size) {
+        return actorService.search(name.orElse(null), actorType.orElse(null),
+                contactMethod.orElse(null), erasedOnly.orElse(false),
+                page.orElse(0), size.orElse(20));
     }
 
     @PlatformQuery("Get an external actor by ID")
@@ -69,8 +72,11 @@ public class LifeExternalActorApi {
 
     @PlatformMutation("Delete an external actor")
     @RestPath("/{id}/delete")
-    public void deleteActor(@PathParam UUID id) {
+    public ExternalActorResponse deleteActor(@PathParam UUID id) {
+        ExternalActorResponse actor = actorService.findById(id)
+                .orElseThrow(NotFoundException::new);
         actorService.delete(id);
+        return actor;
     }
 
     @PlatformMutation("Erase personal data (GDPR)")
@@ -89,22 +95,22 @@ public class LifeExternalActorApi {
     @PlatformQuery("Get trust history for an external actor")
     @RestPath("/{id}/trust-history")
     public PagedResponse<TrustHistoryEntry> trustHistory(@PathParam UUID id,
-                                @QueryParam("page") int page,
-                                @QueryParam("size") int size) {
+                                @QueryParam("page") Optional<Integer> page,
+                                @QueryParam("size") Optional<Integer> size) {
         if (!historyService.actorExists(id)) {
             throw new NotFoundException();
         }
-        return historyService.trustHistory(id, page, size);
+        return historyService.trustHistory(id, page.orElse(0), size.orElse(20));
     }
 
     @PlatformQuery("Get activity timeline for an external actor")
     @RestPath("/{id}/activity")
     public PagedResponse<ActorActivityEntry> activityTimeline(@PathParam UUID id,
-                                    @QueryParam("page") int page,
-                                    @QueryParam("size") int size) {
+                                    @QueryParam("page") Optional<Integer> page,
+                                    @QueryParam("size") Optional<Integer> size) {
         if (!historyService.actorExists(id)) {
             throw new NotFoundException();
         }
-        return historyService.activityTimeline(id, page, size);
+        return historyService.activityTimeline(id, page.orElse(0), size.orElse(20));
     }
 }

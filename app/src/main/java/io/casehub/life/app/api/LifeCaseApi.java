@@ -28,6 +28,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.QueryParam;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @McpDomain(value = "life/cases", app = "life", basePath = "/api/life/cases", summary = "Life case management — long-running personal cases")
@@ -46,15 +47,16 @@ public class LifeCaseApi {
         return lifeCaseService.startCase(request);
     }
 
-    @PlatformQuery("List life cases")
+    @PlatformQuery("List life cases. domain: HOUSEHOLD, HEALTH, FINANCE, FAMILY_SCHEDULING, TRAVEL, LEGAL, CONTRACTOR_COORDINATION, ELDER_CARE. status: ACTIVE, COMPLETED, FAILED")
     @RestPath("/")
     public PagedResponse<LifeCaseResponse> listCases(
-            @QueryParam("domain") LifeDomain domain,
-            @QueryParam("status") LifeCaseStatus status,
-            @QueryParam("caseType") LifeCaseType caseType,
-            @QueryParam("page") int page,
-            @QueryParam("size") int size) {
-        return queryService.listCases(domain, status, caseType, page, size);
+            @QueryParam("domain") Optional<LifeDomain> domain,
+            @QueryParam("status") Optional<LifeCaseStatus> status,
+            @QueryParam("caseType") Optional<LifeCaseType> caseType,
+            @QueryParam("page") Optional<Integer> page,
+            @QueryParam("size") Optional<Integer> size) {
+        return queryService.listCases(domain.orElse(null), status.orElse(null),
+                caseType.orElse(null), page.orElse(0), size.orElse(20));
     }
 
     @PlatformQuery("Get a life case by ID")
