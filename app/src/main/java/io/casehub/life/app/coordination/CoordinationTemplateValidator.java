@@ -42,6 +42,12 @@ public class CoordinationTemplateValidator {
         if (stepsObj instanceof List<?> steps) {
             for (Object stepObj : steps) {
                 if (stepObj instanceof Map<?, ?> step) {
+                    for (var entry : step.entrySet()) {
+                        if (entry.getKey() instanceof String key && key.startsWith("rest-request:")
+                                && entry.getValue() instanceof String url) {
+                            validateUrl(url, errors);
+                        }
+                    }
                     Object restReq = step.get("rest-request");
                     if (restReq instanceof Map<?, ?> reqMap) {
                         String url = (String) reqMap.get("url");

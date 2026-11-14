@@ -10,7 +10,7 @@ import io.casehub.life.api.LifeCalendarMappingStore;
 import io.casehub.life.api.LifeDomain;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
+import io.quarkus.test.TestTransaction;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -29,7 +29,7 @@ class JpaLifeCalendarConflictStoreTest {
     LifeCalendarMappingStore mappingStore;
 
     @Test
-    @Transactional
+    @TestTransaction
     void save_and_findById() {
         var mapping = seedMapping();
         var timing = new EventTiming.AllDay(LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 6));
@@ -48,7 +48,7 @@ class JpaLifeCalendarConflictStoreTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     void findUnresolved_returns_only_detected() {
         var mapping = seedMapping();
         var detected = new LifeCalendarConflict(
@@ -69,7 +69,7 @@ class JpaLifeCalendarConflictStoreTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     void findUnresolvedByMapping() {
         var mapping = seedMapping();
         var conflict = new LifeCalendarConflict(
@@ -84,7 +84,7 @@ class JpaLifeCalendarConflictStoreTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     void countUnresolved() {
         var mapping = seedMapping();
         conflictStore.save(new LifeCalendarConflict(
@@ -100,7 +100,7 @@ class JpaLifeCalendarConflictStoreTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     void deleteByMapping_removes_all_conflicts_for_mapping() {
         var mapping = seedMapping();
         conflictStore.save(new LifeCalendarConflict(

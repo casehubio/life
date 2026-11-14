@@ -33,9 +33,13 @@ class CoordinationTemplateCatalogTest {
     }
 
     @Test
-    void loads_all_eight_curated_templates() {
+    void loads_all_ten_curated_templates() {
         var all = catalog.all();
-        assertThat(all).hasSize(8);
+        assertThat(all).hasSize(10);
+        for (var template : all) {
+            assertThat(CoordinationTemplateCatalog.compilePlaybook(template.getTemplateYaml()).workflow())
+                    .as(template.getName()).isNotNull();
+        }
     }
 
     @Test
@@ -51,9 +55,7 @@ class CoordinationTemplateCatalogTest {
     void compile_playbook_produces_valid_compilation_result() {
         String yaml = """
             steps:
-              - rest-request:
-                  method: GET
-                  url: /api/connectors/contacts/searchContacts?query=test
+              - rest-request:GET: /api/connectors/contacts/searchContacts?query=test
             """;
         CompilationResult result = CoordinationTemplateCatalog.compilePlaybook(yaml);
         assertThat(result).isNotNull();

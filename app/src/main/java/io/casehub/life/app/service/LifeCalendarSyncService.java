@@ -55,8 +55,14 @@ public class LifeCalendarSyncService {
     }
 
     public void syncWorkItem(UUID workItemId, String title, LifeDomain domain, Instant expiresAt) {
+        CalendarPlatform platform;
+        try {
+            platform = platformService.platform(defaultPlatformId);
+        } catch (IllegalArgumentException e) {
+            LOG.debugf("Calendar platform '%s' not available — skipping sync", defaultPlatformId);
+            return;
+        }
         var existing = mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString());
-        var platform = platformService.platform(defaultPlatformId);
         var summary = "[" + domain.name() + "] " + title;
         var description = "casehub:domain:" + domain.name();
         var timing = buildTiming(expiresAt);

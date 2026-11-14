@@ -105,7 +105,7 @@ class ExternalActorResourceTest {
     }
 
     @Test
-    void deleteActor_withNoTasks_returns204() {
+    void deleteActor_withNoTasks_returnsDeletedActor() {
         String id = given()
                 .contentType("application/json")
                 .body(ACTOR_JSON.formatted("delete"))
@@ -116,7 +116,12 @@ class ExternalActorResourceTest {
         given()
                 .when().post("/api/life/actors/{id}/delete", id)
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .body("id", equalTo(id));
+
+        given()
+                .when().get("/api/life/actors/{id}", id)
+                .then().statusCode(404);
     }
 
     @Test
