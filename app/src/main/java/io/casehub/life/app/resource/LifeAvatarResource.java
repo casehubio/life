@@ -6,6 +6,7 @@ import io.casehub.life.app.service.LifeCognitiveAgentService;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.mcp.HandWrittenEndpoint;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -26,6 +27,7 @@ public class LifeAvatarResource {
     CurrentPrincipal currentPrincipal;
 
     @POST
+    @Blocking
     @Path("/message")
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.SERVER_SENT_EVENTS)

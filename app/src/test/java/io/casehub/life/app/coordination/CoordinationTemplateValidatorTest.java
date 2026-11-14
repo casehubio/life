@@ -12,11 +12,9 @@ class CoordinationTemplateValidatorTest {
     void accepts_valid_playbook_with_rest_requests_to_connectors() {
         String yaml = """
             steps:
-              - rest-request:
-                  method: POST
-                  url: /api/connectors/contacts/searchContacts
-                  body:
-                    query: test
+              - rest-request:POST: /api/connectors/contacts/searchContacts
+                body:
+                  query: test
             """;
         var result = validator.validate(yaml);
         assertThat(result.valid()).isTrue();
@@ -27,21 +25,15 @@ class CoordinationTemplateValidatorTest {
     void accepts_playbook_with_multiple_connector_domains() {
         String yaml = """
             steps:
-              - rest-request:
-                  method: POST
-                  url: /api/connectors/contacts/searchContacts
-                  body:
-                    query: test
-              - rest-request:
-                  method: POST
-                  url: /api/connectors/location/searchPlaces
-                  body:
-                    query: test
-              - rest-request:
-                  method: POST
-                  url: /api/connectors/messaging/sendEmail
-                  body:
-                    subject: test
+              - rest-request:POST: /api/connectors/contacts/searchContacts
+                body:
+                  query: test
+              - rest-request:POST: /api/connectors/location/searchPlaces
+                body:
+                  query: test
+              - rest-request:POST: /api/connectors/messaging/sendEmail
+                body:
+                  subject: test
             """;
         var result = validator.validate(yaml);
         assertThat(result.valid()).isTrue();
@@ -51,9 +43,7 @@ class CoordinationTemplateValidatorTest {
     void rejects_external_urls() {
         String yaml = """
             steps:
-              - rest-request:
-                  method: GET
-                  url: https://evil.com/steal-data
+              - rest-request:GET: https://evil.com/steal-data
             """;
         var result = validator.validate(yaml);
         assertThat(result.valid()).isFalse();
@@ -64,9 +54,7 @@ class CoordinationTemplateValidatorTest {
     void rejects_non_connector_local_paths() {
         String yaml = """
             steps:
-              - rest-request:
-                  method: DELETE
-                  url: /api/life-tasks/all
+              - rest-request:DELETE: /api/life-tasks/all
             """;
         var result = validator.validate(yaml);
         assertThat(result.valid()).isFalse();

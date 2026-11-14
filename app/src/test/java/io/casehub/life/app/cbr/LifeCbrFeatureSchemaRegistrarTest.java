@@ -16,13 +16,13 @@ import static org.mockito.Mockito.verify;
 class LifeCbrFeatureSchemaRegistrarTest {
 
     @Test
-    void registersAllSixSchemas() {
+    void registersAllEightSchemas() {
         var store = mock(CbrRecordStore.class);
         var registrar = new LifeCbrFeatureSchemaRegistrar(store);
         registrar.onStartup(null);
 
         var captor = ArgumentCaptor.forClass(CbrRecordSchema.class);
-        verify(store, times(7)).registerSchema(captor.capture());
+        verify(store, times(8)).registerSchema(captor.capture());
 
         var caseTypes = captor.getAllValues().stream()
                 .map(CbrRecordSchema::caseType).toList();
@@ -30,7 +30,7 @@ class LifeCbrFeatureSchemaRegistrarTest {
                 "contractor-coordination", "home-maintenance",
                 "appointment-cycle", "care-coordination",
                 "financial-review", "travel-plan",
-                "playbook-triage");
+                "playbook-triage", "household-procurement");
     }
 
     @Test

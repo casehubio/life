@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -48,6 +49,28 @@ class LifeCalendarSyncServiceTest {
         conflictStore = new InMemoryLifeCalendarConflictStore();
         service = new LifeCalendarSyncService(platformService, mappingStore, conflictStore,
                 resolvedEvent, "google", "primary");
+    }
+
+    @Test
+    void syncWorkItemWithoutCalendarPlatformLeavesMappingEmpty() {
+        service = new LifeCalendarSyncService(new CalendarPlatformService(List.of()),
+                mappingStore, conflictStore, resolvedEvent, "google", "primary");
+        var workItemId = UUID.randomUUID();
+
+        service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, Instant.now());
+
+        assertThat(mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString())).isEmpty();
+    }
+
+    @Test
+    void syncWorkItemPropagatesCalendarWriteFailures() {
+        when(calendarPlatform.createEvent(eq("primary"), any(EventDetails.class)))
+                .thenThrow(new IllegalArgumentException("Invalid event"));
+        var workItemId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, Instant.now()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessage("Invalid event");
+        assertThat(mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString())).isEmpty();
     }
 
     @Test
