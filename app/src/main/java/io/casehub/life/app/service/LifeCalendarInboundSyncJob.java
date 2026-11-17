@@ -17,6 +17,7 @@ import org.jboss.logging.Logger;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -29,6 +30,7 @@ public class LifeCalendarInboundSyncJob {
     private final LifeCalendarConflictDetector conflictDetector;
     private final String defaultPlatformId;
     private final String defaultCalendarId;
+    private final String ownerActorId;
     private final int pageSize;
 
     @Inject
@@ -38,12 +40,14 @@ public class LifeCalendarInboundSyncJob {
             LifeCalendarConflictDetector conflictDetector,
             @ConfigProperty(name = "casehub.life.calendar.default-platform-id", defaultValue = "google") String defaultPlatformId,
             @ConfigProperty(name = "casehub.life.calendar.default-calendar-id", defaultValue = "primary") String defaultCalendarId,
+            @ConfigProperty(name = "casehub.life.calendar.owner-actor-id") Optional<String> ownerActorId,
             @ConfigProperty(name = "casehub.life.calendar.sync.page-size", defaultValue = "100") int pageSize) {
         this.platformService = platformService;
         this.syncStateStore = syncStateStore;
         this.conflictDetector = conflictDetector;
         this.defaultPlatformId = defaultPlatformId;
         this.defaultCalendarId = defaultCalendarId;
+        this.ownerActorId = ownerActorId.orElse(null);
         this.pageSize = pageSize;
     }
 
@@ -87,7 +91,7 @@ public class LifeCalendarInboundSyncJob {
 
         while (hasMore) {
             var request = latestToken != null ? new SyncRequest(latestToken, pageSize) : SyncRequest.initial(pageSize);
-            SyncResult<CalendarEvent> result = platform.listEventsSync(defaultCalendarId, request);
+            SyncResult<CalendarEvent> result = platform.calendarOps(ownerActorId).listEventsSync(defaultCalendarId, request);
             allItems.addAll(result.items());
             allDeleted.addAll(result.deletedIds());
             latestToken = result.syncToken();

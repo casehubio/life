@@ -18,10 +18,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -32,6 +34,7 @@ public class LifeCalendarConflictService {
     private final CalendarPlatformService platformService;
     private final EntityManager em;
     private final Event<CalendarConflictResolved> resolvedEvent;
+    private final String ownerActorId;
 
     @Inject
     public LifeCalendarConflictService(
@@ -39,12 +42,14 @@ public class LifeCalendarConflictService {
             LifeCalendarMappingStore mappingStore,
             CalendarPlatformService platformService,
             EntityManager em,
-            Event<CalendarConflictResolved> resolvedEvent) {
+            Event<CalendarConflictResolved> resolvedEvent,
+            @ConfigProperty(name = "casehub.life.calendar.owner-actor-id") Optional<String> ownerActorId) {
         this.conflictStore = conflictStore;
         this.mappingStore = mappingStore;
         this.platformService = platformService;
         this.em = em;
         this.resolvedEvent = resolvedEvent;
+        this.ownerActorId = ownerActorId.orElse(null);
     }
 
     @Transactional
@@ -105,7 +110,7 @@ public class LifeCalendarConflictService {
         var details = new EventDetails(
                 mapping.summary(), "casehub:domain:" + mapping.domain().name(),
                 null, mapping.pushedTiming(), List.of());
-        platform.updateEvent(mapping.calendarId(), mapping.calendarEventId(), details);
+        platform.calendarOps(ownerActorId).updateEvent(mapping.calendarId(), mapping.calendarEventId(), details);
     }
 
     private void dismissDeleted(LifeCalendarConflict conflict, LifeCalendarMapping mapping) {
@@ -114,7 +119,7 @@ public class LifeCalendarConflictService {
         var details = new EventDetails(
                 mapping.summary(), "casehub:domain:" + mapping.domain().name(),
                 null, mapping.pushedTiming(), List.of());
-        var created = platform.createEvent(mapping.calendarId(), details);
+        var created = platform.calendarOps(ownerActorId).createEvent(mapping.calendarId(), details);
 
         mappingStore.save(new LifeCalendarMapping(
                 mapping.id(), mapping.entityType(), mapping.entityId(),

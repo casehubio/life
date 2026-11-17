@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +34,11 @@ import static org.mockito.Mockito.when;
 
 class LifeCalendarSyncServiceTest {
 
+    private static final String OWNER_ACTOR_ID = "owner-1";
+
     CalendarPlatform calendarPlatform;
+
+    CalendarPlatform.CalendarOperations calendarOps;
     InMemoryLifeCalendarMappingStore mappingStore;
     InMemoryLifeCalendarConflictStore conflictStore;
     @SuppressWarnings("unchecked")
@@ -43,18 +48,20 @@ class LifeCalendarSyncServiceTest {
     @BeforeEach
     void setUp() {
         calendarPlatform = mock(CalendarPlatform.class);
+        calendarOps = mock(CalendarPlatform.CalendarOperations.class);
+        when(calendarPlatform.calendarOps(OWNER_ACTOR_ID)).thenReturn(calendarOps);
         var platformService = mock(CalendarPlatformService.class);
         when(platformService.platform("google")).thenReturn(calendarPlatform);
         mappingStore = new InMemoryLifeCalendarMappingStore();
         conflictStore = new InMemoryLifeCalendarConflictStore();
         service = new LifeCalendarSyncService(platformService, mappingStore, conflictStore,
-                resolvedEvent, "google", "primary");
+                resolvedEvent, "google", "primary", Optional.of(OWNER_ACTOR_ID));
     }
 
     @Test
     void syncWorkItemWithoutCalendarPlatformLeavesMappingEmpty() {
         service = new LifeCalendarSyncService(new CalendarPlatformService(List.of()),
-                mappingStore, conflictStore, resolvedEvent, "google", "primary");
+                mappingStore, conflictStore, resolvedEvent, "google", "primary", Optional.of(OWNER_ACTOR_ID));
         var workItemId = UUID.randomUUID();
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, Instant.now());
@@ -64,7 +71,7 @@ class LifeCalendarSyncServiceTest {
 
     @Test
     void syncWorkItemPropagatesCalendarWriteFailures() {
-        when(calendarPlatform.createEvent(eq("primary"), any(EventDetails.class)))
+        when(calendarOps.createEvent(eq("primary"), any(EventDetails.class)))
                 .thenThrow(new IllegalArgumentException("Invalid event"));
         var workItemId = UUID.randomUUID();
 
@@ -81,11 +88,11 @@ class LifeCalendarSyncServiceTest {
                 "casehub:domain:HEALTH", null,
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16)),
                 List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any(EventDetails.class))).thenReturn(createdEvent);
+        when(calendarOps.createEvent(eq("primary"), any(EventDetails.class))).thenReturn(createdEvent);
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
 
-        verify(calendarPlatform).createEvent(eq("primary"), any(EventDetails.class));
+        verify(calendarOps).createEvent(eq("primary"), any(EventDetails.class));
         var mapping = mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString());
         assertThat(mapping).isPresent();
         assertThat(mapping.get().calendarEventId()).isEqualTo("gcal-1");
@@ -100,13 +107,13 @@ class LifeCalendarSyncServiceTest {
                 "casehub:domain:HEALTH", null,
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16)),
                 List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
-        when(calendarPlatform.updateEvent(eq("primary"), eq("gcal-1"), any())).thenReturn(createdEvent);
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+        when(calendarOps.updateEvent(eq("primary"), eq("gcal-1"), any())).thenReturn(createdEvent);
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
         service.syncWorkItem(workItemId, "GP check-up — rescheduled", LifeDomain.HEALTH, expiresAt);
 
-        verify(calendarPlatform).updateEvent(eq("primary"), eq("gcal-1"), any(EventDetails.class));
+        verify(calendarOps).updateEvent(eq("primary"), eq("gcal-1"), any(EventDetails.class));
     }
 
     @Test
@@ -117,12 +124,12 @@ class LifeCalendarSyncServiceTest {
                 "casehub:domain:HEALTH", null,
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16)),
                 List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(createdEvent);
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
         service.removeWorkItem(workItemId);
 
-        verify(calendarPlatform).deleteEvent("primary", "gcal-1");
+        verify(calendarOps).deleteEvent("primary", "gcal-1");
         assertThat(mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, workItemId.toString())).isEmpty();
     }
 
@@ -134,8 +141,8 @@ class LifeCalendarSyncServiceTest {
                 "casehub:domain:HEALTH", null,
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16)),
                 List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
-        when(calendarPlatform.listEvents(eq("primary"), any(), any())).thenReturn(List.of(createdEvent));
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+        when(calendarOps.listEvents(eq("primary"), any(), any())).thenReturn(List.of(createdEvent));
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
         var events = service.listEvents(expiresAt.minusSeconds(86400), expiresAt.plusSeconds(86400));
@@ -154,7 +161,7 @@ class LifeCalendarSyncServiceTest {
                 null, "Home",
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 6)),
                 List.of(), null);
-        when(calendarPlatform.listEvents(eq("primary"), any(), any())).thenReturn(List.of(externalEvent));
+        when(calendarOps.listEvents(eq("primary"), any(), any())).thenReturn(List.of(externalEvent));
 
         var events = service.listEvents(from, to);
 
@@ -179,8 +186,8 @@ class LifeCalendarSyncServiceTest {
         var timing = new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16));
         var createdEvent = new CalendarEvent("gcal-1", "primary", "[HEALTH] GP check-up",
                 "casehub:domain:HEALTH", null, timing, List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
-        when(calendarPlatform.updateEvent(eq("primary"), eq("gcal-1"), any())).thenReturn(createdEvent);
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+        when(calendarOps.updateEvent(eq("primary"), eq("gcal-1"), any())).thenReturn(createdEvent);
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
 
@@ -203,7 +210,7 @@ class LifeCalendarSyncServiceTest {
         var timing = new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16));
         var createdEvent = new CalendarEvent("gcal-1", "primary", "[HEALTH] GP check-up",
                 "casehub:domain:HEALTH", null, timing, List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(createdEvent);
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(createdEvent);
 
         service.syncWorkItem(workItemId, "GP check-up", LifeDomain.HEALTH, expiresAt);
 

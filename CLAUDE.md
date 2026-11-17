@@ -417,7 +417,10 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
   (syncWorkItem, removeWorkItem) and inbound read (listEvents with mapping enrichment).
   Auto-dismisses stale DETECTED conflicts on outbound push. FK-safe conflict cleanup
   before mapping deletion. Config: `casehub.life.calendar.default-platform-id` (default
-  "google"), `casehub.life.calendar.default-calendar-id` (default "primary").
+  "google"), `casehub.life.calendar.default-calendar-id` (default "primary"),
+  `casehub.life.calendar.owner-actor-id` (optional — actor whose calendar connection
+  is used, passed to `CalendarPlatform.calendarOps(userId)` by all three calendar
+  services; unset passes `null`, i.e. the platform's default connection).
   YAML config at `casehub/life/calendar-config.yaml`.
 - `LifeCalendarConflictDetector` — `app/service/` `@ApplicationScoped`; compares
   sync results against stored pushed state. Echo detection, idempotent conflict
@@ -426,7 +429,7 @@ Note: `HouseholdTask`, `LifeGoal`, `LifeEvent` were removed in Layer 2 — they 
   WorkItem deadline + mapping) and dismiss (pushes CaseHub state back to Google).
   Fires `CalendarConflictResolved` CDI event.
 - `LifeCalendarInboundSyncJob` — `app/service/` `@ApplicationScoped`; Quartz
-  `@Scheduled(every=PT5M)` incremental sync via `CalendarPlatform.listEventsSync()`.
+  `@Scheduled(every=PT5M)` incremental sync via `CalendarPlatform.calendarOps(userId).listEventsSync()`.
   Token expiry recovery. Pagination support. Config: `casehub.life.calendar.sync.interval`,
   `casehub.life.calendar.sync.page-size`.
 - `CalendarConflictDetected` / `CalendarConflictResolved` — CDI event records in `app/event/`.
