@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,10 +32,13 @@ import static org.mockito.Mockito.when;
 
 class LifeCalendarInboundSyncJobTest {
 
+    private static final String OWNER_ACTOR_ID = "owner-1";
+
     private InMemoryLifeCalendarMappingStore mappingStore;
     private InMemoryLifeCalendarConflictStore conflictStore;
     private InMemoryLifeCalendarSyncStateStore syncStateStore;
     private CalendarPlatform platform;
+    private CalendarPlatform.CalendarOperations calendarOps;
     private LifeCalendarInboundSyncJob syncJob;
 
     private static final EventTiming ORIGINAL_TIMING =
@@ -49,19 +53,21 @@ class LifeCalendarInboundSyncJobTest {
         conflictStore = new InMemoryLifeCalendarConflictStore();
         syncStateStore = new InMemoryLifeCalendarSyncStateStore();
         platform = mock(CalendarPlatform.class);
+        calendarOps = mock(CalendarPlatform.CalendarOperations.class);
+        when(platform.calendarOps(OWNER_ACTOR_ID)).thenReturn(calendarOps);
         when(platform.id()).thenReturn("google");
         var platformService = new CalendarPlatformService(List.of(platform));
         Event<CalendarConflictDetected> detectedEvent = mock(Event.class);
         var detector = new LifeCalendarConflictDetector(mappingStore, conflictStore, detectedEvent);
         syncJob = new LifeCalendarInboundSyncJob(platformService, syncStateStore, detector,
-                "google", "primary", 100);
+                "google", "primary", Optional.of(OWNER_ACTOR_ID), 100);
     }
 
     @Test
     void executeSync_detectsConflict() {
         var mapping = seedMapping("gcal-1", "Original", ORIGINAL_TIMING);
         var changedEvent = new CalendarEvent("gcal-1", "primary", "Original", null, null, CHANGED_TIMING, List.of(), null);
-        when(platform.listEventsSync(eq("primary"), any(SyncRequest.class)))
+        when(calendarOps.listEventsSync(eq("primary"), any(SyncRequest.class)))
                 .thenReturn(new SyncResult<>(List.of(changedEvent), List.of(), "new-token", false));
 
         int count = syncJob.executeSync();
@@ -77,7 +83,7 @@ class LifeCalendarInboundSyncJobTest {
     void executeSync_usesStoredSyncToken() {
         syncStateStore.save(new LifeCalendarSyncState(
                 UUID.randomUUID(), "google", "primary", "existing-token", Instant.now()));
-        when(platform.listEventsSync(eq("primary"), any(SyncRequest.class)))
+        when(calendarOps.listEventsSync(eq("primary"), any(SyncRequest.class)))
                 .thenReturn(new SyncResult<>(List.of(), List.of(), "updated-token", false));
 
         syncJob.executeSync();
@@ -90,7 +96,7 @@ class LifeCalendarInboundSyncJobTest {
     void executeSync_handlesTokenExpiry() {
         syncStateStore.save(new LifeCalendarSyncState(
                 UUID.randomUUID(), "google", "primary", "expired-token", Instant.now()));
-        when(platform.listEventsSync(eq("primary"), any(SyncRequest.class)))
+        when(calendarOps.listEventsSync(eq("primary"), any(SyncRequest.class)))
                 .thenThrow(new SyncTokenExpiredException("expired-token", "google"))
                 .thenReturn(new SyncResult<>(List.of(), List.of(), "fresh-token", false));
 

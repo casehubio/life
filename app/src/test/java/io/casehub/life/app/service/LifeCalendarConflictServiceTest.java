@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,10 +37,13 @@ import static org.mockito.Mockito.when;
 
 class LifeCalendarConflictServiceTest {
 
+    private static final String OWNER_ACTOR_ID = "owner-1";
+
     private InMemoryLifeCalendarMappingStore mappingStore;
     private InMemoryLifeCalendarConflictStore conflictStore;
     private EntityManager em;
     private CalendarPlatform platform;
+    private CalendarPlatform.CalendarOperations calendarOps;
     @SuppressWarnings("unchecked")
     private final Event<CalendarConflictResolved> resolvedEvent = mock(Event.class);
     private LifeCalendarConflictService service;
@@ -55,9 +59,12 @@ class LifeCalendarConflictServiceTest {
         conflictStore = new InMemoryLifeCalendarConflictStore();
         em = mock(EntityManager.class);
         platform = mock(CalendarPlatform.class);
+        calendarOps = mock(CalendarPlatform.CalendarOperations.class);
+        when(platform.calendarOps(OWNER_ACTOR_ID)).thenReturn(calendarOps);
         when(platform.id()).thenReturn("google");
         var platformService = new CalendarPlatformService(List.of(platform));
-        service = new LifeCalendarConflictService(conflictStore, mappingStore, platformService, em, resolvedEvent);
+        service = new LifeCalendarConflictService(conflictStore, mappingStore, platformService, em, resolvedEvent,
+                Optional.of(OWNER_ACTOR_ID));
     }
 
     @Test
@@ -106,7 +113,7 @@ class LifeCalendarConflictServiceTest {
         var resolved = conflictStore.findById(conflict.id()).orElseThrow();
         assertThat(resolved.status()).isEqualTo(CalendarConflictStatus.DISMISSED);
 
-        verify(platform).updateEvent(eq("primary"), eq("gcal-1"), any(EventDetails.class));
+        verify(calendarOps).updateEvent(eq("primary"), eq("gcal-1"), any(EventDetails.class));
         verify(resolvedEvent).fire(any(CalendarConflictResolved.class));
     }
 
@@ -115,14 +122,14 @@ class LifeCalendarConflictServiceTest {
         var mapping = seedMapping("gcal-del", "[HEALTH] GP visit", ORIGINAL_TIMING);
         var conflict = seedConflict(mapping.id(), CalendarConflictType.DELETED, null, null);
         var newEvent = new CalendarEvent("gcal-new", "primary", "[HEALTH] GP visit", null, null, ORIGINAL_TIMING, List.of(), null);
-        when(platform.createEvent(eq("primary"), any(EventDetails.class))).thenReturn(newEvent);
+        when(calendarOps.createEvent(eq("primary"), any(EventDetails.class))).thenReturn(newEvent);
 
         service.dismiss(conflict.id());
 
         var resolved = conflictStore.findById(conflict.id()).orElseThrow();
         assertThat(resolved.status()).isEqualTo(CalendarConflictStatus.DISMISSED);
 
-        verify(platform).createEvent(eq("primary"), any(EventDetails.class));
+        verify(calendarOps).createEvent(eq("primary"), any(EventDetails.class));
 
         var updatedMapping = mappingStore.findByEntity(CalendarEntityType.WORK_ITEM, mapping.entityId());
         assertThat(updatedMapping).isPresent();

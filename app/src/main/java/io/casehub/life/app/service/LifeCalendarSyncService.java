@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -37,6 +38,7 @@ public class LifeCalendarSyncService {
     private final Event<CalendarConflictResolved> resolvedEvent;
     private final String defaultPlatformId;
     private final String defaultCalendarId;
+    private final String ownerActorId;
 
     @Inject
     public LifeCalendarSyncService(
@@ -45,13 +47,15 @@ public class LifeCalendarSyncService {
             LifeCalendarConflictStore conflictStore,
             Event<CalendarConflictResolved> resolvedEvent,
             @ConfigProperty(name = "casehub.life.calendar.default-platform-id", defaultValue = "google") String defaultPlatformId,
-            @ConfigProperty(name = "casehub.life.calendar.default-calendar-id", defaultValue = "primary") String defaultCalendarId) {
+            @ConfigProperty(name = "casehub.life.calendar.default-calendar-id", defaultValue = "primary") String defaultCalendarId,
+            @ConfigProperty(name = "casehub.life.calendar.owner-actor-id") Optional<String> ownerActorId) {
         this.platformService = platformService;
         this.mappingStore = mappingStore;
         this.conflictStore = conflictStore;
         this.resolvedEvent = resolvedEvent;
         this.defaultPlatformId = defaultPlatformId;
         this.defaultCalendarId = defaultCalendarId;
+        this.ownerActorId = ownerActorId.orElse(null);
     }
 
     public void syncWorkItem(UUID workItemId, String title, LifeDomain domain, Instant expiresAt) {
@@ -70,14 +74,14 @@ public class LifeCalendarSyncService {
 
         if (existing.isPresent()) {
             var mapping = existing.get();
-            platform.updateEvent(mapping.calendarId(), mapping.calendarEventId(), details);
+            platform.calendarOps(ownerActorId).updateEvent(mapping.calendarId(), mapping.calendarEventId(), details);
             mappingStore.save(new LifeCalendarMapping(
                     mapping.id(), mapping.entityType(), mapping.entityId(),
                     mapping.calendarPlatformId(), mapping.calendarId(), mapping.calendarEventId(),
                     domain, summary, timing, mapping.createdAt(), Instant.now()));
             autoDismissConflict(mapping);
         } else {
-            var created = platform.createEvent(defaultCalendarId, details);
+            var created = platform.calendarOps(ownerActorId).createEvent(defaultCalendarId, details);
             mappingStore.save(new LifeCalendarMapping(
                     UUID.randomUUID(), CalendarEntityType.WORK_ITEM, workItemId.toString(),
                     defaultPlatformId, defaultCalendarId, created.id(),
@@ -90,7 +94,7 @@ public class LifeCalendarSyncService {
                 .ifPresent(mapping -> {
                     try {
                         var platform = platformService.platform(mapping.calendarPlatformId());
-                        platform.deleteEvent(mapping.calendarId(), mapping.calendarEventId());
+                        platform.calendarOps(ownerActorId).deleteEvent(mapping.calendarId(), mapping.calendarEventId());
                     } catch (Exception e) {
                         LOG.warnf(e, "Failed to delete calendar event %s — orphaned event may remain", mapping.calendarEventId());
                     }
@@ -107,7 +111,7 @@ public class LifeCalendarSyncService {
         } catch (IllegalArgumentException e) {
             return List.of();
         }
-        var events = platform.listEvents(defaultCalendarId, from, to);
+        var events = platform.calendarOps(ownerActorId).listEvents(defaultCalendarId, from, to);
         return events.stream().map(this::toResponse).toList();
     }
 

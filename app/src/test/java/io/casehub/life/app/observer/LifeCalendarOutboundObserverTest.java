@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,8 +36,11 @@ import static org.mockito.Mockito.when;
 
 class LifeCalendarOutboundObserverTest {
 
+    private static final String OWNER_ACTOR_ID = "owner-1";
+
     EntityManager em;
     CalendarPlatform calendarPlatform;
+    CalendarPlatform.CalendarOperations calendarOps;
     InMemoryLifeCalendarMappingStore mappingStore;
     LifeCalendarOutboundObserver observer;
 
@@ -44,13 +48,15 @@ class LifeCalendarOutboundObserverTest {
     void setUp() {
         em = mock(EntityManager.class);
         calendarPlatform = mock(CalendarPlatform.class);
+        calendarOps = mock(CalendarPlatform.CalendarOperations.class);
+        when(calendarPlatform.calendarOps(OWNER_ACTOR_ID)).thenReturn(calendarOps);
         var platformService = mock(CalendarPlatformService.class);
         when(platformService.platform("google")).thenReturn(calendarPlatform);
         mappingStore = new InMemoryLifeCalendarMappingStore();
         @SuppressWarnings("unchecked")
         Event<CalendarConflictResolved> resolvedEvent = mock(Event.class);
         var syncService = new LifeCalendarSyncService(platformService, mappingStore,
-                new InMemoryLifeCalendarConflictStore(), resolvedEvent, "google", "primary");
+                new InMemoryLifeCalendarConflictStore(), resolvedEvent, "google", "primary", Optional.of(OWNER_ACTOR_ID));
         observer = new LifeCalendarOutboundObserver();
         observer.em = em;
         observer.syncService = syncService;
@@ -70,7 +76,7 @@ class LifeCalendarOutboundObserverTest {
                 "casehub:domain:HEALTH", null,
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16)),
                 List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(created);
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(created);
 
         var workItem = WorkItem.builder().id(workItemId).status(WorkItemStatus.PENDING).build();
         observer.onWorkItemEvent(WorkItemLifecycleEvent.of("CREATED", workItem, "life-system", null));
@@ -93,7 +99,7 @@ class LifeCalendarOutboundObserverTest {
         var workItem = WorkItem.builder().id(workItemId).status(WorkItemStatus.PENDING).build();
         observer.onWorkItemEvent(WorkItemLifecycleEvent.of("CREATED", workItem, "life-system", null));
 
-        verify(calendarPlatform, never()).createEvent(any(), any());
+        verify(calendarOps, never()).createEvent(any(), any());
     }
 
     @Test
@@ -110,7 +116,7 @@ class LifeCalendarOutboundObserverTest {
                 "casehub:domain:HEALTH", null,
                 new EventTiming.AllDay(LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 16)),
                 List.of(), null);
-        when(calendarPlatform.createEvent(eq("primary"), any())).thenReturn(created);
+        when(calendarOps.createEvent(eq("primary"), any())).thenReturn(created);
 
         var openItem = WorkItem.builder().id(workItemId).status(WorkItemStatus.PENDING).build();
         observer.onWorkItemEvent(WorkItemLifecycleEvent.of("CREATED", openItem, "life-system", null));
@@ -118,6 +124,6 @@ class LifeCalendarOutboundObserverTest {
         var completedItem = WorkItem.builder().id(workItemId).status(WorkItemStatus.COMPLETED).build();
         observer.onWorkItemEvent(WorkItemLifecycleEvent.of("COMPLETED", completedItem, "life-system", null));
 
-        verify(calendarPlatform).deleteEvent("primary", "gcal-1");
+        verify(calendarOps).deleteEvent("primary", "gcal-1");
     }
 }
